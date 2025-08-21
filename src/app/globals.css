@@ -1,26 +1,351 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+@config "../../tailwind.config.ts";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: hsl(0, 0%, 98%);
+  --foreground: hsl(240, 10%, 3.9%);
+  --muted: hsl(210, 40%, 96%);
+  --muted-foreground: hsl(215, 16%, 47%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(240, 10%, 3.9%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(240, 10%, 3.9%);
+  --border: hsl(214, 32%, 91%);
+  --input: hsl(214, 32%, 91%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(210, 40%, 96%);
+  --secondary-foreground: hsl(222, 84%, 4.9%);
+  --accent: hsl(122, 39%, 49%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(207, 90%, 54%);
+  --radius: 0.5rem;
+  
+  /* Light mode specific variables */
+  --card-hover: hsl(210, 40%, 98%);
+  --subtle-border: hsl(214, 32%, 85%);
+  --glass-bg: hsla(0, 0%, 100%, 0.8);
+  --glass-border: hsla(214, 32%, 91%, 0.5);
 }
 
-@theme inline {
+/* Map CSS variables to Tailwind v4 theme tokens */
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  
+  /* Enhanced dark mode colors */
+  --color-card-hover: var(--card-hover);
+  --color-subtle-border: var(--subtle-border);
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
+  
+  /* Optional: customize default radius scale */
+  --radius: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
 }
 
-@media (prefers-color-scheme: dark) {
+ 
+
+.dark {
+  /* Enhanced dark mode color palette for better visual hierarchy */
+  --background: hsl(240, 12%, 5%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 8%, 12%);
+  --muted-foreground: hsl(240, 6%, 70%);
+  --popover: hsl(240, 10%, 8%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 8%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 6%, 20%);
+  --input: hsl(240, 6%, 18%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(240, 6%, 16%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(122, 39%, 49%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 72%, 51%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(207, 90%, 54%);
+  --radius: 0.5rem;
+  
+  /* Additional dark mode specific variables */
+  --card-hover: hsl(240, 8%, 12%);
+  --subtle-border: hsl(240, 6%, 25%);
+  --glass-bg: hsla(240, 10%, 8%, 0.8);
+  --glass-border: hsla(240, 6%, 25%, 0.5);
+}
+
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root,
+    .dark {
+      transition: none;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .toggle-checkbox:checked {
+    right: 0;
+    border-color: hsl(207, 90%, 54%);
+  }
+  
+  .toggle-checkbox {
+    transition: all 0.3s ease;
+    right: 16px;
+  }
+  
+  .toggle-label {
+    transition: all 0.3s ease;
+  }
+
+  /* Enhanced scrollbar styling for dark mode */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--muted);
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--subtle-border);
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
+
+  /* Glass morphism effect */
+  .glass-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* Enhanced button hover effects for dark mode */
+  .btn-enhanced {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark .btn-enhanced:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 
+                0 0 20px -5px var(--primary)/20;
+    transform: translateY(-1px);
+  }
+}
+.panel {
+  padding-top: 60px;
+}
+
+/* Ensure the neon cursor canvas sits above decorative bg but below content */
+/* Only show neon cursor in dark mode */
+.neon-cursor-area canvas {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 5 !important;
+  display: block !important;
+  pointer-events: none !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Hide neon cursor canvas in light mode */
+:root:not(.dark) .neon-cursor-area canvas {
+  display: none !important;
+}
+
+/* Ensure neon cursor is visible in dark mode */
+.dark .neon-cursor-area canvas {
+  display: block !important;
+}
+
+/* Animate the neon stroke hue so it keeps changing color */
+@keyframes neonHue {
+  0% {
+    filter: hue-rotate(0deg) saturate(120%);
+  }
+  100% {
+    filter: hue-rotate(360deg) saturate(120%);
+  }
+}
+
+.neon-animate-hue {
+  filter: hue-rotate(0deg) saturate(120%);
+  animation: neonHue 12s linear infinite;
+}
+
+/* Moving border utility for feature panels */
+/* Animate hue and blur radius together (core ring) */
+@keyframes mb-hue-core {
+  0% { filter: hue-rotate(0deg)   saturate(220%) brightness(1.35) blur(var(--mb-core-blur-min, 1px)); }
+  50%{ filter: hue-rotate(180deg) saturate(220%) brightness(1.35) blur(var(--mb-core-blur-max, 2px)); }
+  100%{filter: hue-rotate(360deg) saturate(220%) brightness(1.35) blur(var(--mb-core-blur-min, 1px)); }
+}
+
+/* Animate hue and blur radius together (outer glow) */
+@keyframes mb-hue-glow {
+  0% { filter: hue-rotate(0deg)   saturate(220%) brightness(1.35) blur(var(--mb-glow-min, 12px)); }
+  50%{ filter: hue-rotate(180deg) saturate(220%) brightness(1.35) blur(var(--mb-glow-max, 20px)); }
+  100%{filter: hue-rotate(360deg) saturate(220%) brightness(1.35) blur(var(--mb-glow-min, 12px)); }
+}
+
+/* Animate box shadow colors */
+@keyframes mb-shadow-colors {
+  0% { 
+    --shadow-glow-1: rgba(59, 130, 246, 0.4);   /* Blue */
+    --shadow-glow-2: rgba(147, 51, 234, 0.3);   /* Purple */
+    --shadow-glow-3: rgba(236, 72, 153, 0.25);  /* Pink */
+  }
+  25% { 
+    --shadow-glow-1: rgba(147, 51, 234, 0.4);   /* Purple */
+    --shadow-glow-2: rgba(236, 72, 153, 0.3);   /* Pink */
+    --shadow-glow-3: rgba(244, 63, 94, 0.25);   /* Rose */
+  }
+  50% { 
+    --shadow-glow-1: rgba(236, 72, 153, 0.4);   /* Pink */
+    --shadow-glow-2: rgba(244, 63, 94, 0.3);    /* Rose */
+    --shadow-glow-3: rgba(245, 158, 11, 0.25);  /* Orange */
+  }
+  75% { 
+    --shadow-glow-1: rgba(244, 63, 94, 0.4);    /* Rose */
+    --shadow-glow-2: rgba(245, 158, 11, 0.3);   /* Orange */
+    --shadow-glow-3: rgba(34, 197, 94, 0.25);   /* Green */
+  }
+  100% { 
+    --shadow-glow-1: rgba(59, 130, 246, 0.4);   /* Blue */
+    --shadow-glow-2: rgba(147, 51, 234, 0.3);   /* Purple */
+    --shadow-glow-3: rgba(236, 72, 153, 0.25);  /* Pink */
+  }
+}
+
+.moving-border {
+  position: relative;
+  z-index: 0;
+  /* Default colors; can be overridden per element via CSS variables */
+  --mb-size: 2px; /* border thickness */
+  /* Shadow defaults (customize per element if needed) */
+  --mb-shadow-color: rgba(0, 0, 0, 0.15);
+  --mb-shadow-y: 8px;
+  --mb-shadow-blur: 25px;
+  --mb-shadow-spread: -8px;
+  
+  /* Animated shadow colors - initialized */
+  --shadow-glow-1: rgba(59, 130, 246, 0.4);   /* Blue */
+  --shadow-glow-2: rgba(147, 51, 234, 0.3);   /* Purple */
+  --shadow-glow-3: rgba(236, 72, 153, 0.25);  /* Pink */
+  
+  /* Apply the animated box shadow */
+  box-shadow:
+    0 var(--mb-shadow-y) var(--mb-shadow-blur) var(--mb-shadow-spread) var(--mb-shadow-color),
+    0 0 20px 0 var(--shadow-glow-1),
+    0 0 40px 0 var(--shadow-glow-2),
+    0 0 60px 0 var(--shadow-glow-3);
+    
+  /* Animate the shadow colors */
+  animation: mb-shadow-colors var(--mb-shadow-duration, 6s) ease-in-out infinite;
+}
+
+.moving-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: var(--mb-size);
+  border-radius: inherit;
+  background: conic-gradient(
+    var(--mb-color-1),
+    var(--mb-color-2),
+    var(--mb-color-1)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: mb-hue-core var(--mb-duration, 3s) linear infinite;
+  will-change: filter;
+  filter: hue-rotate(0deg) saturate(220%) brightness(1.35) blur(var(--mb-core-blur-min, 1px));
+  opacity: var(--mb-opacity, 0.95);
+  pointer-events: none;
+}
+
+/* Soft neon glow outside the ring */
+.moving-border::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: var(--mb-size);
+  border-radius: inherit;
+  background: conic-gradient(
+    var(--mb-color-1),
+    var(--mb-color-2),
+    var(--mb-color-1)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  filter: hue-rotate(0deg) saturate(220%) brightness(1.35) blur(var(--mb-glow-min, 12px));
+  animation: mb-hue-glow var(--mb-duration, 3s) linear infinite;
+  opacity: var(--mb-glow-opacity, 0.65);
+  pointer-events: none;
 }

@@ -1,0 +1,12 @@
+export { default as LandingNavigation } from './LandingNavigation';
+export { default as HeroSection } from './HeroSection';
+export { default as SocialProofSection } from './SocialProofSection';
+export { default as ProblemStatementSection } from './ProblemStatementSection';
+export { default as HowItWorksSection } from './HowItWorksSection';
+export { default as TestimonialsSection } from './TestimonialsSection';
+export { default as FeaturesSection } from './FeaturesSection';
+export { default as ROISection } from './ROISection';
+export { default as PricingSection } from './PricingSection';
+export { default as ContactSection } from './ContactSection';
+export { default as FooterSection } from './FooterSection'; 
+export { default as FAQSection } from './FAQSection';
