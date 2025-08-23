@@ -4,6 +4,7 @@
  */
 
 // Core Organization Node Interface
+
 export interface OrganizationNode {
   id: string;
   name: string;
@@ -45,7 +46,7 @@ export interface OrganizationMetadata {
   location?: string;
   costCenter?: string;
   timezone?: string;
-  customFields?: { [key: string]: any };
+  customFields?: any;
 }
 
 // Complete organization hierarchy response

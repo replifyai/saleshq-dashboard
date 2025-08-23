@@ -1,5 +1,5 @@
-import PracticePanel from '@/components/practice';
+import ModuleList from '@/components/modules/ModuleList';
 
 export default function PracticePage() {
-  return <PracticePanel />;
+  return <ModuleList />;
 }

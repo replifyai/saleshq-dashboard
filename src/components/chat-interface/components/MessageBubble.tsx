@@ -26,6 +26,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         description: "Message copied to clipboard",
       });
     } catch (error) {
+      console.log("🚀 ~ handleCopyMessage ~ error:", error);
       toast({
         title: "Error",
         description: "Failed to copy message",

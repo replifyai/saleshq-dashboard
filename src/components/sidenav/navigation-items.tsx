@@ -6,6 +6,7 @@ interface NavigationItemsProps {
   activeTab: string;
   onNavigate: (path: string) => void;
   isMobile?: boolean;
+  isCollapsed?: boolean;
 }
 
 const navigationTabs = [
@@ -65,7 +66,7 @@ const navigationTabs = [
   },
 ];
 
-export function NavigationItems({ activeTab, onNavigate, isMobile = false }: NavigationItemsProps) {
+export function NavigationItems({ activeTab, onNavigate, isMobile = false, isCollapsed = false }: NavigationItemsProps) {
   const { handleNavigate } = useSideNav();
   return (
     <div className="space-y-1">
@@ -90,13 +91,15 @@ export function NavigationItems({ activeTab, onNavigate, isMobile = false }: Nav
                 }
               `}
             >
-              <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
-              <div className="text-left flex-1">
-                <div className="font-medium">{tab.label}</div>
-                {!isMobile && (
-                  <div className="text-xs opacity-70">{tab.description}</div>
-                )}
-              </div>
+              <Icon className={`${isCollapsed ? 'mx-auto' : 'mr-3'} h-5 w-5 flex-shrink-0`} />
+              {!isCollapsed && (
+                <div className="text-left flex-1">
+                  <div className="font-medium">{tab.label}</div>
+                  {!isMobile && (
+                    <div className="text-xs opacity-70">{tab.description}</div>
+                  )}
+                </div>
+              )}
             </Button>
           );
         })}
@@ -109,13 +112,15 @@ export function NavigationItems({ activeTab, onNavigate, isMobile = false }: Nav
             variant="ghost"
             className="w-full justify-start px-3 py-2 h-auto text-sm font-medium rounded-lg transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
           >
-            <Home className="mr-3 h-5 w-5 flex-shrink-0" />
-            <div className="text-left flex-1">
-              <div className="font-medium">Back to Landing</div>
-              {!isMobile && (
-                <div className="text-xs opacity-70">Return to homepage</div>
-              )}
-            </div>
+            <Home className={`${isCollapsed ? 'mx-auto' : 'mr-3'} h-5 w-5 flex-shrink-0`} />
+            {!isCollapsed && (
+              <div className="text-left flex-1">
+                <div className="font-medium">Back to Landing</div>
+                {!isMobile && (
+                  <div className="text-xs opacity-70">Return to homepage</div>
+                )}
+              </div>
+            )}
           </Button>
         </Link>
       </div>

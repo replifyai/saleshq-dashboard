@@ -4,6 +4,9 @@ import { createContext, useContext, useEffect, useState } from "react";
 type SideNavContextValue = {
     activeTab: string;
     handleNavigate: (tab: string) => void;
+    isCollapsed: boolean;
+    toggleCollapsed: () => void;
+    setCollapsed: (collapsed: boolean) => void;
 };
 export const SideNavContext = createContext<SideNavContextValue | null>(null);
 const getActiveTab = (pathname: string): string => {
@@ -37,6 +40,7 @@ export const useSideNav = (): SideNavContextValue => {
 export const SideNavProvider = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
     const [activeTab, setActiveTab] = useState(getActiveTab(pathname));
+    const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
     const router = useRouter();
 
     const handleNavigate = (value: string) => {
@@ -50,8 +54,29 @@ export const SideNavProvider = ({ children }: { children: React.ReactNode }) => 
         setActiveTab(getActiveTab(pathname));
     }, [pathname]);
 
+    // Initialize and persist collapsed state
+    useEffect(() => {
+        try {
+            const stored = typeof window !== 'undefined' ? window.localStorage.getItem('sideNav.collapsed') : null;
+            if (stored !== null) {
+                setIsCollapsed(stored === 'true');
+            }
+        } catch {}
+    }, []);
+
+    useEffect(() => {
+        try {
+            if (typeof window !== 'undefined') {
+                window.localStorage.setItem('sideNav.collapsed', String(isCollapsed));
+            }
+        } catch {}
+    }, [isCollapsed]);
+
+    const toggleCollapsed = () => setIsCollapsed(prev => !prev);
+    const setCollapsed = (collapsed: boolean) => setIsCollapsed(collapsed);
+
     return (
-        <SideNavContext.Provider value={{ activeTab, handleNavigate }}>
+        <SideNavContext.Provider value={{ activeTab, handleNavigate, isCollapsed, toggleCollapsed, setCollapsed }}>
             {children}
         </SideNavContext.Provider>
     );

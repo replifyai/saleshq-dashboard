@@ -1,4 +1,3 @@
-'use client'
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -121,7 +120,7 @@ export default function ProductMediaViewer({ product, trigger, initialMediaType 
               </p> */}
               <div className="space-y-2">
                 {currentItems.map((mediaData) => (
-                  <div key={`${mediaData.item.name}-${mediaData.mediaIndex}`}>
+                  <div key={`${mediaData.item.id || mediaData.item.name}-${mediaData.mediaIndex}-${mediaData.url}`}>
                   <button
                     onClick={() => handleMediaSelect(mediaData.item, mediaData.mediaIndex)}
                     className="w-full flex items-center gap-3 p-3 rounded-lg text-left border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200 hover:shadow-md"

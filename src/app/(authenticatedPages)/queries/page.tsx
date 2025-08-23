@@ -60,7 +60,7 @@ export default function Queries() {
         title: "Refreshed",
         description: "Queries data has been updated.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
         description: "Failed to refresh data. Please try again.",

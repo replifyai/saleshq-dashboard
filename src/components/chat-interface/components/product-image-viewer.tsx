@@ -28,6 +28,7 @@ export default function ProductImageViewer({ product, trigger }: ProductImageVie
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
   const [isPreloading, setIsPreloading] = useState(false);
+  const contentRef = React.useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
 
   // Use shared media hook - with error handling
@@ -222,6 +223,17 @@ export default function ProductImageViewer({ product, trigger }: ProductImageVie
   const handleImageSelect = (image: ProductImage) => {
     console.log('🖼️ Selecting image:', image.name, 'Preloaded:', preloadedImages.has(image.url));
     setSelectedImage(image);
+    // Ensure we start at the top of the preview view
+    if (contentRef.current) {
+      contentRef.current.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  };
+
+  const handleBackToSelection = () => {
+    setSelectedImage(null);
+    if (contentRef.current) {
+      contentRef.current.scrollTo({ top: 0, behavior: 'auto' });
+    }
   };
 
   return (
@@ -259,7 +271,7 @@ export default function ProductImageViewer({ product, trigger }: ProductImageVie
           </div>
         </DialogHeader>
 
-        <div className="flex-1 space-y-4 min-h-0 overflow-y-auto relative">
+        <div ref={contentRef} className="flex-1 space-y-4 min-h-0 overflow-y-auto relative">
           {isLoading ? (
             <div className="space-y-3">
               <div className="text-center py-2">
@@ -293,7 +305,7 @@ export default function ProductImageViewer({ product, trigger }: ProductImageVie
             </div>
           ) : !selectedImage ? (
             /* Image Selection View */
-            <div className="space-y-4">
+            <div key="list" className="space-y-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Click on an image name to preview it:
                 {isPreloading && (
@@ -326,13 +338,13 @@ export default function ProductImageViewer({ product, trigger }: ProductImageVie
             </div>
           ) : (
             /* Image Preview View */
-            <div className="space-y-4">
+            <div key="preview" className="space-y-4">
               {/* Back to selection */}
               <div className="flex items-center justify-between sticky top-0 bg-white dark:bg-gray-900 z-10 shadow-sm">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setSelectedImage(null)}
+                  onClick={handleBackToSelection}
                   className="text-sm"
                 >
                   ← Back to selection

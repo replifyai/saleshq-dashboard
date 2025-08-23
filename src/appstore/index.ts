@@ -18,7 +18,7 @@ export const store = configureStore({
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
       },
     }),
-  devTools: process.env.DEV,
+  devTools: process.env.NEXT_PUBLIC_ENV === 'development',
 });
 
 export type RootState = ReturnType<typeof store.getState>;
