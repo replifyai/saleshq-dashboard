@@ -23,7 +23,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({ product, showLabel =
         )}
         {images > 0 && (
           <ProductImageViewer
-            product={{ id: product.id, name: product.name }} as any
+            product={{ id: product.id, name: product.name }}
             trigger={
               <MediaButton
                 type="image"
@@ -35,7 +35,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({ product, showLabel =
         )}
         {videos > 0 && (
           <ProductVideoViewer
-            product={{ id: product.id, name: product.name }} as any
+            product={{ id: product.id, name: product.name }}
             trigger={
               <MediaButton
                 type="video"
