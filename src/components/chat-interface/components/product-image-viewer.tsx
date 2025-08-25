@@ -13,7 +13,9 @@ import {
   Copy,
   ImageIcon,
   Link,
-  Check
+  Check,
+  ArrowLeft as IconArrowLeft,
+  ArrowRight as IconArrowRight,
 } from "lucide-react";
 import { type BasicProduct, type ProductImage } from "@/lib/apiUtils";
 
@@ -236,6 +238,24 @@ export default function ProductImageViewer({ product, trigger }: ProductImageVie
     }
   };
 
+  // Navigation helpers for image preview (left/right)
+  const getCurrentImageIndex = (): number => {
+    if (!selectedImage) return -1;
+    return images.findIndex((img) => img.url === selectedImage.url);
+  };
+
+  const goImage = (delta: number) => {
+    if (!selectedImage || images.length <= 1) return;
+    const idx = getCurrentImageIndex();
+    if (idx === -1) return;
+    const nextIdx = (idx + delta + images.length) % images.length;
+    const next = images[nextIdx];
+    setSelectedImage(next);
+  };
+
+  const handlePrevImage = () => goImage(-1);
+  const handleNextImage = () => goImage(1);
+
   return (
     <Dialog open={isOpen} onOpenChange={handleOpen}>
       <DialogTrigger asChild>
@@ -354,16 +374,35 @@ export default function ProductImageViewer({ product, trigger }: ProductImageVie
                 </Badge>
               </div>
                 {/* Image preview */}
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900">
+                <div className="relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900">
                   <img
                     src={selectedImage.url}
                     alt={selectedImage.name}
                     className="w-full max-h-96 object-contain"
                     style={{
-                      // Ensure instant display if preloaded
                       opacity: preloadedImages.has(selectedImage.url) ? 1 : 0.9
                     }}
                   />
+                  {images.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        aria-label="Previous image"
+                        onClick={handlePrevImage}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-900/70 hover:bg-white dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200 rounded-full p-2 shadow"
+                      >
+                        <IconArrowLeft className="w-5 h-5" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Next image"
+                        onClick={handleNextImage}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-900/70 hover:bg-white dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200 rounded-full p-2 shadow"
+                      >
+                        <IconArrowRight className="w-5 h-5" />
+                      </button>
+                    </>
+                  )}
                 </div>
 
                 {/* Image details and actions */}

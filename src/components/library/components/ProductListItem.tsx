@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Package } from 'lucide-react';
+import { Package, FileSearch } from 'lucide-react';
 import { FileIcon } from '../atoms/FileIcon';
 import ProductMediaViewer from './product-media-viewer';
 import { MediaButton } from '../atoms/MediaButton';
@@ -36,18 +36,25 @@ export const ProductListItem: React.FC<ProductListItemProps> = ({ product }) => 
           <div className="flex items-center space-x-4">
             {/* Files Preview */}
             <div className="flex items-center space-x-2">
-              {product.files.slice(0, 4).map((file, idx) => (
-                <a 
-                  key={idx}
-                  href={file.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:text-blue-600 dark:hover:text-blue-300" 
-                  title={file.filename}
-                >
-                  <FileIcon filename={file.filename} />
-                </a>
-              ))}
+              {product.files.slice(0, 4).map((file, idx) => {
+                const isQueryPdf = (file as any).storagePath?.startsWith('generated-pdfs');
+                return (
+                  <a 
+                    key={idx}
+                    href={file.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className={`hover:text-blue-600 dark:hover:text-blue-300`} 
+                    title={isQueryPdf ? 'Query PDF' : file.filename}
+                  >
+                    {isQueryPdf ? (
+                      <FileSearch className="h-4 w-4 text-purple-600" />
+                    ) : (
+                      <FileIcon filename={file.filename} />
+                    )}
+                  </a>
+                );
+              })}
               {product.files.length > 4 && (
                 <span className="text-xs text-gray-400 dark:text-gray-500">
                   +{product.files.length - 4}

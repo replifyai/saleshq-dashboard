@@ -116,43 +116,13 @@ class AuthService {
     return tokens.expiresAt > Date.now() + (5 * 60 * 1000);
   }
 
-  // Get current access token, refresh if needed
+  // Get current access token (do not proactively refresh; refresh on 401 only)
   async getAccessToken(): Promise<string | null> {
     const tokens = this.getTokens();
-    if (!tokens) return null;
-
-    // If token is still valid, return it
-    if (tokens.expiresAt > Date.now() + (5 * 60 * 1000)) {
-      return tokens.idToken;
-    }
-
-    // If already refreshing, wait for that promise
-    if (this.refreshTokenPromise) {
-      try {
-        console.log('🔄 Waiting for existing token refresh...');
-        return await this.refreshTokenPromise;
-      } catch {
-        return null;
-      }
-    }
-
-    // Start refresh process
-    console.log('🔄 Starting token refresh...');
-    this.refreshTokenPromise = this.refreshToken(tokens.refreshToken, tokens.idToken);
-    try {
-      const newToken = await this.refreshTokenPromise;
-      this.refreshTokenPromise = null;
-      console.log('✅ Token refresh successful');
-      return newToken;
-    } catch {
-      this.refreshTokenPromise = null;
-      this.clearTokens();
-      return null;
-    }
+    return tokens?.idToken ?? null;
   }
-
-  // Login with email and password
-  async login(credentials: LoginRequest): Promise<LoginResponse> {
+   // Login with email and password
+   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
       headers: {
@@ -172,16 +142,16 @@ class AuthService {
     return data;
   }
 
-  // Refresh access token
+  // Refresh access token (Authorization: Bearer <refreshToken>, body: { idToken })
   private async refreshToken(refreshToken: string, currentIdToken: string): Promise<string> {
     console.log('🔄 Calling refresh token API...');
     const response = await fetch(`${API_BASE_URL}/refresh`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${currentIdToken}`,
+        'Authorization': `Bearer ${refreshToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ refreshToken }),
+      body: JSON.stringify({ idToken: currentIdToken }),
     });
 
     if (!response.ok) {
@@ -210,109 +180,55 @@ class AuthService {
 
   // Make authenticated API request with automatic token refresh and retry logic
   async authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
-    const token = await this.getAccessToken();
-    
-    if (!token) {
+    const tokens = this.getTokens();
+    if (!tokens) {
       console.log('❌ No valid authentication token available');
       throw new Error('No valid authentication token');
     }
 
-    // Make the initial request
-    console.log(`🌐 Making API request to: ${url}`);
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        ...options.headers,
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    let attempt = 0;
+    let currentToken = tokens.idToken;
 
-    // If we get a 401, check for specific session expired error
-    if (response.status === 401) {
+    while (attempt <= 2) {
+      console.log(`🌐 Making API request to: ${url} (attempt ${attempt + 1})`);
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+          'Authorization': `Bearer ${currentToken}`,
+        },
+      });
+
+      if (response.status !== 401) {
+        return response;
+      }
+
+      // 401 -> attempt refresh and retry
+      attempt += 1;
+      if (attempt > 2) break;
+
       try {
-        // Try to read the response body to check for session expired message
-        const responseText = await response.text();
-        let errorData;
-        
-        try {
-          errorData = JSON.parse(responseText);
-        } catch {
-          // If JSON parsing fails, treat as regular 401
-          errorData = null;
+        if (this.refreshTokenPromise) {
+          currentToken = await this.refreshTokenPromise;
+        } else {
+          this.refreshTokenPromise = this.refreshToken(tokens.refreshToken, currentToken);
+          currentToken = await this.refreshTokenPromise;
+          this.refreshTokenPromise = null;
         }
-
-        // Check if it's the specific session expired error
-        if (errorData && errorData.error === "Session expired, please login again.") {
-          console.log('❌ Session expired, redirecting to login');
-          this.clearTokens();
-          window.location.href = '/login';
-          throw new Error('Session expired, please login again.');
-        }
-
-        // For other 401 errors, try to refresh the token and retry
-        console.log('🔄 Got 401, attempting token refresh and retry...');
-        try {
-          // Get fresh tokens - this will handle concurrent refresh attempts
-          const newToken = await this.getAccessToken();
-          
-          if (!newToken) {
-            throw new Error('Failed to get new token after refresh');
-          }
-          
-          // Retry the original request with the new token
-          console.log(`🔄 Retrying API request to: ${url}`);
-          const retryResponse = await fetch(url, {
-            ...options,
-            headers: {
-              ...options.headers,
-              'Authorization': `Bearer ${newToken}`,
-            },
-          });
-
-          console.log(`✅ Retry successful: ${retryResponse.status}`);
-          return retryResponse;
-        } catch (refreshError) {
-          // If refresh fails, clear tokens and redirect to login
-          console.log('❌ Token refresh failed, redirecting to login');
-          this.clearTokens();
-          window.location.href = '/login';
-          throw new Error('Authentication failed - redirecting to login');
-        }
-      } catch (error) {
-        // If we can't read the response body, treat as regular 401 with refresh attempt
-        if (error instanceof Error && error.message === 'Session expired, please login again.') {
-          // Re-throw the session expired error
-          throw error;
-        }
-        
-        // For other errors reading response, try token refresh
-        console.log('🔄 Got 401, attempting token refresh and retry...');
-        try {
-          const newToken = await this.getAccessToken();
-          
-          if (!newToken) {
-            throw new Error('Failed to get new token after refresh');
-          }
-          
-          const retryResponse = await fetch(url, {
-            ...options,
-            headers: {
-              ...options.headers,
-              'Authorization': `Bearer ${newToken}`,
-            },
-          });
-
-          console.log(`✅ Retry successful: ${retryResponse.status}`);
-          return retryResponse;
-        } catch (refreshError) {
-          console.log('❌ Token refresh failed, redirecting to login');
-          this.clearTokens();
-          window.location.href = '/login';
-          throw new Error('Authentication failed - redirecting to login');
-        }
+        // loop continues to retry request with new token
+      } catch (e) {
+        console.log('❌ Token refresh failed, redirecting to login');
+        this.refreshTokenPromise = null;
+        this.clearTokens();
+        window.location.href = '/login';
+        throw new Error('Authentication failed - redirecting to login');
       }
     }
-    return response;
+
+    // Retries exhausted
+    this.clearTokens();
+    window.location.href = '/login';
+    throw new Error('Authentication failed after retries');
   }
 }
 

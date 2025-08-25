@@ -15,7 +15,9 @@ import {
   Check,
   Play,
   Clock,
-  FileVideo
+  FileVideo,
+  ArrowLeft as IconArrowLeft,
+  ArrowRight as IconArrowRight
 } from "lucide-react";
 import { type BasicProduct, type ProductVideo } from "@/lib/apiUtils";
 
@@ -29,6 +31,7 @@ export default function ProductVideoViewer({ product, trigger }: ProductVideoVie
   const [selectedVideo, setSelectedVideo] = useState<ProductVideo | null>(null);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const videoRef = React.useRef<HTMLVideoElement | null>(null);
 
   // Use shared media hook - with error handling
   const { videos, isLoading, error, productName } = useProductMedia(product, isOpen);
@@ -51,6 +54,21 @@ export default function ProductVideoViewer({ product, trigger }: ProductVideoVie
     console.log('🎥 Selecting video:', video.name);
     setSelectedVideo(video);
   };
+
+  // Prev/Next navigation for videos
+  const getCurrentVideoIndex = (): number => {
+    if (!selectedVideo) return -1;
+    return videos.findIndex((v) => v.url === selectedVideo.url);
+  };
+  const goVideo = (delta: number) => {
+    if (!selectedVideo || videos.length <= 1) return;
+    const idx = getCurrentVideoIndex();
+    if (idx === -1) return;
+    const nextIdx = (idx + delta + videos.length) % videos.length;
+    setSelectedVideo(videos[nextIdx]);
+  };
+  const handlePrevVideo = () => goVideo(-1);
+  const handleNextVideo = () => goVideo(1);
 
   const handleCopyUrl = async (url: string) => {
     try {
@@ -111,6 +129,18 @@ export default function ProductVideoViewer({ product, trigger }: ProductVideoVie
       setCopiedUrl(null);
     }
   };
+
+  // Reload video element when selectedVideo changes so the player updates
+  React.useEffect(() => {
+    if (selectedVideo && videoRef.current) {
+      try {
+        videoRef.current.pause();
+        videoRef.current.load();
+      } catch (_) {
+        // no-op
+      }
+    }
+  }, [selectedVideo]);
 
   const formatDuration = (seconds?: number) => {
     if (!seconds) return 'Unknown';
@@ -253,7 +283,7 @@ export default function ProductVideoViewer({ product, trigger }: ProductVideoVie
               </div>
 
               {/* Video player */}
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-black">
+              <div className="relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-black">
                 <video
                   controls
                   className="w-full max-h-96"
@@ -261,12 +291,33 @@ export default function ProductVideoViewer({ product, trigger }: ProductVideoVie
                   onError={(e) => {
                     console.error('🎥 Video loading error:', e);
                   }}
+                  ref={videoRef}
                 >
                   <source src={selectedVideo.url} type="video/mp4" />
                   <source src={selectedVideo.url} type="video/webm" />
                   <source src={selectedVideo.url} type="video/ogg" />
                   Your browser does not support the video tag.
                 </video>
+                {videos.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Previous video"
+                      onClick={handlePrevVideo}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-900/70 hover:bg-white dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200 rounded-full p-2 shadow"
+                    >
+                      <IconArrowLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Next video"
+                      onClick={handleNextVideo}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-900/70 hover:bg-white dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200 rounded-full p-2 shadow"
+                    >
+                      <IconArrowRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* Video details and actions */}

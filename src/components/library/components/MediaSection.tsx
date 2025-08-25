@@ -1,5 +1,6 @@
 import React from 'react';
-import ProductMediaViewer from './product-media-viewer';
+import ProductImageViewer from '@/components/chat-interface/components/product-image-viewer';
+import ProductVideoViewer from '@/components/chat-interface/components/product-video-viewer';
 import { MediaButton } from '../atoms/MediaButton';
 import { getMediaCounts } from '../utils/libraryUtils';
 import type { Product } from '@/lib/apiUtils';
@@ -21,9 +22,8 @@ export const MediaSection: React.FC<MediaSectionProps> = ({ product, showLabel =
           <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Media:</span>
         )}
         {images > 0 && (
-          <ProductMediaViewer
-            product={product}
-            initialMediaType="image"
+          <ProductImageViewer
+            product={{ id: product.id, name: product.name }} as any
             trigger={
               <MediaButton
                 type="image"
@@ -34,9 +34,8 @@ export const MediaSection: React.FC<MediaSectionProps> = ({ product, showLabel =
           />
         )}
         {videos > 0 && (
-          <ProductMediaViewer
-            product={product}
-            initialMediaType="video"
+          <ProductVideoViewer
+            product={{ id: product.id, name: product.name }} as any
             trigger={
               <MediaButton
                 type="video"
