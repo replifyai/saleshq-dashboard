@@ -27,7 +27,7 @@ export const QueriesTable: React.FC<QueriesTableProps> = ({
             <TableHead>Status</TableHead>
             <TableHead>Query</TableHead>
             <TableHead>User</TableHead>
-            <TableHead>Priority</TableHead>
+            {/* <TableHead>Priority</TableHead> */}
             <TableHead>Timestamp</TableHead>
             <TableHead className="text-center">Actions</TableHead>
           </TableRow>
@@ -50,7 +50,7 @@ export const QueriesTable: React.FC<QueriesTableProps> = ({
                     <User className="h-4 w-4 text-gray-400" />
                     <div>
                       <div className="text-sm font-medium">
-                        {query.userEmail || 'Anonymous'}
+                        {query.userName || 'Anonymous'}
                       </div>
                       {/* {query.userId && (
                         <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -60,9 +60,9 @@ export const QueriesTable: React.FC<QueriesTableProps> = ({
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   <PriorityBadge priority={query.priority} />
-                </TableCell>
+                </TableCell> */}
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-gray-400" />

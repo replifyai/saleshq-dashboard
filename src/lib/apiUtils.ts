@@ -111,6 +111,7 @@ export interface UnansweredQuery {
   priority: string;
   messageRef: string;
   productName: string;
+  userName: string;
 }
 
 export interface UserProfile {
@@ -568,12 +569,13 @@ export const queriesApi = {
         message: q.message,
         timestamp: q.timestamp,
         userId: q.userId,
-        userEmail: q.userEmail || q.email,
+        // userEmail: q.userEmail || q.email,
         context: q.context,
         status: q.status,
         priority: q.priority || 'medium',
         messageRef: q.messageRef,
         productName: q.productId,
+        userName: q.userName,
       })) || [],
       totalCount: data.totalCount || 0,
       page: data.page || pageNumber.toString(),
