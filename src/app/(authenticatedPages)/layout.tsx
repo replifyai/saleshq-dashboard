@@ -19,7 +19,7 @@ export default function Layout({
 
         {/* Main content area */}
         <main className="flex-1 relative overflow-y-auto focus:outline-none bg-gray-50 dark:bg-gray-900">
-          <div className="h-full p-2">
+          <div className="h-full">
             {children}
           </div>
         </main>
