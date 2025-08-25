@@ -28,6 +28,7 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
   const [selectedPdf, setSelectedPdf] = useState<ModuleFile | null>(null);
   const [selectedQuiz, setSelectedQuiz] = useState<ModuleFile | null>(null);
   const [activeTab, setActiveTab] = useState<'knowledge' | 'test'>('knowledge');
+  const [hideTabs, setHideTabs] = useState(false);
   const [subModules, setSubModules] = useState<SubModule[]>([]);
 
   useEffect(() => {
@@ -78,6 +79,11 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
     setActiveTab('test');
   };
 
+  const handleQuizBack = () => {
+    setSelectedQuiz(null);
+    setHideTabs(false);
+  };
+
   const handlePdfSelect = (pdf: ModuleFile) => {
     setSelectedPdf(pdf);
   };
@@ -122,21 +128,20 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
 
       {/* Tabs with compact list */}
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'knowledge' | 'test')}>
-        <div className="flex items-center justify-between mb-2">
-          <TabsList className="mb-2">
-            <TabsTrigger value="knowledge" className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              Knowledge
-            </TabsTrigger>
-            <TabsTrigger value="test" className="flex items-center gap-2">
-              <GraduationCap className="h-4 w-4" />
-              Test
-            </TabsTrigger>
-          </TabsList>
-          <Button variant="ghost" size="sm" onClick={handleFullscreen} className="ml-auto">
-            <Maximize2 className="h-4 w-4" />
-          </Button>
-        </div>
+        {/* {!hideTabs && (
+          <div className="flex items-center justify-between mb-2">
+            <TabsList className="mb-2">
+              <TabsTrigger value="knowledge" className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                Knowledge
+              </TabsTrigger>
+              <TabsTrigger value="test" className="flex items-center gap-2">
+                <GraduationCap className="h-4 w-4" />
+                Test
+              </TabsTrigger>
+            </TabsList>
+          </div>
+        )} */}
         {/* Knowledge Tab */}
         <TabsContent value="knowledge" className="h-full">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 h-full">
@@ -254,7 +259,8 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
             <ModuleQuiz
               moduleId={moduleId}
               quizFile={selectedQuiz}
-              onBack={() => setSelectedQuiz(null)}
+              onBack={handleQuizBack}
+              onResultsVisibilityChange={(visible) => setHideTabs(visible)}
             />
           ) : (
             <>
@@ -267,41 +273,45 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
                   </p>
                 </Card>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {quizFiles.map((quiz) => (
-                    <Card key={quiz.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                            <GraduationCap className="h-6 w-6 text-green-600 dark:text-green-400" />
-                          </div>
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
-                            {quiz.questionsCount} questions
-                          </span>
-                        </div>
-                        <CardTitle className="text-lg truncate">{quiz.name}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex items-center gap-4 mb-4 text-sm text-gray-600 dark:text-gray-400">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-4 w-4" />
-                            ~{Math.ceil((quiz.questionsCount || 10) * 1.5)} mins
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <CheckCircle2 className="h-4 w-4" />
-                            Multiple Choice
-                          </span>
-                        </div>
-                        <Button
-                          className="w-full"
-                          onClick={() => handleStartQuiz(quiz)}
-                        >
-                          <PlayCircle className="h-4 w-4 mr-2" />
-                          Start Test
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="lg:col-span-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {quizFiles.map((quiz) => (
+                        <Card key={quiz.id} className="hover:shadow-lg transition-shadow">
+                          <CardHeader>
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                                <GraduationCap className="h-6 w-6 text-green-600 dark:text-green-400" />
+                              </div>
+                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                                {quiz.questionsCount} questions
+                              </span>
+                            </div>
+                            <CardTitle className="text-lg truncate">{quiz.name}</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex items-center gap-4 mb-4 text-sm text-gray-600 dark:text-gray-400">
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                ~{Math.ceil((quiz.questionsCount || 10) * 1.5)} mins
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <CheckCircle2 className="h-4 w-4" />
+                                Multiple Choice
+                              </span>
+                            </div>
+                            <Button
+                              className="w-full"
+                              onClick={() => handleStartQuiz(quiz)}
+                            >
+                              <PlayCircle className="h-4 w-4 mr-2" />
+                              Start Test
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </>

@@ -9,8 +9,9 @@ import { BookOpen, GraduationCap, FolderOpen, Plus, Settings } from 'lucide-reac
 import { moduleApi, type SubModule, type RootModuleEntry } from '@/lib/moduleApi';
 import { useToast } from '@/hooks/use-toast';
 import AdminToggle from './AdminToggle';
+import ModuleTree from './ModuleTree';
 
-export default function ModuleList() {
+export default function ModuleList({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const { toast } = useToast();
   const [modules, setModules] = useState<RootModuleEntry[]>([]);
@@ -55,7 +56,7 @@ export default function ModuleList() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 p-8">
+      <div className={embedded ? '' : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 p-2'}>
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <Skeleton className="h-10 w-64 mb-2" />
@@ -72,28 +73,23 @@ export default function ModuleList() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 p-8">
-      <AdminToggle />
+    <div className='min-h-full'>
+      {!embedded && <AdminToggle />}
+      {!embedded && isAdmin && (
+        <div className="sticky top-1 z-10 flex justify-end">
+          <Button
+            onClick={handleAdminClick}
+            className="flex items-center gap-2"
+            variant="outline"
+          >
+            <Settings className="h-4 w-4" />
+            Admin Panel
+          </Button>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Learning Modules
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
-              Choose a module to start learning or take a test
-            </p>
-          </div>
-          {isAdmin && (
-            <Button
-              onClick={handleAdminClick}
-              className="flex items-center gap-2"
-              variant="outline"
-            >
-              <Settings className="h-4 w-4" />
-              Admin Panel
-            </Button>
-          )}
+        <div className="flex justify-between items-center mb-6">
+          {/* Admin button moved to sticky header above */}
         </div>
 
         {modules.length === 0 ? (
@@ -105,7 +101,7 @@ export default function ModuleList() {
                 ? "Start by creating your first learning module."
                 : "No learning modules are available at the moment."}
             </p>
-            {isAdmin && (
+            {!embedded && isAdmin && (
               <Button onClick={handleAdminClick} className="mx-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Create Module
@@ -113,53 +109,9 @@ export default function ModuleList() {
             )}
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {modules.map((entry) => (
-              <Card
-                key={entry.module.id}
-                className="hover:shadow-lg transition-shadow cursor-pointer group"
-                onClick={() => handleModuleClick(entry.module.id)}
-              >
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg group-hover:bg-blue-200 dark:group-hover:bg-blue-800/30 transition-colors">
-                      <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {entry.subModules?.length || 0} submodule{(entry.subModules?.length || 0) === 1 ? '' : 's'}
-                    </div>
-                  </div>
-                  <CardTitle className="text-xl">{entry.module.name}</CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {entry.module.description || 'Learn and test your knowledge in this module'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between items-center">
-                    <div className="flex gap-4 text-sm text-gray-600 dark:text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <BookOpen className="h-4 w-4" />
-                        {(entry.files?.filter(f => f.type === 'pdf').length || 0)} PDF{((entry.files?.filter(f => f.type === 'pdf').length || 0) === 1) ? '' : 's'}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <GraduationCap className="h-4 w-4" />
-                        {(entry.files?.filter(f => f.type === 'quiz').length || 0)} {((entry.files?.filter(f => f.type === 'quiz').length || 0) === 1) ? 'quiz' : 'quizzes'}
-                      </span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                    >
-                      Enter →
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <ModuleTree />
         )}
+        </div>
       </div>
-    </div>
   );
 }

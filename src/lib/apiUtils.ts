@@ -283,7 +283,7 @@ export const chatApi = {
   getProductMedia: async (productId: string): Promise<ProductMediaResponse> => {
     console.log('📡 getProductMedia called with productId:', productId);
     
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/getProductMedia?productId=${encodeURIComponent(productId)}`;
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/getProductMedia?productId=${productId}`;
     const response = await authService.authenticatedFetch(url, {
       method: 'GET',
       headers: {

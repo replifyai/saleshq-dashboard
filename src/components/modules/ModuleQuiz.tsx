@@ -6,24 +6,29 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, ArrowRight, Clock, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
-import { moduleApi, type ModuleFile, type QuizQuestion } from '@/lib/moduleApi';
+import { moduleApi, type ModuleFile, type QuizQuestion, type SaveQuizAnswersResponse } from '@/lib/moduleApi';
 import { useToast } from '@/hooks/use-toast';
+import ModuleQuizResults from './ModuleQuizResults';
 
 interface ModuleQuizProps {
   moduleId: string;
   quizFile: ModuleFile;
   onBack: () => void;
+  onResultsVisibilityChange?: (visible: boolean) => void;
 }
 
-export default function ModuleQuiz({ moduleId, quizFile, onBack }: ModuleQuizProps) {
+export default function ModuleQuiz({ moduleId, quizFile, onBack, onResultsVisibilityChange }: ModuleQuizProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [quizId, setQuizId] = useState<string>('');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<(string | null)[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [startTime, setStartTime] = useState<number>(0);
   const [endTime, setEndTime] = useState<number>(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [serverResult, setServerResult] = useState<SaveQuizAnswersResponse['data'] | null>(null);
 
   useEffect(() => {
     fetchQuizQuestions();
@@ -38,6 +43,7 @@ export default function ModuleQuiz({ moduleId, quizFile, onBack }: ModuleQuizPro
       if (response.data.success && response.data.data.questions) {
         setQuestions(response.data.data.questions);
         setSelectedAnswers(new Array(response.data.data.questions.length).fill(null));
+        setQuizId(response.data.data.quiz?.id || '');
         setStartTime(Date.now());
       }
     } catch (error) {
@@ -70,9 +76,34 @@ export default function ModuleQuiz({ moduleId, quizFile, onBack }: ModuleQuizPro
     }
   };
 
-  const handleSubmit = () => {
-    setEndTime(Date.now());
-    setShowResults(true);
+  const handleSubmit = async () => {
+    try {
+      setSubmitting(true);
+      setEndTime(Date.now());
+
+      // Build answers map: { [questionId]: selectedAnswer }
+      const answers: Record<string, string> = {};
+      questions.forEach((q, idx) => {
+        const ans = selectedAnswers[idx];
+        if (ans) {
+          answers[q.id] = ans;
+        }
+      });
+
+      const idForSubmission = `${moduleId}/${quizFile.id}`;
+      const response = await moduleApi.saveModuleQuizAnswers(idForSubmission, answers);
+      setServerResult(response.data);
+      setShowResults(true);
+      onResultsVisibilityChange?.(true);
+    } catch (error) {
+      toast({
+        title: 'Failed to submit quiz',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleRetry = () => {
@@ -81,6 +112,7 @@ export default function ModuleQuiz({ moduleId, quizFile, onBack }: ModuleQuizPro
     setShowResults(false);
     setStartTime(Date.now());
     setEndTime(0);
+    onResultsVisibilityChange?.(false);
   };
 
   const calculateScore = () => {
@@ -112,78 +144,16 @@ export default function ModuleQuiz({ moduleId, quizFile, onBack }: ModuleQuizPro
   }
 
   if (showResults) {
-    const score = calculateScore();
-    const percentage = Math.round((score / questions.length) * 100);
-    const timeTaken = formatTime(endTime - startTime);
-
     return (
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Quiz Results</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="text-center">
-            <div className="text-6xl font-bold mb-2 text-primary">
-              {percentage}%
-            </div>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
-              You scored {score} out of {questions.length}
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-              Time taken: {timeTaken}
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Review Answers:</h3>
-            <div className="max-h-96 overflow-y-auto space-y-3">
-              {questions.map((question, index) => {
-                const userAnswer = selectedAnswers[index];
-                const isCorrect = userAnswer === question.answer;
-                
-                return (
-                  <div key={question.id} className="p-4 border rounded-lg">
-                    <div className="flex items-start gap-2 mb-2">
-                      {isCorrect ? (
-                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                      ) : (
-                        <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
-                      )}
-                      <div className="flex-1">
-                        <p className="font-medium mb-2">
-                          {index + 1}. {question.question}
-                        </p>
-                        <div className="space-y-1 text-sm">
-                          <p className="text-gray-600 dark:text-gray-400">
-                            Your answer: <span className={isCorrect ? "text-green-600" : "text-red-600"}>
-                              {userAnswer || "Not answered"}
-                            </span>
-                          </p>
-                          {!isCorrect && (
-                            <p className="text-gray-600 dark:text-gray-400">
-                              Correct answer: <span className="text-green-600">{question.answer}</span>
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <Button onClick={handleRetry} className="flex-1">
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Retry Quiz
-            </Button>
-            <Button onClick={onBack} variant="outline" className="flex-1">
-              Back to Module
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <ModuleQuizResults
+        questions={questions}
+        selectedAnswers={selectedAnswers}
+        startTime={startTime}
+        endTime={endTime}
+        serverResult={serverResult}
+        onRetry={handleRetry}
+        onBack={onBack}
+      />
     );
   }
 
@@ -215,20 +185,42 @@ export default function ModuleQuiz({ moduleId, quizFile, onBack }: ModuleQuizPro
           <h2 className="text-xl font-semibold mb-4">
             {currentQuestion.question}
           </h2>
-          <div className="space-y-3">
-            {currentQuestion.options.map((option, index) => (
-              <Button
-                key={index}
-                variant={selectedAnswers[currentQuestionIndex] === option ? "secondary" : "outline"}
-                className="w-full justify-start text-left h-auto py-3 px-4"
-                onClick={() => handleAnswerSelect(option)}
-              >
-                <span className="font-medium mr-3">
-                  {String.fromCharCode(65 + index)}.
-                </span>
-                <span className="flex-1">{option}</span>
-              </Button>
-            ))}
+          <div className="space-y-3" role="radiogroup" aria-label="Answer choices">
+            {currentQuestion.options.map((option, index) => {
+              const isSelected = selectedAnswers[currentQuestionIndex] === option;
+              return (
+                <Button
+                  key={index}
+                  variant="outline"
+                  role="radio"
+                  aria-checked={isSelected}
+                  data-selected={isSelected ? 'true' : 'false'}
+                  className={
+                    `w-full h-auto py-3 px-4 justify-between text-left transition-colors ` +
+                    (isSelected
+                      ? 'border-primary bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary'
+                      : 'border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary') +
+                    ' focus-visible:ring-2 focus-visible:ring-primary'
+                  }
+                  onClick={() => handleAnswerSelect(option)}
+                >
+                  <span className="flex items-center">
+                    <span
+                      className={
+                        `mr-3 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ` +
+                        (isSelected ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600')
+                      }
+                    >
+                      {String.fromCharCode(65 + index)}
+                    </span>
+                    <span className="flex-1 font-medium">{option}</span>
+                  </span>
+                  {isSelected && (
+                    <CheckCircle className="h-5 w-5 text-primary" />
+                  )}
+                </Button>
+              );
+            })}
           </div>
         </div>
 
@@ -245,9 +237,9 @@ export default function ModuleQuiz({ moduleId, quizFile, onBack }: ModuleQuizPro
           {currentQuestionIndex === questions.length - 1 ? (
             <Button
               onClick={handleSubmit}
-              disabled={answeredCount < questions.length}
+              disabled={answeredCount < questions.length || submitting}
             >
-              Submit Quiz
+              {submitting ? 'Submitting...' : 'Submit Quiz'}
             </Button>
           ) : (
             <Button onClick={handleNext}>

@@ -21,7 +21,7 @@ export default function AdminToggle() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 border">
+    <div className="absolute bottom-4 right-4 z-50 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 border">
       <div className="flex items-center space-x-2">
         <Shield className="h-4 w-4 text-blue-600" />
         <Label htmlFor="admin-mode" className="text-sm font-medium">

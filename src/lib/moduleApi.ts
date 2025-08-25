@@ -43,6 +43,14 @@ export interface RootModuleEntry {
   subModules: SubModule[];
 }
 
+// Tree node preserving nested submodules
+export interface ModuleTreeNode {
+  id: string;
+  name: string;
+  description: string;
+  subModules?: ModuleTreeNode[];
+}
+
 export interface QuizQuestion {
   id: string;
   question: string;
@@ -85,6 +93,46 @@ export interface CreateModuleResponse {
 export interface CreateModuleFileResponse {
   message: string;
   fileId: string;
+}
+
+export interface SaveQuizAnswersResponse {
+  data: {
+    success: boolean;
+    score: number;
+    correct: number;
+    wrong: number;
+    notAttempted: number;
+  };
+}
+
+export interface UserQuizResponseItem {
+  score: number;
+  correct: number;
+  wrong: number;
+  notAttempted: number;
+  title: string;
+  takenAt?: number;
+}
+
+export interface GetUserQuizResponsesResponse {
+  data: UserQuizResponseItem[];
+}
+
+export interface LeaderboardEntry {
+  userId: string;
+  userName: string;
+  totalQuestions: number;
+  totalCorrect: number;
+  averageScore: number;
+  quizCount: number;
+  rank: number;
+}
+
+export interface GetLeaderboardResponse {
+  data: {
+    success: boolean;
+    data: LeaderboardEntry[];
+  };
 }
 
 class ModuleApi {
@@ -360,6 +408,48 @@ class ModuleApi {
     return [];
   }
 
+  // Returns full nested tree of modules (no flattening)
+  async getModuleTree(): Promise<ModuleTreeNode[]> {
+    // Use mock data if enabled
+    if (USE_MOCK_DATA) {
+      // Build a simple nested mock tree from mockModules and mockFiles structure
+      const toTree = (mods: typeof mockModules): ModuleTreeNode[] =>
+        mods.map((m) => ({ id: m.id, name: m.name, description: m.description, subModules: [] }));
+      return toTree(mockModules);
+    }
+
+    const response = await authService.authenticatedFetch(`${API_BASE_URL}/getModule`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch module tree');
+    }
+    const json = await response.json();
+
+    const normalizeTree = (e: any): ModuleTreeNode => {
+      const m = e?.module ?? e;
+      const children = e?.subModules ?? m?.subModules ?? [];
+      return {
+        id: m?.id ?? m?.name ?? String(Math.random()),
+        name: m?.name ?? '',
+        description: m?.description ?? '',
+        subModules: Array.isArray(children) ? children.map((c: any) => normalizeTree(c)) : [],
+      };
+    };
+
+    if (Array.isArray(json)) {
+      return json.map((e: any) => normalizeTree(e));
+    }
+    if (Array.isArray(json?.data)) {
+      return json.data.map((e: any) => normalizeTree(e));
+    }
+    if (Array.isArray(json?.data?.subModules)) {
+      return json.data.subModules.map((e: any) => normalizeTree(e));
+    }
+    if (json?.data?.module) {
+      return [normalizeTree(json.data)];
+    }
+    return [];
+  }
+
   async createModuleFile(
     moduleId: string,
     file: File,
@@ -447,6 +537,101 @@ class ModuleApi {
       throw new Error('Failed to fetch quiz');
     }
 
+    return response.json();
+  }
+
+  async saveModuleQuizAnswers(id: string, answers: Record<string, string>): Promise<SaveQuizAnswersResponse> {
+    // Use mock implementation if enabled
+    if (USE_MOCK_DATA) {
+      const questions = mockQuizQuestions[id as keyof typeof mockQuizQuestions] || [];
+      let correct = 0;
+      let wrong = 0;
+      let notAttempted = 0;
+
+      const questionById: Record<string, QuizQuestion> = {} as any;
+      questions.forEach((q) => {
+        questionById[q.id] = q;
+      });
+
+      questions.forEach((q) => {
+        const selected = answers[q.id];
+        if (!selected) {
+          notAttempted += 1;
+        } else if (selected === q.answer) {
+          correct += 1;
+        } else {
+          wrong += 1;
+        }
+      });
+
+      return {
+        data: {
+          success: true,
+          score: correct,
+          correct,
+          wrong,
+          notAttempted,
+        },
+      };
+    }
+
+    const response = await authService.authenticatedFetch(`${API_BASE_URL}/saveModuleQuizAnswers`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id, answers }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save quiz answers');
+    }
+
+    return response.json();
+  }
+
+  async getUserQuizResponses(): Promise<GetUserQuizResponsesResponse> {
+    if (USE_MOCK_DATA) {
+      return {
+        data: [
+          { score: 92, correct: 23, wrong: 2, notAttempted: 0, title: 'Sales Fundamentals', takenAt: Date.now() - 86400000 },
+          { score: 76, correct: 19, wrong: 6, notAttempted: 0, title: 'Product Training 101 - Assessment', takenAt: Date.now() - 3 * 86400000 },
+          { score: 58, correct: 14, wrong: 11, notAttempted: 0, title: 'Support Playbook Basics', takenAt: Date.now() - 7 * 86400000 },
+        ],
+      };
+    }
+
+    const response = await authService.authenticatedFetch(`${API_BASE_URL}/getUserQuizResponses`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to load user quiz responses');
+    }
+
+    return response.json();
+  }
+
+  async getLeaderboard(quizId?: string): Promise<GetLeaderboardResponse> {
+    if (USE_MOCK_DATA) {
+      return {
+        data: {
+          success: true,
+          data: [
+            { userId: '1', userName: 'Alice Johnson', totalQuestions: 120, totalCorrect: 100, averageScore: 83, quizCount: 6, rank: 1 },
+            { userId: '2', userName: 'Brian Lee', totalQuestions: 95, totalCorrect: 74, averageScore: 78, quizCount: 5, rank: 2 },
+            { userId: '3', userName: 'Carol Singh', totalQuestions: 60, totalCorrect: 42, averageScore: 70, quizCount: 3, rank: 3 },
+            { userId: '4', userName: 'You', totalQuestions: 40, totalCorrect: 28, averageScore: 68, quizCount: 2, rank: 4 },
+          ],
+        },
+      };
+    }
+
+    const url = quizId ? `${API_BASE_URL}/getLeaderboard?id=${quizId}` : `${API_BASE_URL}/getLeaderboard`;
+    const response = await authService.authenticatedFetch(url, { method: 'GET' });
+    if (!response.ok) {
+      throw new Error('Failed to load leaderboard');
+    }
     return response.json();
   }
 

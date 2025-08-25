@@ -49,8 +49,7 @@ const Desktop = () => {
                     </div>
 
                     {/* Status Footer */}
-                    <div className={`flex-shrink-0 ${isCollapsed ? 'px-2' : 'px-4'} py-4`}>
-
+                    <div className={`flex-shrink-0 ${isCollapsed ? 'px-2' : 'px-4'} py-1`}>
                         {/* User Info and Logout */}
                         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                             <div className={`flex ${isCollapsed ? 'flex-col space-y-2' : 'items-center space-x-3'}`}>
@@ -73,23 +72,19 @@ const Desktop = () => {
                                         </div>
                                     )}
                                 </Button>
+                                <div className={`${isCollapsed ? 'flex justify-center' : 'flex justify-start'}`}>
+                                    <div className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 shadow-md border border-gray-200 dark:border-gray-700">
+                                        <ThemeToggle />
+                                    </div>
+                                </div>
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={logout}
-                                    className={`${isCollapsed ? 'self-center' : ''} h-8 w-8 p-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300`}
+                                    className={`${isCollapsed ? 'self-center' : ''} h-8 w-8 p-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 shadow-md border border-gray-200 dark:border-gray-700`}
                                 >
                                     <LogOut className="h-4 w-4" />
                                 </Button>
-                            </div>
-                        </div>
-
-                        {/* Theme Toggle at bottom */}
-                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <div className={`${isCollapsed ? 'flex justify-center' : 'flex justify-start'}`}>
-                                <div className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 shadow-md border border-gray-200 dark:border-gray-700">
-                                    <ThemeToggle />
-                                </div>
                             </div>
                         </div>
                     </div>
