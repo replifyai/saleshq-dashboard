@@ -166,8 +166,8 @@ function buildHierarchyFromNestedNodes(
 function calculateOrgStatsFromNodes(nodes: OrganizationNode[]): OrganizationStats {
   let totalNodes = 0;
   let totalUsers = 0;
-  let nodeTypes = new Set<string>();
-  let userRoles = new Set<string>();
+  const nodeTypes = new Set<string>();
+  const userRoles = new Set<string>();
   let maxDepth = 0;
   let emptyNodes = 0;
   let largestTeam = { nodeId: '', name: '', userCount: 0 };
