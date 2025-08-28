@@ -134,16 +134,8 @@ export default function OrganizationPage() {
 
   // Helper function to find node by id - memoized for performance
   const findNodeById = useCallback((nodeId: string): OrganizationNode | null => {
-    const search = (nodes: OrganizationNode[]): OrganizationNode | null => {
-      for (const node of nodes) {
-        if (node.id === nodeId) return node;
-        const found = search(node.children);
-        if (found) return found;
-      }
-      return null;
-    };
-    return search(hierarchy?.nodes || []);
-  }, [hierarchy?.nodes]);
+    return flatNodes.find(node => node.id === nodeId) || null;
+  }, [flatNodes]);
 
   // Form submission handlers
   const handleNodeFormSubmit = async (data: CreateNodeRequest | UpdateNodeRequest) => {
@@ -191,16 +183,7 @@ export default function OrganizationPage() {
     setUserDialogOpen(true);
   }, [findNodeById]);
 
-  // Mock health metrics for now (commented out since analytics tab is disabled)
-  // const healthMetrics = React.useMemo(() => ({
-  //   totalNodes: 8,
-  //   totalUsers: 10,
-  //   nodeUtilization: 0.75,
-  //   avgManagerSpan: 3.2,
-  //   managerSpan: 3.2,
-  //   emptyNodes: 2,
-  //   bottlenecks: []
-  // }), []);
+
 
   return (
     <div className="space-y-6 p-6">
@@ -302,8 +285,6 @@ export default function OrganizationPage() {
         <TabsList>
           <TabsTrigger value="hierarchy">Tree View</TabsTrigger>
           <TabsTrigger value="chart">Chart View</TabsTrigger>
-          {/* <TabsTrigger value="analytics">Analytics</TabsTrigger> */}
-          {/* <TabsTrigger value="settings">Settings</TabsTrigger> */}
         </TabsList>
 
         {/* Tree View Tab */}

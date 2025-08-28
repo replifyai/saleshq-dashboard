@@ -100,6 +100,12 @@ export interface ProductMediaResponse {
 
 // No caching - direct API calls only
 
+export interface Tag {
+  id: string;
+  name: string;
+  createdAt?: string;
+}
+
 export interface UnansweredQuery {
   id: string;
   message: string;
@@ -112,6 +118,7 @@ export interface UnansweredQuery {
   messageRef: string;
   productName: string;
   userName: string;
+  tags?: Tag[];
 }
 
 export interface UserProfile {
@@ -576,6 +583,11 @@ export const queriesApi = {
         messageRef: q.messageRef,
         productName: q.productId,
         userName: q.userName,
+        tags: (q.tags || []).map((tag: any): Tag => ({
+          id: tag.id || tag.tagId || '',
+          name: tag.name || tag.tagName || '',
+          createdAt: tag.createdAt
+        })),
       })) || [],
       totalCount: data.totalCount || 0,
       page: data.page || pageNumber.toString(),
@@ -623,6 +635,105 @@ export const queriesApi = {
 
     if (!response.ok) {
       throw new Error(`Failed to update product: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+};
+
+// Tag API calls
+export const tagApi = {
+  // Create a new tag
+  createTag: async (name: string): Promise<Tag> => {
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/createTag`;
+    
+    const response = await authService.authenticatedFetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to create tag: ${response.statusText}`);
+    }
+
+    const responseData = await response.json();
+    
+    // Map response to our Tag interface
+    return {
+      id: responseData.id || responseData.tagId || '',
+      name: responseData.name || responseData.tagName || name,
+      createdAt: responseData.createdAt
+    };
+  },
+
+  // Get all tags
+  getTags: async (): Promise<Tag[]> => {
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/getTags`;
+    
+    const response = await authService.authenticatedFetch(apiUrl, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch tags: ${response.statusText}`);
+    }
+
+    const responseData = await response.json();
+    let tagsArray: any[] = [];
+    
+    // Handle both wrapped and direct array responses
+    if (responseData.data && Array.isArray(responseData.data)) {
+      tagsArray = responseData.data;
+    } else if (responseData.tags && Array.isArray(responseData.tags)) {
+      tagsArray = responseData.tags;
+    } else if (Array.isArray(responseData)) {
+      tagsArray = responseData;
+    }
+    
+    // Map backend response to our Tag interface
+    return tagsArray.map((tag: any): Tag => ({
+      id: tag.id || tag.tagId || '',
+      name: tag.name || tag.tagName || '',
+      createdAt: tag.createdAt
+    }));
+  },
+
+  // Add tag to feedback question
+  addTagToQuery: async (feedbackQuestionId: string, tagId: string): Promise<any> => {
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/addTagToFeedbackQuestion`;
+    
+    const response = await authService.authenticatedFetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ feedbackQuestionId, tagId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to add tag to query: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
+  // Remove tag from feedback question
+  removeTagFromQuery: async (feedbackQuestionId: string, tagId: string): Promise<any> => {
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/deleteTagFromFeedbackQuestion`;
+    
+    const response = await authService.authenticatedFetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ feedbackQuestionId, tagId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to remove tag from query: ${response.statusText}`);
     }
 
     return response.json();

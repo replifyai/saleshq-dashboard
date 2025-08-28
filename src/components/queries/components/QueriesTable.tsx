@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Clock, User } from 'lucide-react';
 import { StatusBadge } from '../atoms/StatusBadge';
@@ -6,19 +6,61 @@ import { PriorityBadge } from '../atoms/PriorityBadge';
 import { ActionButton } from '../atoms/ActionButton';
 import { formatTimestamp } from '../utils/queriesUtils';
 import ResolveWithTextDialog from './ResolveWithTextDialog';
-import type { UnansweredQuery } from '@/lib/apiUtils';
+import { TagDisplay } from './TagDisplay';
+import { TagSelector } from './TagSelector';
+import type { UnansweredQuery, Tag } from '@/lib/apiUtils';
 
 interface QueriesTableProps {
   queries: UnansweredQuery[];
   onMarkAsResolved: (queryId: string) => void;
   isLoading?: boolean;
+  onQueryUpdate?: (queryId: string, updatedQuery: Partial<UnansweredQuery>) => void;
 }
 
 export const QueriesTable: React.FC<QueriesTableProps> = ({
   queries,
   onMarkAsResolved,
-  isLoading = false
+  isLoading = false,
+  onQueryUpdate
 }) => {
+  const [localQueries, setLocalQueries] = useState<UnansweredQuery[]>(queries);
+
+  // Update local state when queries prop changes
+  React.useEffect(() => {
+    setLocalQueries(queries);
+  }, [queries]);
+
+  const handleTagAdded = (queryId: string, tag: Tag) => {
+    setLocalQueries(prev => 
+      prev.map(query => 
+        query.id === queryId 
+          ? { ...query, tags: [...(query.tags || []), tag] }
+          : query
+      )
+    );
+    if (onQueryUpdate) {
+      const query = localQueries.find(q => q.id === queryId);
+      if (query) {
+        onQueryUpdate(queryId, { tags: [...(query.tags || []), tag] });
+      }
+    }
+  };
+
+  const handleTagRemoved = (queryId: string, tagId: string) => {
+    setLocalQueries(prev => 
+      prev.map(query => 
+        query.id === queryId 
+          ? { ...query, tags: (query.tags || []).filter(tag => tag.id !== tagId) }
+          : query
+      )
+    );
+    if (onQueryUpdate) {
+      const query = localQueries.find(q => q.id === queryId);
+      if (query) {
+        onQueryUpdate(queryId, { tags: (query.tags || []).filter(tag => tag.id !== tagId) });
+      }
+    }
+  };
   return (
     <div className="hidden md:block overflow-x-auto">
       <Table>
@@ -27,13 +69,14 @@ export const QueriesTable: React.FC<QueriesTableProps> = ({
             <TableHead>Status</TableHead>
             <TableHead>Query</TableHead>
             <TableHead>User</TableHead>
+            <TableHead>Tags</TableHead>
             {/* <TableHead>Priority</TableHead> */}
             <TableHead>Timestamp</TableHead>
             <TableHead className="text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {queries.map((query) => {
+          {localQueries.map((query) => {
             const timestamp = formatTimestamp(query.timestamp);
             return (
               <TableRow key={query.id}>
@@ -60,6 +103,17 @@ export const QueriesTable: React.FC<QueriesTableProps> = ({
                     </div>
                   </div>
                 </TableCell>
+                <TableCell className="max-w-xs">
+                  <div className="space-y-2">
+                    <TagDisplay tags={query.tags || []} size="sm" />
+                    <TagSelector
+                      queryId={query.id}
+                      currentTags={query.tags || []}
+                      onTagAdded={(tag) => handleTagAdded(query.id, tag)}
+                      onTagRemoved={(tagId) => handleTagRemoved(query.id, tagId)}
+                    />
+                  </div>
+                </TableCell>
                 {/* <TableCell>
                   <PriorityBadge priority={query.priority} />
                 </TableCell> */}
@@ -67,7 +121,7 @@ export const QueriesTable: React.FC<QueriesTableProps> = ({
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-gray-400" />
                     <span className="text-sm">
-                      {timestamp.full}
+                      {timestamp.short}
                     </span>
                   </div>
                 </TableCell>

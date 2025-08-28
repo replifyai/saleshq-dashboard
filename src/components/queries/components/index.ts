@@ -6,3 +6,6 @@ export { QueriesMobileView } from './QueriesMobileView';
 export { QueriesTable } from './QueriesTable';
 export { ConfirmDialog } from './ConfirmDialog';
 export { default as ResolveWithTextDialog } from './ResolveWithTextDialog';
+export { TagDisplay } from './TagDisplay';
+export { TagSelector } from './TagSelector';
+export { TagFilter } from './TagFilter';

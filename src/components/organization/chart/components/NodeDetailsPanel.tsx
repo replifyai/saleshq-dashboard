@@ -63,16 +63,16 @@ export const NodeDetailsPanel: React.FC<NodeDetailsPanelProps> = ({
       
       <CardContent className="space-y-4 pb-4 overflow-y-auto flex-1 min-h-0 mt-2">
         {/* Description */}
-        {node.description && (
+        {/* {node.description && (
           <div className="p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-750 rounded-lg border border-gray-200 dark:border-gray-700">
             <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
               {node.description}
             </p>
           </div>
-        )}
+        )} */}
 
         {/* Metadata */}
-        {node.metadata && (
+        {/* {node.metadata && (
           <div className="space-y-3 p-3 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -97,9 +97,9 @@ export const NodeDetailsPanel: React.FC<NodeDetailsPanelProps> = ({
               </div>
             )}
           </div>
-        )}
+        )} */}
 
-        <Separator />
+        {/* <Separator /> */}
 
         {/* Users */}
         <div className="space-y-3">

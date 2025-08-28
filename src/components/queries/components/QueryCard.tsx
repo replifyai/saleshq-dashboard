@@ -1,29 +1,55 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, User } from 'lucide-react';
 import { StatusBadge } from '../atoms/StatusBadge';
 import { PriorityBadge } from '../atoms/PriorityBadge';
 import { ActionButton } from '../atoms/ActionButton';
 import ResolveWithTextDialog from './ResolveWithTextDialog';
+import { TagDisplay } from './TagDisplay';
+import { TagSelector } from './TagSelector';
 import { formatTimestamp } from '../utils/queriesUtils';
-import type { UnansweredQuery } from '@/lib/apiUtils';
+import type { UnansweredQuery, Tag } from '@/lib/apiUtils';
 
 interface QueryCardProps {
   query: UnansweredQuery;
   onMarkAsResolved: (queryId: string) => void;
   isLoading?: boolean;
+  onQueryUpdate?: (queryId: string, updatedQuery: Partial<UnansweredQuery>) => void;
 }
 
 export const QueryCard: React.FC<QueryCardProps> = ({
   query,
   onMarkAsResolved,
-  isLoading = false
+  isLoading = false,
+  onQueryUpdate
 }) => {
-  const timestamp = formatTimestamp(query.timestamp);
+  const [localQuery, setLocalQuery] = useState<UnansweredQuery>(query);
+  const timestamp = formatTimestamp(localQuery.timestamp);
+
+  // Update local state when query prop changes
+  React.useEffect(() => {
+    setLocalQuery(query);
+  }, [query]);
+
+  const handleTagAdded = (tag: Tag) => {
+    const updatedQuery = { ...localQuery, tags: [...(localQuery.tags || []), tag] };
+    setLocalQuery(updatedQuery);
+    if (onQueryUpdate) {
+      onQueryUpdate(localQuery.id, { tags: updatedQuery.tags });
+    }
+  };
+
+  const handleTagRemoved = (tagId: string) => {
+    const updatedQuery = { ...localQuery, tags: (localQuery.tags || []).filter(tag => tag.id !== tagId) };
+    setLocalQuery(updatedQuery);
+    if (onQueryUpdate) {
+      onQueryUpdate(localQuery.id, { tags: updatedQuery.tags });
+    }
+  };
 
   // Get moving border colors based on priority and status
   const getBorderColors = () => {
-    if (query.status === 'resolved') {
+    if (localQuery.status === 'resolved') {
       return {
         '--mb-color-1': '#10b981',
         '--mb-color-2': '#059669',
@@ -31,7 +57,7 @@ export const QueryCard: React.FC<QueryCardProps> = ({
       };
     }
     
-    switch (query.priority) {
+    switch (localQuery.priority) {
       case 'high':
         return {
           '--mb-color-1': '#ef4444',
@@ -73,26 +99,37 @@ export const QueryCard: React.FC<QueryCardProps> = ({
         <div className="space-y-3">
           {/* Status and Priority Row */}
           <div className="flex items-center justify-between">
-            <StatusBadge status={query.status} showIcon={true} />
-            <PriorityBadge priority={query.priority} />
+            <StatusBadge status={localQuery.status} showIcon={true} />
+            <PriorityBadge priority={localQuery.priority} />
           </div>
 
           {/* Message */}
           <div className="space-y-2">
             <p className="text-sm font-medium text-gray-900 dark:text-white leading-relaxed">
-              {query.message}
+              {localQuery.message}
             </p>
-            {query.context && (
+            {localQuery.context && (
               <p className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-2 rounded">
-                <span className="font-medium">Context:</span> {query.context}
+                <span className="font-medium">Context:</span> {localQuery.context}
               </p>
             )}
+          </div>
+
+          {/* Tags */}
+          <div className="space-y-2">
+            <TagDisplay tags={localQuery.tags || []} size="sm" />
+            <TagSelector
+              queryId={localQuery.id}
+              currentTags={localQuery.tags || []}
+              onTagAdded={handleTagAdded}
+              onTagRemoved={handleTagRemoved}
+            />
           </div>
 
           {/* User Info */}
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <User className="h-4 w-4" />
-            <span>{query.userEmail || 'Anonymous'}</span>
+            <span>{localQuery.userEmail || 'Anonymous'}</span>
           </div>
 
           {/* Timestamp */}
@@ -104,14 +141,14 @@ export const QueryCard: React.FC<QueryCardProps> = ({
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-2">
             <ActionButton
-              status={query.status}
-              onMarkAsResolved={() => onMarkAsResolved(query.id)}
+              status={localQuery.status}
+              onMarkAsResolved={() => onMarkAsResolved(localQuery.id)}
               isLoading={isLoading}
               fullWidth={true}
             />
-            {query.status !== 'resolved' && (
+            {localQuery.status !== 'resolved' && (
               <ResolveWithTextDialog
-                query={query}
+                query={localQuery}
               />
             )}
           </div>

@@ -70,26 +70,20 @@ const OrganizationChartComponent: React.FC<OrganizationChartProps> = ({
     setIsInitialized(false);
   }, [nodes.length]);
 
-  // Memoize nodes to create stable reference for findNodeById
-  const stableNodes = useMemo(() => nodes, [nodes]);
+  // Flatten nodes for quick lookup - memoized for performance
+  const flatNodes = useMemo(() => {
+    const flatten = (nodeList: OrganizationNode[]): OrganizationNode[] => {
+      return nodeList.reduce((acc, node) => {
+        return [...acc, node, ...flatten(node.children)];
+      }, [] as OrganizationNode[]);
+    };
+    return flatten(nodes);
+  }, [nodes]);
   
-  // Find node by ID - memoized with stable nodes reference
-  const findNodeById = useMemo(() => {
-    const nodeMap = new Map<string, OrganizationNode>();
-    
-    const buildMap = (nodeList: OrganizationNode[]) => {
-      for (const node of nodeList) {
-        nodeMap.set(node.id, node);
-        buildMap(node.children);
-      }
-    };
-    
-    buildMap(stableNodes);
-    
-    return (nodeId: string): OrganizationNode | null => {
-      return nodeMap.get(nodeId) || null;
-    };
-  }, [stableNodes]);
+  // Find node by ID - memoized with flat nodes reference
+  const findNodeById = useCallback((nodeId: string): OrganizationNode | null => {
+    return flatNodes.find(node => node.id === nodeId) || null;
+  }, [flatNodes]);
 
   // Handle node click
   const handleNodeClick = useCallback((nodeId: string) => {
@@ -136,7 +130,9 @@ const OrganizationChartComponent: React.FC<OrganizationChartProps> = ({
     pathFunc: "diagonal" as const,
     transitionDuration: 500,
     enableLegacyTransitions: true,
-    pathClassFunc: () => "stroke-gray-300 dark:stroke-gray-600 stroke-2"
+    pathClassFunc: () => {
+      return ["stroke-2", "stroke-gray-300", "dark:stroke-gray-600"].join(" ");
+    }
   }), [treeData, orientation, translate, zoom]);
 
   // Memoize custom node element renderer
@@ -217,6 +213,7 @@ const OrganizationChartComponent: React.FC<OrganizationChartProps> = ({
   }
 
   return (
+    <div>
     <Card className={`relative organization-chart ${className}`}>
       {/* CSS Animations for chart effects */}
       <style dangerouslySetInnerHTML={{ __html: chartAnimationStyles }} />
@@ -268,16 +265,6 @@ const OrganizationChartComponent: React.FC<OrganizationChartProps> = ({
             </div>
           )}
         </div>
-
-        {/* Node Details Panel */}
-        <NodeDetailsPanel
-          node={selectedNode}
-          onClose={() => setSelectedNode(null)}
-          onEdit={onNodeEdit}
-          onAddChild={onAddChild}
-          onUserAssign={onUserAssign}
-        />
-
         <ChartLegend
           zoom={zoom}
           orientation={orientation}
@@ -285,6 +272,15 @@ const OrganizationChartComponent: React.FC<OrganizationChartProps> = ({
         />
       </CardContent>
     </Card>
+    {/* Node Details Panel */}
+    <NodeDetailsPanel
+    node={selectedNode}
+    onClose={() => setSelectedNode(null)}
+    onEdit={onNodeEdit}
+    onAddChild={onAddChild}
+    onUserAssign={onUserAssign}
+  />
+  </div>
   );
 };
 

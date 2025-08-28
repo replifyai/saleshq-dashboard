@@ -13,16 +13,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 // import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-// import { 
-//   Select, 
-//   SelectContent, 
-//   SelectItem, 
-//   SelectTrigger, 
-//   SelectValue 
-// } from '@/components/ui/select';
+
 
 import { OrganizationTreeNode } from './OrganizationTreeNode';
-import { useOrganizationSearch } from '@/hooks/useOrganization';
+import { useOrganizationSearchRedux } from '@/hooks/useOrganizationRedux';
 
 import type { 
   OrganizationNode, 
@@ -77,7 +71,7 @@ export const OrganizationTree: React.FC<OrganizationTreeContainerProps> = ({
     search, 
     clearSearch, 
     applyFilters 
-  } = useOrganizationSearch();
+  } = useOrganizationSearchRedux();
 
   // Expansion state
   // const { 
@@ -127,16 +121,6 @@ export const OrganizationTree: React.FC<OrganizationTreeContainerProps> = ({
     }
   };
 
-  // Handle filter changes
-  const handleFilterChange = () => {
-    const newFilters: OrganizationFilters = {
-      ...filters,
-      nodeTypes: selectedTypes.length > 0 ? selectedTypes : undefined,
-      minLevel: selectedLevels.min,
-      maxLevel: selectedLevels.max,
-    };
-    applyFilters(newFilters);
-  };
 
   // Clear all filters
   const clearAllFilters = () => {

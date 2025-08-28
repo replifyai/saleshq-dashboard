@@ -6,7 +6,7 @@
 import React from 'react';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 
-import { useOrganizationExpansion, useOrganizationPermissions } from '@/hooks/useOrganization';
+import { useOrganizationExpansionRedux, useOrganizationPermissionsRedux } from '@/hooks/useOrganizationRedux';
 import { getNodeUserCount } from '@/lib/organizationUtils';
 import { getDepthStyles, getIndentation } from './utils/styleUtils';
 import {
@@ -54,12 +54,12 @@ export const OrganizationTreeNode: React.FC<OrganizationTreeNodeProps> = ({
   searchTerm,
   className = ''
 }) => {
-  const { isExpanded, toggleNode } = useOrganizationExpansion();
-  const { canEditNode, canDeleteNode, canAssignUsers, canCreateNodes } = useOrganizationPermissions();
+  const { isExpanded, toggleNode } = useOrganizationExpansionRedux();
+  const { canEditNode, canDeleteNode, canAssignUsers, canCreateNodes } = useOrganizationPermissionsRedux();
   console.log(node);
   const hasChildren = node.children.length > 0;
   const totalUsers = getNodeUserCount(node);
-  const nodeIsExpanded = isExpanded(node.id, node.level);
+  const nodeIsExpanded = isExpanded(node.id);
   const isSelected = selectedNodeId === node.id;
   
   // Highlight search matches

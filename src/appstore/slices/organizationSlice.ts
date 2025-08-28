@@ -15,11 +15,8 @@ import {
   OrganizationStats,
   MoveNodeRequest,
 } from '@/types/organization';
-import { organizationApi } from '@/lib/organizationApi';
-import {
-  mockAvailableUsers,
-  getMockHierarchy,
-} from '@/lib/mockOrganizationData';
+import { dashboardApiAdapter } from '@/lib/dashboardApiAdapter';
+
 import {
   calculateOrgStats,
   flattenHierarchy,
@@ -108,23 +105,14 @@ const initialState: OrganizationState = {
   },
 };
 
-// Helper function to check if we should use mock data
-const shouldUseMockData = () => {
-  return true;
-};
+
 
 // Async thunks for API operations
 export const loadOrganizationHierarchy = createAsyncThunk(
   'organization/loadHierarchy',
   async (filters: OrganizationFilters | undefined, { rejectWithValue }) => {
     try {
-      if (shouldUseMockData()) {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        return getMockHierarchy(filters);
-      } else {
-        return await organizationApi.hierarchy.getHierarchy(filters);
-      }
+      return await dashboardApiAdapter.hierarchy.getHierarchy(filters);
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to load organization');
     }
@@ -135,12 +123,7 @@ export const loadAvailableUsers = createAsyncThunk(
   'organization/loadAvailableUsers',
   async (_, { rejectWithValue }) => {
     try {
-      if (shouldUseMockData()) {
-        await new Promise(resolve => setTimeout(resolve, 300));
-        return mockAvailableUsers;
-      } else {
-        return await organizationApi.users.getAvailable();
-      }
+      return await dashboardApiAdapter.users.getAvailable();
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to load users');
     }
@@ -178,12 +161,7 @@ export const createOrganizationNode = createAsyncThunk(
         updatedAt: new Date().toISOString(),
       };
       
-      if (shouldUseMockData()) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log('Mock: Creating organization node:', data);
-      } else {
-        await organizationApi.nodes.create(data);
-      }
+      await dashboardApiAdapter.nodes.create(data);
       
       return newNode;
     } catch (error) {
@@ -196,12 +174,7 @@ export const updateOrganizationNode = createAsyncThunk(
   'organization/updateNode',
   async (data: UpdateNodeRequest, { rejectWithValue }) => {
     try {
-      if (shouldUseMockData()) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log('Mock: Updating organization node:', data);
-      } else {
-        await organizationApi.nodes.update(data);
-      }
+      await dashboardApiAdapter.nodes.update(data);
       
       return data;
     } catch (error) {
@@ -214,12 +187,7 @@ export const deleteOrganizationNode = createAsyncThunk(
   'organization/deleteNode',
   async ({ nodeId, moveChildrenTo }: { nodeId: string; moveChildrenTo?: string }, { rejectWithValue }) => {
     try {
-      if (shouldUseMockData()) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log('Mock: Deleting organization node:', nodeId);
-      } else {
-        await organizationApi.nodes.delete(nodeId, { moveChildrenTo });
-      }
+      await dashboardApiAdapter.nodes.delete(nodeId, { moveChildrenTo });
       
       return { nodeId, moveChildrenTo };
     } catch (error) {
@@ -232,12 +200,7 @@ export const moveOrganizationNode = createAsyncThunk(
   'organization/moveNode',
   async (data: MoveNodeRequest, { rejectWithValue }) => {
     try {
-      if (shouldUseMockData()) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log('Mock: Moving organization node:', data);
-      } else {
-        await organizationApi.nodes.move(data);
-      }
+      await dashboardApiAdapter.nodes.move(data);
       
       return data;
     } catch (error) {
@@ -250,12 +213,7 @@ export const assignUserToNode = createAsyncThunk(
   'organization/assignUser',
   async (data: AssignUserRequest, { rejectWithValue, getState }) => {
     try {
-      if (shouldUseMockData()) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log('Mock: Assigning user to node:', data);
-      } else {
-        await organizationApi.users.assign(data);
-      }
+      await dashboardApiAdapter.users.assign(data);
       
       // Get user data from available users
       const state = getState() as { organization: OrganizationState };
@@ -272,12 +230,7 @@ export const removeUserFromNode = createAsyncThunk(
   'organization/removeUser',
   async ({ userId, nodeId }: { userId: string; nodeId: string }, { rejectWithValue }) => {
     try {
-      if (shouldUseMockData()) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log('Mock: Removing user from node:', { userId, nodeId });
-      } else {
-        await organizationApi.users.remove(userId, nodeId);
-      }
+      await dashboardApiAdapter.users.remove(userId, nodeId);
       
       return { userId, nodeId };
     } catch (error) {
@@ -293,12 +246,7 @@ export const updateUserRole = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      if (shouldUseMockData()) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log('Mock: Updating user role:', { userId, nodeId, role, title });
-      } else {
-        await organizationApi.users.updateRole(userId, nodeId, role, title);
-      }
+      await dashboardApiAdapter.users.updateRole(userId, nodeId, role, title);
       
       return { userId, nodeId, role, title };
     } catch (error) {
@@ -545,7 +493,6 @@ export const organizationSlice = createSlice({
         if (state.hierarchy) {
           // For now, we'll need to reload hierarchy for moves as it's complex
           // In production, you'd implement a more sophisticated move function
-          console.log('Move operation completed:', action.payload);
           // This would trigger a refresh in production
         }
       })

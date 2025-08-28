@@ -9,14 +9,16 @@ import {
   HeaderSection,
   QueriesMobileView,
   QueriesTable,
-  ConfirmDialog
+  ConfirmDialog,
+  TagFilter
 } from "@/components/queries/components";
 import { LoadingSpinner } from "@/components/queries/atoms";
 
 export default function Queries() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'resolved'>('pending');
   const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(50);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedQuery, setSelectedQuery] = useState<UnansweredQuery | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -25,7 +27,7 @@ export default function Queries() {
 
   // Fetch queries from real API
   const { data: queriesResponse, isLoading, error } = useQuery<FeedbackQuestionsResponse>({
-    queryKey: ['/api/unanswered-queries', filter, pageNumber, pageSize],
+    queryKey: ['/api/unanswered-queries', filter, pageNumber, pageSize, selectedTagIds],
     queryFn: () => queriesApi.getFeedbackQuestions(pageNumber, pageSize, filter === 'all' ? '' : filter),
     refetchInterval: 30000, // Refetch every 30 seconds
   });
@@ -92,11 +94,30 @@ export default function Queries() {
     setSelectedQuery(null);
   };
 
+  // Handle query updates (for tag changes)
+  const handleQueryUpdate = (queryId: string, updatedQuery: Partial<UnansweredQuery>) => {
+    // Update will be handled by the individual components and reflected in the next refetch
+    // We could update local state here if needed for immediate UI feedback
+  };
 
+  // Filter queries by selected tags (client-side filtering)
+  const allQueries = queriesResponse?.data || [];
+  
+  const filteredQueries = selectedTagIds.length > 0 
+    ? allQueries.filter(query => {
+        if (!query.tags || query.tags.length === 0) {
+          return false;
+        }
+        return selectedTagIds.some(selectedTagId => 
+          query.tags?.some(queryTag => queryTag.id === selectedTagId)
+        );
+      })
+    : allQueries;
 
-  const queries = queriesResponse?.data || [];
-  const totalCount = queriesResponse?.totalCount || 0;
-  const totalPages = queriesResponse?.totalPages || 0;
+  const queries = filteredQueries;
+  // Update counts to reflect filtered results
+  const totalCount = selectedTagIds.length > 0 ? filteredQueries.length : (queriesResponse?.totalCount || 0);
+  const totalPages = selectedTagIds.length > 0 ? Math.ceil(filteredQueries.length / pageSize) : (queriesResponse?.totalPages || 0);
 
   if (error) {
     return (
@@ -130,6 +151,14 @@ export default function Queries() {
         totalPages={totalPages}
         onPageChange={setPageNumber}
       />
+
+      {/* Tag Filter */}
+      <div className="mb-4">
+        <TagFilter
+          selectedTags={selectedTagIds}
+          onTagsChange={setSelectedTagIds}
+        />
+      </div>
 
       <Card>
         <CardHeader className="pb-3">
@@ -185,12 +214,14 @@ export default function Queries() {
                 queries={queries}
                 onMarkAsResolved={handleMarkAsResolved}
                 isLoading={markAsResolvedMutation.isPending}
+                onQueryUpdate={handleQueryUpdate}
               />
 
               <QueriesTable
                 queries={queries}
                 onMarkAsResolved={handleMarkAsResolved}
                 isLoading={markAsResolvedMutation.isPending}
+                onQueryUpdate={handleQueryUpdate}
               />
             </>
           )}
