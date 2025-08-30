@@ -56,7 +56,7 @@ export function MobileNav({ activeTab, onNavigate }: MobileNavProps) {
             </div>
             <div className="flex-1">
               <SheetTitle className="text-lg font-semibold text-gray-900 dark:text-white text-left">
-                Replify AI
+                SalesHQ
               </SheetTitle>
               <SheetDescription className="text-xs text-gray-500 dark:text-gray-400 text-left">
                 Document Intelligence

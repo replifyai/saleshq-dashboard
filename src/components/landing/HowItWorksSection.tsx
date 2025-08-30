@@ -245,7 +245,7 @@ export default function HowItWorksSection() {
       <div className="sticky top-0 md:absolute md:inset-x-0 md:top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 text-center mt-14">
           <h2 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white">
-            How Replify Transforms Your Sales Process
+            How SalesHQ Transforms Your Sales Process
           </h2>
           <p className="mt-2 text-sm md:text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
             From document chaos to instant answers in 3 simple steps. No technical expertise required.
@@ -336,7 +336,7 @@ export default function HowItWorksSection() {
               Ask & Get Answers
             </h2>
             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-              Ask in natural language. Replify returns instant, accurate answers with source citations so you never
+              Ask in natural language. SalesHQ returns instant, accurate answers with source citations so you never
               hunt through docs.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">

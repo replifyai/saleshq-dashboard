@@ -49,7 +49,7 @@ export default function ContactSection() {
             Ready to Transform Your Sales Process?
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Join 1,000+ sales teams already using Replify to close more deals faster. Start your free trial today.
+            Join 1,000+ sales teams already using SalesHQ to close more deals faster. Start your free trial today.
           </p>
         </div>
 
@@ -133,7 +133,7 @@ export default function ContactSection() {
           <div className="space-y-8">
             <div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                Why Sales Teams Choose Replify
+                Why Sales Teams Choose SalesHQ
               </h3>
               <div className="space-y-4">
                 <div className="flex items-start">
@@ -182,7 +182,7 @@ export default function ContactSection() {
               <div className="space-y-3">
                 <div className="flex items-center">
                   <Mail className="w-5 h-5 text-blue-400 mr-3" />
-                  <span className="text-gray-600 dark:text-gray-300">sales@replify.ai</span>
+                  <span className="text-gray-600 dark:text-gray-300">sales@SalesHQ.ai</span>
                 </div>
                 <div className="flex items-center">
                   <Phone className="w-5 h-5 text-emerald-400 mr-3" />

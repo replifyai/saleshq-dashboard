@@ -2,7 +2,7 @@
 import { mockModules, mockFiles, mockQuizQuestions } from './mockModuleData';
 import { authService } from './auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}` : 'http://127.0.0.1:5003/replify-9f49f/asia-south1/dashboardApi';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}` : 'http://127.0.0.1:5003/SalesHQ-9f49f/asia-south1/dashboardApi';
 const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' || false; // Default to mock data for testing
 
 export interface Module {

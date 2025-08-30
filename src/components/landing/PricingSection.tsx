@@ -33,7 +33,7 @@ export default function PricingSection() {
                 $0
                 <span className="text-lg font-normal text-gray-500 dark:text-gray-400">/month</span>
               </div>
-              <p className="text-gray-600 dark:text-gray-300">Perfect for trying out Replify</p>
+              <p className="text-gray-600 dark:text-gray-300">Perfect for trying out SalesHQ</p>
             </CardHeader>
             <CardContent className="p-0">
               <ul className="space-y-3 mb-8">

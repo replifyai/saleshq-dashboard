@@ -19,7 +19,7 @@ export default function LandingNavigation() {
 
 
   return (
-    <nav className="sticky top-4 z-50 relative isolate mx-4 sm:mx-6 lg:mx-10 rounded-2xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-white/10 bg-transparent">
+    <nav className="sticky top-4 z-50 relative isolate mx-auto max-w-4xl rounded-3xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-white/10 bg-transparent">
       {/* Liquid glass background */}
       <div className="absolute inset-0 -z-10 pointer-events-none rounded-2xl">
         <div className="absolute inset-0 rounded-2xl backdrop-blur-2xl bg-white-500/10 dark:bg-white/5" />
@@ -30,20 +30,20 @@ export default function LandingNavigation() {
         <div className="absolute -top-12 left-8 h-28 w-28 rounded-full blur-2xl bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.25),transparent_60%)]" />
         <div className="absolute -bottom-10 right-10 h-32 w-32 rounded-full blur-2xl bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.20),transparent_60%)]" />
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="px-6 sm:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+            {/* <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
               <Bot className="w-6 h-6 text-white" />
-            </div>
+            </div> */}
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Replify
+              <h1 className="text-xl sm:text-3xl font-bold">
+                SalesHQ
               </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Self-Learning AI Platform</p>
+              {/* <p className="text-xs text-gray-500 dark:text-gray-400">Self-Learning AI Platform</p> */}
             </div>
           </div>
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-6">
             <a href="#how-it-works" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">How It Works</a>
             <a href="#features" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">Features</a>
             <a href="#pricing" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">Pricing</a>

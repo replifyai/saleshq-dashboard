@@ -34,7 +34,7 @@ export const mockFiles = {
       id: 'file-1',
       name: 'Chapter 1 - Introduction to AI',
       type: 'pdf' as const,
-      location: 'https://storage.googleapis.com/replify-9f49f.firebasestorage.app/uploads%2FgrxfKaCX4ARFDc14DQ6zhfaR7DZ2%2Ffacc3ddb-586a-4616-92ea-dbef88389be4-Aero%20Mesh%20Chair%20Marketing%20brief%20.pdf',
+      location: 'https://storage.googleapis.com/SalesHQ-9f49f.firebasestorage.app/uploads%2FgrxfKaCX4ARFDc14DQ6zhfaR7DZ2%2Ffacc3ddb-586a-4616-92ea-dbef88389be4-Aero%20Mesh%20Chair%20Marketing%20brief%20.pdf',
       createdAt: Date.now()
     },
     {

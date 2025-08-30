@@ -18,7 +18,7 @@ export default function TestimonialsSection() {
     () => [
       {
         quote:
-          "Replify cut our response time from hours to seconds. Our sales team can now focus on selling instead of searching for information. Game changer!",
+          "SalesHQ cut our response time from hours to seconds. Our sales team can now focus on selling instead of searching for information. Game changer!",
         initials: "SJ",
         name: "Sarah Johnson",
         title: "VP of Sales, TechCorp",
@@ -132,7 +132,7 @@ export default function TestimonialsSection() {
             What Sales Teams Are Saying
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Real results from real sales professionals using Replify every day.
+            Real results from real sales professionals using SalesHQ every day.
           </p>
         </div>
 

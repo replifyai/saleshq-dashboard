@@ -88,7 +88,7 @@ export default function Login() {
             </svg>
           </div>
           <h2 className="mt-6 text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">
-            Welcome back to <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-emerald-500">Replify AI</span>
+            Welcome back to <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-emerald-500">SalesHQ</span>
           </h2>
           <p className="mt-3 text-base text-gray-600 dark:text-gray-400">
             Supercharge product support with an AI that knows your catalog.

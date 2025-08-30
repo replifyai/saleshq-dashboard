@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
-import { Clock, AlertCircle, Users } from "lucide-react";
+import { Clock, AlertCircle, Users, HelpCircle } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Badge } from "../ui/badge";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -116,22 +117,26 @@ export default function ProblemStatementSection() {
 
   return (
     <section ref={sectionRef} className="relative isolate overflow-hidden py-20">
-      {/* Background Layers */}
-      {/* <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-950" />
-        <div className="absolute inset-0 bg-[radial-gradient(40rem_28rem_at_top_left,rgba(244,63,94,0.12),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(40rem_28rem_at_bottom_right,rgba(249,115,22,0.12),transparent_60%)]" />
-        <div className="absolute inset-0 opacity-[0.04] bg-[linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] [background-size:3.5rem_3.5rem]" />
-      </div> */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div ref={headerRef} className="text-center mb-16">
-          <h2 ref={titleRef} className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-8">
-            Your Sales Team Shouldn't Be Document Detectives
+        <div ref={headerRef} className="text-center mb-12">
+          <Badge className="mb-4 px-3 py-1 bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-300 border-0">
+            <HelpCircle className="w-3 h-3 mr-1" />
+            Sales Challenges
+          </Badge>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4" ref={titleRef}>
+            <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
+              Stop Wasting Time
+            </span>
+            {" "}
+            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Searching for Info
+            </span>
           </h2>
-          <p ref={descriptionRef} className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed">
-            Every minute spent searching for product specs, pricing, or competitor info is a minute not spent selling.
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto" ref={descriptionRef}>
+            Sales teams lose 3+ hours daily hunting through scattered documents. Every minute searching is a minute not selling.
           </p>
         </div>
+
 
         <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <Card
@@ -141,11 +146,11 @@ export default function ProblemStatementSection() {
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-red-500/20">
               <Clock className="w-8 h-8 text-red-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Time Wasted</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Productivity Loss</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Sales reps spend 3+ hours daily searching through documents, PDFs, and knowledge bases.
+              3+ hours daily wasted searching through scattered documents instead of selling.
             </p>
-            <div className="text-2xl font-bold text-red-400">3+ Hours Daily</div>
+            <div className="text-2xl font-bold text-red-400">3+ Hours Daily Lost</div>
           </Card>
 
           <Card
@@ -155,9 +160,9 @@ export default function ProblemStatementSection() {
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-orange-500/20">
               <AlertCircle className="w-8 h-8 text-orange-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Missed Opportunities</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Revenue Impact</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Slow responses to customer questions lead to lost deals and frustrated prospects.
+              Slow responses lead to missed deals and lost revenue opportunities.
             </p>
             <div className="text-2xl font-bold text-orange-400">40% Revenue Loss</div>
           </Card>
@@ -169,11 +174,11 @@ export default function ProblemStatementSection() {
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-yellow-500/20">
               <Users className="w-8 h-8 text-yellow-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Team Frustration</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Team Morale</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Sales teams get frustrated with outdated info and inconsistent answers across the team.
+              Frustration with outdated info and inconsistent answers across teams.
             </p>
-            <div className="text-2xl font-bold text-yellow-400">High Turnover</div>
+            <div className="text-2xl font-bold text-yellow-400">High Turnover Risk</div>
           </Card>
         </div>
       </div>

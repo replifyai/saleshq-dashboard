@@ -29,7 +29,7 @@ const Mobile = () => {
                                 </svg>
                             </div>
                             <div>
-                                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Replify AI</h1>
+                                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">SalesHQ</h1>
                             </div>
                         </div>
                     </div>

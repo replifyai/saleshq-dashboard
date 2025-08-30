@@ -8,15 +8,15 @@ type FAQ = {
 
 const faqs: FAQ[] = [
   {
-    q: "What is Replify?",
-    a: "Replify is an AI-powered sales intelligence platform that turns your documents and product data into instant answers, with integrations for Shopify, WhatsApp Business, and website chatbots.",
+    q: "What is SalesHQ?",
+    a: "SalesHQ is an AI-powered sales intelligence platform that turns your documents and product data into instant answers, with integrations for Shopify, WhatsApp Business, and website chatbots.",
   },
   {
     q: "How does the AI Q&A work?",
-    a: "Ask questions in natural language. Replify searches your indexed content and returns concise answers with source citations so reps can respond confidently and fast.",
+    a: "Ask questions in natural language. SalesHQ searches your indexed content and returns concise answers with source citations so reps can respond confidently and fast.",
   },
   {
-    q: "How does Replify learn over time?",
+    q: "How does SalesHQ learn over time?",
     a: "A closed feedback loop identifies knowledge gaps and continuously improves answers. Teams can review and approve updates so the AI gets smarter every day without manual retraining cycles.",
   },
   {
@@ -28,8 +28,8 @@ const faqs: FAQ[] = [
     a: "Yes. You can embed an intelligent chatbot that answers questions 24/7 using your approved knowledge base, with citations and guardrails.",
   },
   {
-    q: "Does Replify work with Shopify stores?",
-    a: "Yes. Replify connects to Shopify to reference product information and support sales conversations with accurate, real‑time context.",
+    q: "Does SalesHQ work with Shopify stores?",
+    a: "Yes. SalesHQ connects to Shopify to reference product information and support sales conversations with accurate, real‑time context.",
   },
   {
     q: "Can I connect WhatsApp Business?",
@@ -37,7 +37,7 @@ const faqs: FAQ[] = [
   },
   {
     q: "What content types can I upload?",
-    a: "Upload PDFs, docs, product catalogs, pricing sheets, images, and videos—or connect Google Drive. Replify processes and organizes content automatically.",
+    a: "Upload PDFs, docs, product catalogs, pricing sheets, images, and videos—or connect Google Drive. SalesHQ processes and organizes content automatically.",
   },
   {
     q: "Is my data secure?",
@@ -45,7 +45,7 @@ const faqs: FAQ[] = [
   },
   {
     q: "Does it support multiple languages?",
-    a: "Replify’s Q&A supports many major languages. If you need a specific language or locale, contact us and we’ll confirm current coverage.",
+    a: "SalesHQ’s Q&A supports many major languages. If you need a specific language or locale, contact us and we’ll confirm current coverage.",
   },
   {
     q: "How long does setup take?",
@@ -53,7 +53,7 @@ const faqs: FAQ[] = [
   },
   {
     q: "Is there a free trial?",
-    a: "Yes. Try Replify free for 14 days to experience AI Q&A, the learning loop, and integrations with your own content.",
+    a: "Yes. Try SalesHQ free for 14 days to experience AI Q&A, the learning loop, and integrations with your own content.",
   },
 ];
 
@@ -86,7 +86,7 @@ export default function FAQSection() {
         <div className="text-center mb-10">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Frequently Asked Questions</h2>
           <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to know about Replify’s AI Q&A, integrations, learning loop, and setup.
+            Everything you need to know about SalesHQ’s AI Q&A, integrations, learning loop, and setup.
           </p>
         </div>
 

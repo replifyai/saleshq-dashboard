@@ -100,7 +100,7 @@ export default function FeaturesSection() {
             Everything Your Sales Team Needs in One Platform
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            From AI-powered chat to multi-channel integrations, Replify delivers a complete sales intelligence solution.
+            From AI-powered chat to multi-channel integrations, SalesHQ delivers a complete sales intelligence solution.
           </p>
         </div>
 

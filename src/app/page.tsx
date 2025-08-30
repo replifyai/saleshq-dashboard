@@ -5,15 +5,21 @@ import {
   HeroSection,
   // SocialProofSection,
   ProblemStatementSection,
-  HowItWorksSection,
-  TestimonialsSection,
-  FeaturesSection,
+  // HowItWorksSection,
+  // TestimonialsSection,
+  // FeaturesSection,
   ROISection,
-  FAQSection,
+  // FAQSection,
   //PricingSection,
-  ContactSection,
+  // ContactSection,
   FooterSection
 } from "@/components/landing";
+// import TestimonialsSection from "@/components/landing/new/TestimonialsSection";
+import HowItWorksSection from "@/components/landing/new/HowItWorksSection";
+import FAQSection from "@/components/landing/new/FAQSection";
+import ContactSection from "@/components/landing/new/CTASection";
+import FeaturesSection from "@/components/landing/new/IntegrationsSection";
+// import FooterSection from "@/components/landing/new/FooterSection";
 
 export default function LandingPage() {
   const neonContainerRef = useRef<HTMLDivElement | null>(null);
@@ -125,14 +131,37 @@ export default function LandingPage() {
         {/* <SocialProofSection /> */}
         <ProblemStatementSection />
         <HowItWorksSection />
-        <TestimonialsSection />
+        {/* <TestimonialsSection /> */}
         <FeaturesSection />
-        <ROISection />
+        {/* <ROISection /> */}
         <FAQSection />
         {/* <PricingSection /> */}
         <ContactSection />
         <FooterSection />
       </div>
+
+      {/* Global styles for animations */}
+      <style jsx global>{`
+        @keyframes animate-in {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .process-animate {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+
+        .animate-in {
+          animation: animate-in 0.6s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }
