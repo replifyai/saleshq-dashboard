@@ -857,7 +857,9 @@ export class ShopifyGraphQLApiService {
       current_total_price: totalPrice,
       current_total_tax: totalTax,
       customer_locale: 'en',
+      //@ts-ignore
       financial_status: this.mapFinancialStatus(node.displayFinancialStatus),
+      //@ts-ignore
       fulfillment_status: this.mapFulfillmentStatus(node.displayFulfillmentStatus),
       name: node.name,
       note: node.note,
@@ -908,6 +910,7 @@ export class ShopifyGraphQLApiService {
       verified_email: false,
       orders_count: 0,
       note: '',
+      //@ts-ignore
       default_address: null,
       addresses: []
     };
