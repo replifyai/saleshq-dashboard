@@ -19,7 +19,7 @@ export default function LandingNavigation() {
 
 
   return (
-    <nav className="sticky top-4 z-50 relative isolate mx-auto max-w-4xl rounded-3xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-white/10 bg-transparent">
+    <nav className="sticky top-4 z-50 relative isolate mx-auto max-w-6xl rounded-3xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-white/10 bg-transparent">
       {/* Liquid glass background */}
       <div className="absolute inset-0 -z-10 pointer-events-none rounded-2xl">
         <div className="absolute inset-0 rounded-2xl backdrop-blur-2xl bg-white-500/10 dark:bg-white/5" />

@@ -13,7 +13,7 @@ const Desktop = () => {
     const { activeTab, handleNavigate, isCollapsed, toggleCollapsed } = useSideNav();
     return (
         <>
-            <div className={`hidden md:flex ${isCollapsed ? 'md:w-20' : 'md:w-64'} md:flex-col transition-[width] duration-300`}>
+            <div className={`hidden md:flex ${isCollapsed ? 'md:w-16' : 'md:w-68'} md:flex-col transition-[width] duration-300`}>
                 <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
                     <div className={`flex items-center flex-shrink-0 ${isCollapsed ? 'px-2' : 'px-4'}`}>
                         {!isCollapsed && (
