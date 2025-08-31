@@ -601,8 +601,11 @@ export interface ShopifyProductFilters {
   inventoryStatus?: 'in_stock' | 'out_of_stock' | 'low_stock';
   createdAtAfter?: string;
   createdAtBefore?: string;
-  // Additional Shopify REST API supported properties
+  // Pagination parameters
   limit?: number;
+  cursor?: string;
+  page?: number;
+  // Additional Shopify REST API supported properties
   collectionId?: number;
   createdAtMin?: string;
   createdAtMax?: string;
@@ -613,6 +616,20 @@ export interface ShopifyProductFilters {
   title?: string;
   handle?: string;
   tag?: string;
+}
+
+// Pagination response interface for products
+export interface ShopifyProductsResponse {
+  products: ShopifyProduct[];
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  totalCount?: number;
+  pageInfo: {
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+    startCursor?: string;
+    endCursor?: string;
+  };
 }
 
 export interface ShopifyOrderFilters {
@@ -626,8 +643,11 @@ export interface ShopifyOrderFilters {
   totalPriceMin?: number;
   totalPriceMax?: number;
   tags?: string[];
-  // Additional Shopify REST API supported properties
+  // Pagination parameters
   limit?: number;
+  cursor?: string;
+  page?: number;
+  // Additional Shopify REST API supported properties
   status?: string;
   createdAtMin?: string;
   createdAtMax?: string;
@@ -636,6 +656,20 @@ export interface ShopifyOrderFilters {
   processedAtMin?: string;
   processedAtMax?: string;
   attributionAppId?: number;
+}
+
+// Pagination response interface
+export interface ShopifyOrdersResponse {
+  orders: ShopifyOrder[];
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  totalCount?: number;
+  pageInfo: {
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+    startCursor?: string;
+    endCursor?: string;
+  };
 }
 
 // Statistics and Analytics
@@ -656,6 +690,69 @@ export interface ShopifyStoreStats {
     revenue: number;
     orders: number;
   }[];
+}
+
+// Analytics Interfaces
+export interface ShopifyAnalyticsFilters {
+  dateFrom?: string;
+  dateTo?: string;
+  period?: 'day' | 'week' | 'month' | 'year';
+  interval?: 'hourly' | 'daily' | 'weekly' | 'monthly';
+}
+
+export interface ShopifyAnalyticsDataPoint {
+  date: string;
+  value: number;
+  label?: string;
+}
+
+export interface ShopifyAnalyticsMetric {
+  current: number;
+  previous: number;
+  change: number;
+  changePercent: number;
+  trend: 'up' | 'down' | 'neutral';
+}
+
+export interface ShopifyAnalyticsResponse {
+  // Sales Analytics
+  salesOverTime: ShopifyAnalyticsDataPoint[];
+  totalSales: ShopifyAnalyticsMetric;
+  
+  // Order Analytics
+  ordersOverTime: ShopifyAnalyticsDataPoint[];
+  totalOrders: ShopifyAnalyticsMetric;
+  averageOrderValue: ShopifyAnalyticsMetric;
+  
+  // Customer Analytics
+  customersOverTime: ShopifyAnalyticsDataPoint[];
+  totalCustomers: ShopifyAnalyticsMetric;
+  newCustomers: ShopifyAnalyticsMetric;
+  
+  // Product Analytics
+  topProducts: Array<{
+    id: string;
+    title: string;
+    totalSold: number;
+    revenue: number;
+    image?: string;
+  }>;
+  
+  // Geographic Analytics
+  salesByLocation: Array<{
+    country: string;
+    region?: string;
+    sales: number;
+    orders: number;
+  }>;
+  
+  // Traffic Sources
+  trafficSources: Array<{
+    source: string;
+    sessions: number;
+    conversions: number;
+    conversionRate: number;
+  }>;
 }
 
 // Error Types

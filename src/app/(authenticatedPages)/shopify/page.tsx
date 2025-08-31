@@ -9,12 +9,12 @@ import { Package, ShoppingCart, Users, TrendingUp, AlertCircle, Plus } from 'luc
 import ProductsManager from '@/components/shopify/ProductsManager';
 import OrdersManager from '@/components/shopify/OrdersManager';
 import ShopifyChatbot from '@/components/shopify/ShopifyChatbot';
+import ShopifyAnalytics from '@/components/shopify/ShopifyAnalytics';
 import { shopify } from '@/lib/shopifyApi';
 import { ShopifyStoreStats, ShopifyProduct, ShopifyOrder } from '@/types/shopify';
 
 export default function ShopifyPage() {
   const [stats, setStats] = useState<ShopifyStoreStats | null>(null);
-  console.log("🚀 ~ ShopifyPage ~ stats:", stats);
   const [recentProducts, setRecentProducts] = useState<ShopifyProduct[]>([]);
   const [recentOrders, setRecentOrders] = useState<ShopifyOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,7 +110,7 @@ export default function ShopifyPage() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
-          <TabsTrigger value="customers">Customers</TabsTrigger>
+          <TabsTrigger value="discounting">Discounting</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
@@ -289,7 +289,7 @@ export default function ShopifyPage() {
           <OrdersManager />
         </TabsContent>
 
-        <TabsContent value="customers" className="mt-6">
+        <TabsContent value="discounting" className="mt-6">
           <Card>
             <CardHeader>
               <CardTitle>Customer Management</CardTitle>
@@ -313,26 +313,7 @@ export default function ShopifyPage() {
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Analytics & Reporting</CardTitle>
-              <CardDescription>
-                View detailed analytics about your store performance, sales trends, and customer behavior.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">
-                Analytics features will be implemented here. This will include:
-              </p>
-              <ul className="list-disc list-inside mt-2 text-gray-600">
-                <li>Sales performance metrics</li>
-                <li>Product performance analysis</li>
-                <li>Customer behavior insights</li>
-                <li>Inventory turnover rates</li>
-                <li>Revenue forecasting</li>
-              </ul>
-            </CardContent>
-          </Card>
+          <ShopifyAnalytics />
         </TabsContent>
       </Tabs>
 

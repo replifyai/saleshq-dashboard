@@ -8,9 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Filter, Eye, AlertCircle, Package, User, Calendar, DollarSign, Plus } from 'lucide-react';
+import { Search, Filter, Eye, AlertCircle, Package, User, Calendar, DollarSign, Plus, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { shopify } from '@/lib/shopifyApi';
-import { ShopifyOrder } from '@/types/shopify';
+import { ShopifyOrder, ShopifyOrdersResponse, ShopifyOrderFilters } from '@/types/shopify';
 import OrderCreator from './OrderCreator';
 
 export default function OrdersManager() {
@@ -22,23 +22,109 @@ export default function OrdersManager() {
   const [financialStatusFilter, setFinancialStatusFilter] = useState<string>('all');
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<ShopifyOrder | null>(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPreviousPage, setHasPreviousPage] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [previousCursor, setPreviousCursor] = useState<string | null>(null);
+  
+  // Advanced filter state
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [minAmount, setMinAmount] = useState('');
+  const [maxAmount, setMaxAmount] = useState('');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   useEffect(() => {
     loadOrders();
   }, []);
 
-  const loadOrders = async () => {
+  // Reload orders when page size changes
+  useEffect(() => {
+    if (currentPage === 1) {
+      loadOrders(undefined, true);
+    }
+  }, [pageSize]);
+
+  // Build filter object from current state
+  const buildFilters = (cursor?: string): ShopifyOrderFilters => {
+    const filters: ShopifyOrderFilters = {
+      limit: pageSize,
+      cursor: cursor,
+    };
+
+    if (searchTerm) filters.searchTerm = searchTerm;
+    if (statusFilter !== 'all') filters.fulfillmentStatus = statusFilter;
+    if (financialStatusFilter !== 'all') filters.financialStatus = financialStatusFilter;
+    if (dateFrom) filters.createdAtAfter = dateFrom;
+    if (dateTo) filters.createdAtBefore = dateTo;
+    if (minAmount) filters.totalPriceMin = parseFloat(minAmount);
+    if (maxAmount) filters.totalPriceMax = parseFloat(maxAmount);
+
+    return filters;
+  };
+
+  const loadOrders = async (cursor?: string, resetPage = true) => {
     try {
       setLoading(true);
       setError(null);
-      const ordersData = await shopify.getOrders({ limit: 5 });
-      setOrders(ordersData); // Orders are already sorted by createdAt (latest first) from the API
+      
+      const filters = buildFilters(cursor);
+      const ordersResponse = await shopify.getOrdersWithPagination(filters);
+      
+      setOrders(ordersResponse.orders);
+      setHasNextPage(ordersResponse.hasNextPage);
+      setHasPreviousPage(ordersResponse.hasPreviousPage);
+      
+      if (ordersResponse.pageInfo) {
+        setNextCursor(ordersResponse.pageInfo.endCursor || null);
+        setPreviousCursor(ordersResponse.pageInfo.startCursor || null);
+      }
+      
+      if (resetPage) {
+        setCurrentPage(1);
+      }
     } catch (err) {
       console.error('Failed to load orders:', err);
       setError(err instanceof Error ? err.message : 'Failed to load orders');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleNextPage = () => {
+    if (hasNextPage && nextCursor) {
+      setCurrentPage(currentPage + 1);
+      loadOrders(nextCursor, false);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (hasPreviousPage && previousCursor) {
+      setCurrentPage(currentPage - 1);
+      loadOrders(undefined, false); // For previous, we start fresh for simplicity
+    }
+  };
+
+  const handleSearch = () => {
+    setCurrentPage(1);
+    loadOrders(undefined, true);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setFinancialStatusFilter('all');
+    setDateFrom('');
+    setDateTo('');
+    setMinAmount('');
+    setMaxAmount('');
+    setCurrentPage(1);
+    loadOrders(undefined, true);
   };
 
   const handleCancelOrder = async (orderId: string) => {
@@ -102,17 +188,8 @@ export default function OrdersManager() {
     });
   };
 
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
-      order.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.order_number?.toString().includes(searchTerm) ||
-      (order.customer?.id && order.customer.id.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesStatus = statusFilter === 'all' || order.fulfillment_status === statusFilter;
-    const matchesFinancialStatus = financialStatusFilter === 'all' || order.financial_status === financialStatusFilter;
-    
-    return matchesSearch && matchesStatus && matchesFinancialStatus;
-  });
+  // Orders are already filtered at the API level
+  const filteredOrders = orders;
 
   if (loading) {
     return (
@@ -130,8 +207,8 @@ export default function OrdersManager() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Order Management</h2>
-          <p className="text-gray-600">View, manage, and create customer orders</p>
+          <h2 className="text-xl font-bold text-gray-900">Order Management</h2>
+          <p className="text-gray-600 text-sm">View, manage, and create customer orders</p>
         </div>
       </div>
 
@@ -162,11 +239,12 @@ export default function OrdersManager() {
           <TabsTrigger value="create">Create Order</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="orders" className="mt-6 space-y-6">
+        <TabsContent value="orders" className="mt-4 space-y-6">
           {/* Search and Filters */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col sm:flex-row gap-4">
+          <Card className="mb-2">
+            <CardContent className="pt-4 space-y-4">
+              {/* Main Filter Row */}
+              <div className="flex flex-col lg:flex-row gap-4">
                 <div className="flex-1">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -174,6 +252,7 @@ export default function OrdersManager() {
                       placeholder="Search orders by number, name, or customer ID..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                       className="pl-10"
                     />
                   </div>
@@ -202,30 +281,156 @@ export default function OrdersManager() {
                       <SelectItem value="partially_refunded">Partially Refunded</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button variant="outline" onClick={loadOrders}>
+                  <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="30">30</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}>
                     <Filter className="h-4 w-4 mr-2" />
-                    Refresh
+                    {showAdvancedFilters ? 'Hide' : 'Advanced'}
+                  </Button>
+                  <Button variant="outline" onClick={handleSearch}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Search
                   </Button>
                 </div>
               </div>
+
+              {/* Advanced Filters */}
+              {showAdvancedFilters && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date From</label>
+                    <Input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date To</label>
+                    <Input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Min Amount (₹)</label>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={minAmount}
+                      onChange={(e) => setMinAmount(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Max Amount (₹)</label>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={maxAmount}
+                      onChange={(e) => setMaxAmount(e.target.value)}
+                    />
+                  </div>
+                  <div className="md:col-span-2 lg:col-span-4 flex gap-2">
+                    <Button onClick={handleSearch} className="flex-1">
+                      <Search className="h-4 w-4 mr-2" />
+                      Apply Filters
+                    </Button>
+                    <Button variant="outline" onClick={handleClearFilters}>
+                      Clear All
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Orders List */}
+          {/* Orders List - Compact Table Style */}
           {filteredOrders.length > 0 ? (
-            <div className="space-y-4">
-              {filteredOrders.map((order) => (
-                <OrderCard
-                  key={order.id}
-                  order={order}
-                  onView={() => handleViewOrder(order)}
-                  onCancel={() => handleCancelOrder(order.id.toString())}
-                  getStatusColor={getStatusColor}
-                  getFinancialStatusColor={getFinancialStatusColor}
-                  formatCurrency={formatCurrency}
-                  formatDate={formatDate}
-                />
-              ))}
+            <div className="space-y-2">
+              <Card>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full table-fixed">
+                      <thead className="bg-gray-50 border-b sticky top-0 z-10">
+                        <tr>
+                          <th className="text-left py-2 px-2 text-xs font-medium text-gray-700 w-24">Order</th>
+                          <th className="text-left py-2 px-2 text-xs font-medium text-gray-700 w-20 hidden sm:table-cell">Customer</th>
+                          <th className="text-left py-2 px-2 text-xs font-medium text-gray-700 w-20">Date</th>
+                          <th className="text-left py-2 px-2 text-xs font-medium text-gray-700 w-20">Status</th>
+                          <th className="text-left py-2 px-2 text-xs font-medium text-gray-700 w-20 hidden md:table-cell">Financial</th>
+                          <th className="text-left py-2 px-2 text-xs font-medium text-gray-700 w-28 hidden lg:table-cell">Items</th>
+                          <th className="text-left py-2 px-2 text-xs font-medium text-gray-700 w-20">Total</th>
+                          <th className="text-center py-2 px-2 text-xs font-medium text-gray-700 w-16">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredOrders.map((order, index) => (
+                          <OrderRow
+                            key={order.id}
+                            order={order}
+                            index={index}
+                            onView={() => handleViewOrder(order)}
+                            onCancel={() => handleCancelOrder(order.id.toString())}
+                            getStatusColor={getStatusColor}
+                            getFinancialStatusColor={getFinancialStatusColor}
+                            formatCurrency={formatCurrency}
+                            formatDate={formatDate}
+                          />
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Pagination Controls */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span>Showing {filteredOrders.length} orders</span>
+                      <span>•</span>
+                      <span>Page {currentPage}</span>
+                      {pageSize && (
+                        <>
+                          <span>•</span>
+                          <span>{pageSize} per page</span>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handlePreviousPage}
+                        disabled={!hasPreviousPage || loading}
+                      >
+                        <ChevronLeft className="h-4 w-4 mr-1" />
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleNextPage}
+                        disabled={!hasNextPage || loading}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           ) : (
             <Card>
@@ -234,11 +439,16 @@ export default function OrdersManager() {
                   <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No orders found</h3>
                   <p className="text-gray-600 mb-4">
-                    {searchTerm || statusFilter !== 'all' || financialStatusFilter !== 'all'
+                    {searchTerm || statusFilter !== 'all' || financialStatusFilter !== 'all' || dateFrom || dateTo || minAmount || maxAmount
                       ? 'Try adjusting your search or filters'
                       : 'No orders have been placed yet'
                     }
                   </p>
+                  {(searchTerm || statusFilter !== 'all' || financialStatusFilter !== 'all' || dateFrom || dateTo || minAmount || maxAmount) && (
+                    <Button variant="outline" onClick={handleClearFilters}>
+                      Clear Filters
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -272,8 +482,9 @@ export default function OrdersManager() {
   );
 }
 
-function OrderCard({ 
+function OrderRow({ 
   order, 
+  index,
   onView, 
   onCancel,
   getStatusColor,
@@ -282,6 +493,7 @@ function OrderCard({
   formatDate
 }: {
   order: ShopifyOrder;
+  index: number;
   onView: () => void;
   onCancel: () => void;
   getStatusColor: (status: string) => string;
@@ -289,77 +501,100 @@ function OrderCard({
   formatCurrency: (amount: string | number, currency?: string) => string;
   formatDate: (dateString: string) => string;
 }) {
-  console.log("🚀 ~ OrderCard ~ order:", order);
+  const isEven = index % 2 === 0;
+  
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Package className="h-4 w-4 text-gray-500" />
-              <span className="font-medium">#{order.name}</span>
-            </div>
-                         <Badge variant={getStatusColor(order.fulfillment_status || 'unknown') as any}>
-               {order.fulfillment_status || 'unknown'}
-             </Badge>
-             <Badge variant={getFinancialStatusColor(order.financial_status || 'unknown') as any}>
-               {order.financial_status || 'unknown'}
-             </Badge>
-          </div>
-          <div className="flex gap-1">
-            <Button variant="ghost" size="sm" onClick={onView}>
-              <Eye className="h-4 w-4" />
-            </Button>
-                         {order.fulfillment_status !== 'fulfilled' && (
-               <Button variant="ghost" size="sm" onClick={onCancel}>
-                 Cancel
-               </Button>
-             )}
-          </div>
+    <tr className={`border-b hover:bg-gray-50 transition-colors ${isEven ? 'bg-white' : 'bg-gray-25'}`}>
+      {/* Order Column */}
+      <td className="p-2">
+        <div className="flex items-center gap-1">
+          <Package className="h-3 w-3 text-gray-400 hidden sm:block" />
+          <span className="font-medium text-sm truncate">#{order.name}</span>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <User className="h-3 w-3" />
-            <span>
-              {order.customer?.id ? `Customer: ${order.customer.id.split('/').pop()}` : 'Customer: N/A'}
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Calendar className="h-3 w-3" />
-            <span>{formatDate(order.created_at)}</span>
-          </div>
-          
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <DollarSign className="h-3 w-3" />
-                                     <span className="font-medium">
-              {formatCurrency(order.total_price || '0', order.currency)}
-            </span>
-          </div>
+        {/* Mobile: Show additional info */}
+        <div className="sm:hidden text-xs text-gray-500 mt-1">
+          <div>{order.customer?.id ? `${order.customer.id.split('/').pop()}` : 'N/A'}</div>
+          <div className="md:hidden">{order.financial_status}</div>
         </div>
+      </td>
 
-        {order.line_items && order.line_items.length > 0 && (
-          <div className="mt-3 pt-3 border-t">
-            <p className="text-sm text-gray-600 mb-2">
-              {order.line_items.length} item{order.line_items.length !== 1 ? 's' : ''}
-            </p>
-            <div className="flex flex-wrap gap-1">
-              {order.line_items.slice(0, 3).map((item, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  {item.quantity}x {item.title}
-                </Badge>
+      {/* Customer Column - Hidden on mobile */}
+      <td className="p-2 hidden sm:table-cell">
+        <span className="text-sm text-gray-600 truncate">
+          {order.customer?.id ? `${order.customer.id.split('/').pop()}` : 'N/A'}
+        </span>
+      </td>
+
+      {/* Date Column */}
+      <td className="p-2">
+        <span className="text-sm text-gray-600">
+          {new Date(order.created_at).toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric' 
+          })}
+        </span>
+      </td>
+
+      {/* Status Column */}
+      <td className="p-2">
+        <Badge variant={getStatusColor(order.fulfillment_status || 'unknown') as any} className="text-[10px] uppercase">
+          {(order.fulfillment_status || 'unknown')}
+        </Badge>
+        {/* Mobile: Show items info */}
+        <div className="lg:hidden text-xs text-gray-500 mt-1">
+          {order.line_items?.length || 0} items
+        </div>
+      </td>
+
+      {/* Financial Column - Hidden on small screens */}
+      <td className="p-2 hidden md:table-cell">
+        <Badge variant={getFinancialStatusColor(order.financial_status || 'unknown') as any} className="text-[10px] uppercase">
+          {(order.financial_status || 'unknown')}
+        </Badge>
+      </td>
+
+      {/* Items Column - Hidden on medium and smaller screens */}
+      <td className="p-2 hidden lg:table-cell">
+        <div className="flex items-center gap-1">
+          <span className="text-sm text-gray-600">
+            {order.line_items?.length || 0}
+          </span>
+          {order.line_items && order.line_items.length > 0 && (
+            <div className="text-xs text-gray-500 truncate max-w-20">
+              {order.line_items.slice(0, 1).map((item) => (
+                <span key={item.id}>
+                  ({item.quantity}x {item.title.split(' ')[0]})
+                </span>
               ))}
-              {order.line_items.length > 3 && (
-                <Badge variant="outline" className="text-xs">
-                  +{order.line_items.length - 3} more
-                </Badge>
+              {order.line_items.length > 1 && (
+                <span className="text-gray-400"> +{order.line_items.length - 1}</span>
               )}
             </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </div>
+      </td>
+
+      {/* Total Column */}
+      <td className="p-2">
+        <span className="font-medium text-sm">
+          {formatCurrency(order.total_price || '0', order.currency)}
+        </span>
+      </td>
+
+      {/* Actions Column */}
+      <td className="p-2">
+        <div className="flex items-center justify-center gap-1">
+          <Button variant="ghost" size="sm" onClick={onView} className="h-6 w-6 p-0">
+            <Eye className="h-3 w-3" />
+          </Button>
+          {order.fulfillment_status !== 'fulfilled' && (
+            <Button variant="ghost" size="sm" onClick={onCancel} className="h-6 px-1 text-xs hidden sm:inline-flex">
+              Cancel
+            </Button>
+          )}
+        </div>
+      </td>
+    </tr>
   );
 }
 

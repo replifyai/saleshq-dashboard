@@ -1,4 +1,4 @@
-import { ShopifyProduct, ShopifyProductRequest, ShopifyOrder, ShopifyOrderRequest, ShopifyCustomer, ShopifyCart, ShopifyCartRequest, ShopifyProductFilters, ShopifyOrderFilters, ShopifyStoreStats, ShopifyError } from '@/types/shopify';
+import { ShopifyProduct, ShopifyProductRequest, ShopifyOrder, ShopifyOrderRequest, ShopifyCustomer, ShopifyCart, ShopifyCartRequest, ShopifyProductFilters, ShopifyProductsResponse, ShopifyOrderFilters, ShopifyOrdersResponse, ShopifyStoreStats, ShopifyAnalyticsFilters, ShopifyAnalyticsResponse, ShopifyAnalyticsDataPoint, ShopifyAnalyticsMetric, ShopifyError } from '@/types/shopify';
 
 /**
  * GraphQL-based Shopify API Service
@@ -61,14 +61,28 @@ export class ShopifyGraphQLApiService {
   // Product Management
   async getProducts(filters?: ShopifyProductFilters): Promise<ShopifyProduct[]> {
     try {
-      const limit = filters?.limit || 50;
-      const query = filters?.searchTerm || '';
-      const status = filters?.status ? `status:${filters.status}` : '';
-      const searchQuery = [query, status].filter(Boolean).join(' AND ');
+      const productsResponse = await this.getProductsWithPagination(filters);
+      return productsResponse.products;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getProductsWithPagination(filters?: ShopifyProductFilters): Promise<ShopifyProductsResponse> {
+    try {
+      const limit = filters?.limit || 10;
+      const query = this.buildProductSearchQuery(filters);
+      const cursor = filters?.cursor;
 
       const gqlQuery = `
-        query GetProducts($first: Int!, $query: String) {
-          products(first: $first, query: $query) {
+        query GetProducts($first: Int!, $query: String, $after: String) {
+          products(first: $first, query: $query, sortKey: CREATED_AT, reverse: true, after: $after) {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
             nodes {
               id
               title
@@ -139,14 +153,58 @@ export class ShopifyGraphQLApiService {
 
       const variables = {
         first: limit,
-        query: searchQuery || undefined
+        query: query || undefined,
+        after: cursor || undefined
       };
 
       const data = await this.makeGraphQLRequest(gqlQuery, variables);
-      return this.transformProductsData(data.products.nodes);
+      
+      return {
+        products: this.transformProductsData(data.products.nodes),
+        hasNextPage: data.products.pageInfo.hasNextPage,
+        hasPreviousPage: data.products.pageInfo.hasPreviousPage,
+        pageInfo: data.products.pageInfo
+      };
     } catch (error) {
       throw this.handleError(error);
     }
+  }
+
+  private buildProductSearchQuery(filters?: ShopifyProductFilters): string {
+    if (!filters) return '';
+
+    const queryParts = [];
+
+    if (filters.searchTerm) {
+      queryParts.push(`title:*${filters.searchTerm}* OR tag:*${filters.searchTerm}* OR vendor:*${filters.searchTerm}*`);
+    }
+
+    if (filters.status) {
+      queryParts.push(`status:${filters.status}`);
+    }
+
+    if (filters.productType) {
+      queryParts.push(`product_type:*${filters.productType}*`);
+    }
+
+    if (filters.vendor) {
+      queryParts.push(`vendor:*${filters.vendor}*`);
+    }
+
+    if (filters.tags && filters.tags.length > 0) {
+      const tagQuery = filters.tags.map(tag => `tag:${tag}`).join(' OR ');
+      queryParts.push(`(${tagQuery})`);
+    }
+
+    if (filters.createdAtAfter) {
+      queryParts.push(`created_at:>=${filters.createdAtAfter}`);
+    }
+
+    if (filters.createdAtBefore) {
+      queryParts.push(`created_at:<=${filters.createdAtBefore}`);
+    }
+
+    return queryParts.join(' AND ');
   }
 
   async getProduct(id: string): Promise<ShopifyProduct> {
@@ -358,12 +416,28 @@ export class ShopifyGraphQLApiService {
   // Order Management
   async getOrders(filters?: ShopifyOrderFilters): Promise<ShopifyOrder[]> {
     try {
-      const limit = filters?.limit || 50;
+      const ordersResponse = await this.getOrdersWithPagination(filters);
+      return ordersResponse.orders;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getOrdersWithPagination(filters?: ShopifyOrderFilters): Promise<ShopifyOrdersResponse> {
+    try {
+      const limit = filters?.limit || 10;
       const query = this.buildOrderSearchQuery(filters);
+      const cursor = filters?.cursor;
 
       const gqlQuery = `
-        query GetOrders($first: Int!, $query: String) {
-          orders(first: $first, query: $query, sortKey: CREATED_AT, reverse: true) {
+        query GetOrders($first: Int!, $query: String, $after: String) {
+          orders(first: $first, query: $query, sortKey: CREATED_AT, reverse: true, after: $after) {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
             nodes {
               id
               name
@@ -429,11 +503,18 @@ export class ShopifyGraphQLApiService {
 
       const variables = {
         first: limit,
-        query: query || undefined
+        query: query || undefined,
+        after: cursor || undefined
       };
 
       const data = await this.makeGraphQLRequest(gqlQuery, variables);
-      return this.transformOrdersData(data.orders.nodes);
+      
+      return {
+        orders: this.transformOrdersData(data.orders.nodes),
+        hasNextPage: data.orders.pageInfo.hasNextPage,
+        hasPreviousPage: data.orders.pageInfo.hasPreviousPage,
+        pageInfo: data.orders.pageInfo
+      };
     } catch (error) {
       throw this.handleError(error);
     }
@@ -1147,6 +1228,351 @@ export class ShopifyGraphQLApiService {
     return statusMap[status] || 'unfulfilled';
   }
 
+  // Analytics Methods
+  async getAnalytics(filters?: ShopifyAnalyticsFilters): Promise<ShopifyAnalyticsResponse> {
+    try {
+      const dateFrom = filters?.dateFrom || this.getDateDaysAgo(30);
+      const dateTo = filters?.dateTo || new Date().toISOString().split('T')[0];
+      
+      // Fetch analytics data in parallel
+      const [
+        salesData,
+        ordersData,
+        customersData,
+        topProductsData,
+        salesLocationData
+      ] = await Promise.all([
+        this.getSalesAnalytics(dateFrom, dateTo),
+        this.getOrdersAnalytics(dateFrom, dateTo),
+        this.getCustomersAnalytics(dateFrom, dateTo),
+        this.getTopProductsAnalytics(dateFrom, dateTo),
+        this.getSalesByLocationAnalytics(dateFrom, dateTo)
+      ]);
+
+      return {
+        salesOverTime: salesData.timeSeries,
+        totalSales: salesData.metric,
+        ordersOverTime: ordersData.timeSeries,
+        totalOrders: ordersData.metric,
+        averageOrderValue: ordersData.aovMetric,
+        customersOverTime: customersData.timeSeries,
+        totalCustomers: customersData.metric,
+        newCustomers: customersData.newCustomersMetric,
+        topProducts: topProductsData,
+        salesByLocation: salesLocationData,
+        trafficSources: [] // Not available in GraphQL Admin API
+      };
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  private async getSalesAnalytics(dateFrom: string, dateTo: string) {
+    const queryString = `created_at:>=${dateFrom} AND created_at:<=${dateTo}`;
+    
+    const gqlQuery = `
+      query GetSalesAnalytics($query: String!) {
+        orders(first: 250, query: $query) {
+          nodes {
+            id
+            createdAt
+            totalPriceSet {
+              shopMoney {
+                amount
+                currencyCode
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const variables = {
+      query: queryString
+    };
+
+    const data = await this.makeGraphQLRequest(gqlQuery, variables);
+    return this.processSalesTimeSeries(data.orders.nodes, dateFrom, dateTo);
+  }
+
+  private async getOrdersAnalytics(dateFrom: string, dateTo: string) {
+    const queryString = `created_at:>=${dateFrom} AND created_at:<=${dateTo}`;
+    
+    const gqlQuery = `
+      query GetOrdersAnalytics($query: String!) {
+        orders(first: 250, query: $query) {
+          nodes {
+            id
+            createdAt
+            totalPriceSet {
+              shopMoney {
+                amount
+                currencyCode
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const variables = {
+      query: queryString
+    };
+
+    const data = await this.makeGraphQLRequest(gqlQuery, variables);
+    return this.processOrdersTimeSeries(data.orders.nodes, dateFrom, dateTo);
+  }
+
+  private async getCustomersAnalytics(dateFrom: string, dateTo: string) {
+    const queryString = `created_at:>=${dateFrom} AND created_at:<=${dateTo}`;
+    
+    const gqlQuery = `
+      query GetCustomersAnalytics($query: String!) {
+        customers(first: 250, query: $query) {
+          nodes {
+            id
+            createdAt
+          }
+        }
+      }
+    `;
+
+    const variables = {
+      query: queryString
+    };
+
+    const data = await this.makeGraphQLRequest(gqlQuery, variables);
+    return this.processCustomersTimeSeries(data.customers.nodes, dateFrom, dateTo);
+  }
+
+  private async getTopProductsAnalytics(dateFrom: string, dateTo: string) {
+    const queryString = `created_at:>=${dateFrom} AND created_at:<=${dateTo}`;
+    
+    const gqlQuery = `
+      query GetTopProductsAnalytics($query: String!) {
+        orders(first: 250, query: $query) {
+          nodes {
+            lineItems(first: 50) {
+              nodes {
+                id
+                title
+                quantity
+                originalUnitPriceSet {
+                  shopMoney {
+                    amount
+                    currencyCode
+                  }
+                }
+                product {
+                  id
+                  title
+                  images(first: 1) {
+                    nodes {
+                      src
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const variables = {
+      query: queryString
+    };
+
+    const data = await this.makeGraphQLRequest(gqlQuery, variables);
+    return this.processTopProducts(data.orders.nodes);
+  }
+
+  private async getSalesByLocationAnalytics(dateFrom: string, dateTo: string) {
+    const queryString = `created_at:>=${dateFrom} AND created_at:<=${dateTo}`;
+    
+    const gqlQuery = `
+      query GetSalesByLocationAnalytics($query: String!) {
+        orders(first: 250, query: $query) {
+          nodes {
+            shippingAddress {
+              country
+              province
+            }
+            totalPriceSet {
+              shopMoney {
+                amount
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const variables = {
+      query: queryString
+    };
+
+    const data = await this.makeGraphQLRequest(gqlQuery, variables);
+    return this.processSalesByLocation(data.orders.nodes);
+  }
+
+  private processSalesTimeSeries(orders: any[], dateFrom: string, dateTo: string) {
+    const dailySales = this.groupByDate(orders, (order) => ({
+      date: order.createdAt.split('T')[0],
+      value: parseFloat(order.totalPriceSet?.shopMoney?.amount || '0')
+    }));
+
+    const timeSeries = this.fillMissingDates(dailySales, dateFrom, dateTo);
+    const currentTotal = timeSeries.reduce((sum, point) => sum + point.value, 0);
+    
+    // Calculate previous period for comparison
+    const previousPeriodStart = this.getDateDaysAgo(this.getDaysBetween(dateFrom, dateTo) * 2);
+    const previousPeriodEnd = dateFrom;
+    
+    return {
+      timeSeries,
+      metric: this.calculateMetric(currentTotal, 0) // Previous period calculation would require another API call
+    };
+  }
+
+  private processOrdersTimeSeries(orders: any[], dateFrom: string, dateTo: string) {
+    const dailyOrders = this.groupByDate(orders, (order) => ({
+      date: order.createdAt.split('T')[0],
+      value: 1
+    }));
+
+    const timeSeries = this.fillMissingDates(dailyOrders, dateFrom, dateTo);
+    const currentTotal = timeSeries.reduce((sum, point) => sum + point.value, 0);
+    const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.totalPriceSet?.shopMoney?.amount || '0'), 0);
+    const aov = currentTotal > 0 ? totalRevenue / currentTotal : 0;
+    
+    return {
+      timeSeries,
+      metric: this.calculateMetric(currentTotal, 0),
+      aovMetric: this.calculateMetric(aov, 0)
+    };
+  }
+
+  private processCustomersTimeSeries(customers: any[], dateFrom: string, dateTo: string) {
+    const dailyCustomers = this.groupByDate(customers, (customer) => ({
+      date: customer.createdAt.split('T')[0],
+      value: 1
+    }));
+
+    const timeSeries = this.fillMissingDates(dailyCustomers, dateFrom, dateTo);
+    const currentTotal = timeSeries.reduce((sum, point) => sum + point.value, 0);
+    
+    return {
+      timeSeries,
+      metric: this.calculateMetric(currentTotal, 0),
+      newCustomersMetric: this.calculateMetric(currentTotal, 0)
+    };
+  }
+
+  private processTopProducts(orders: any[]) {
+    const productStats = new Map<string, { title: string; totalSold: number; revenue: number; image?: string }>();
+
+    orders.forEach(order => {
+      order.lineItems.nodes.forEach((item: any) => {
+        if (item.product) {
+          const productId = item.product.id;
+          const existing = productStats.get(productId) || {
+            title: item.product.title,
+            totalSold: 0,
+            revenue: 0,
+            image: item.product.images?.nodes?.[0]?.src
+          };
+
+          existing.totalSold += item.quantity;
+          existing.revenue += parseFloat(item.originalUnitPriceSet?.shopMoney?.amount || '0') * item.quantity;
+          productStats.set(productId, existing);
+        }
+      });
+    });
+
+    return Array.from(productStats.entries())
+      .map(([id, stats]) => ({ id, ...stats }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10);
+  }
+
+  private processSalesByLocation(orders: any[]) {
+    const locationStats = new Map<string, { sales: number; orders: number }>();
+
+    orders.forEach(order => {
+      const country = order.shippingAddress?.country || 'Unknown';
+      const existing = locationStats.get(country) || { sales: 0, orders: 0 };
+      
+      existing.sales += parseFloat(order.totalPriceSet?.shopMoney?.amount || '0');
+      existing.orders += 1;
+      locationStats.set(country, existing);
+    });
+
+    return Array.from(locationStats.entries())
+      .map(([country, stats]) => ({ country, ...stats }))
+      .sort((a, b) => b.sales - a.sales)
+      .slice(0, 10);
+  }
+
+  private groupByDate<T>(items: any[], mapper: (item: any) => { date: string; value: number }): ShopifyAnalyticsDataPoint[] {
+    const grouped = new Map<string, number>();
+    
+    items.forEach(item => {
+      const { date, value } = mapper(item);
+      grouped.set(date, (grouped.get(date) || 0) + value);
+    });
+
+    return Array.from(grouped.entries())
+      .map(([date, value]) => ({ date, value }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  private fillMissingDates(data: ShopifyAnalyticsDataPoint[], dateFrom: string, dateTo: string): ShopifyAnalyticsDataPoint[] {
+    const result: ShopifyAnalyticsDataPoint[] = [];
+    const dataMap = new Map(data.map(point => [point.date, point.value]));
+    
+    const currentDate = new Date(dateFrom);
+    const endDate = new Date(dateTo);
+
+    while (currentDate <= endDate) {
+      const dateStr = currentDate.toISOString().split('T')[0];
+      result.push({
+        date: dateStr,
+        value: dataMap.get(dateStr) || 0
+      });
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return result;
+  }
+
+  private calculateMetric(current: number, previous: number): ShopifyAnalyticsMetric {
+    const change = current - previous;
+    const changePercent = previous > 0 ? (change / previous) * 100 : 0;
+    const trend = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
+
+    return {
+      current,
+      previous,
+      change,
+      changePercent,
+      trend
+    };
+  }
+
+  private getDateDaysAgo(days: number): string {
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+    return date.toISOString().split('T')[0];
+  }
+
+  private getDaysBetween(dateFrom: string, dateTo: string): number {
+    const from = new Date(dateFrom);
+    const to = new Date(dateTo);
+    const diffTime = Math.abs(to.getTime() - from.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
   private handleError(error: any): ShopifyError {
     return {
       code: 'GRAPHQL_ERROR',
@@ -1163,6 +1589,7 @@ export const shopifyGraphQLApi = new ShopifyGraphQLApiService();
 export const shopifyGraphQL = {
   // Products
   getProducts: (filters?: ShopifyProductFilters) => shopifyGraphQLApi.getProducts(filters),
+  getProductsWithPagination: (filters?: ShopifyProductFilters) => shopifyGraphQLApi.getProductsWithPagination(filters),
   getProduct: (id: string) => shopifyGraphQLApi.getProduct(id),
   createProduct: (data: ShopifyProductRequest) => shopifyGraphQLApi.createProduct(data),
   updateProduct: (id: string, data: Partial<ShopifyProductRequest>) => shopifyGraphQLApi.updateProduct(id, data),
@@ -1170,6 +1597,7 @@ export const shopifyGraphQL = {
 
   // Orders
   getOrders: (filters?: ShopifyOrderFilters) => shopifyGraphQLApi.getOrders(filters),
+  getOrdersWithPagination: (filters?: ShopifyOrderFilters) => shopifyGraphQLApi.getOrdersWithPagination(filters),
   getOrder: (id: string) => shopifyGraphQLApi.getOrder(id),
   createOrder: (data: ShopifyOrderRequest) => shopifyGraphQLApi.createOrder(data),
 
@@ -1179,5 +1607,8 @@ export const shopifyGraphQL = {
   createCustomer: (data: Partial<ShopifyCustomer>) => shopifyGraphQLApi.createCustomer(data),
 
   // Store Info
-  getStoreStats: () => shopifyGraphQLApi.getStoreStats()
+  getStoreStats: () => shopifyGraphQLApi.getStoreStats(),
+  
+  // Analytics
+  getAnalytics: (filters?: ShopifyAnalyticsFilters) => shopifyGraphQLApi.getAnalytics(filters)
 };

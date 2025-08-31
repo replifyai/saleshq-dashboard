@@ -1,4 +1,4 @@
-import { ShopifyProduct, ShopifyProductRequest, ShopifyOrder, ShopifyOrderRequest, ShopifyCustomer, ShopifyCart, ShopifyCartRequest, ShopifyProductFilters, ShopifyOrderFilters, ShopifyStoreStats, ShopifyError } from '@/types/shopify';
+import { ShopifyProduct, ShopifyProductRequest, ShopifyOrder, ShopifyOrderRequest, ShopifyCustomer, ShopifyCart, ShopifyCartRequest, ShopifyProductFilters, ShopifyProductsResponse, ShopifyOrderFilters, ShopifyOrdersResponse, ShopifyStoreStats, ShopifyAnalyticsFilters, ShopifyAnalyticsResponse, ShopifyError } from '@/types/shopify';
 import { shopifyGraphQL } from './shopifyGraphQLApi';
 
 // This service is designed to work with Next.js API routes
@@ -33,6 +33,14 @@ export class ShopifyApiService {
   async getProducts(filters?: ShopifyProductFilters): Promise<ShopifyProduct[]> {
     try {
       return await shopifyGraphQL.getProducts(filters);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getProductsWithPagination(filters?: ShopifyProductFilters): Promise<ShopifyProductsResponse> {
+    try {
+      return await shopifyGraphQL.getProductsWithPagination(filters);
     } catch (error) {
       throw this.handleError(error);
     }
@@ -74,6 +82,14 @@ export class ShopifyApiService {
   async getOrders(filters?: ShopifyOrderFilters): Promise<ShopifyOrder[]> {
     try {
       return await shopifyGraphQL.getOrders(filters);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getOrdersWithPagination(filters?: ShopifyOrderFilters): Promise<ShopifyOrdersResponse> {
+    try {
+      return await shopifyGraphQL.getOrdersWithPagination(filters);
     } catch (error) {
       throw this.handleError(error);
     }
@@ -271,6 +287,14 @@ export class ShopifyApiService {
     }
   }
 
+  async getAnalytics(filters?: ShopifyAnalyticsFilters): Promise<ShopifyAnalyticsResponse> {
+    try {
+      return await shopifyGraphQL.getAnalytics(filters);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   async getSalesAnalytics(period: string, startDate: string, endDate: string): Promise<any> {
     try {
       const response = await this.makeRequest('getSalesAnalytics', {
@@ -404,6 +428,7 @@ export const shopifyApi = new ShopifyApiService();
 export const shopify = {
   // Products
   getProducts: (filters?: ShopifyProductFilters) => shopifyApi.getProducts(filters),
+  getProductsWithPagination: (filters?: ShopifyProductFilters) => shopifyApi.getProductsWithPagination(filters),
   getProduct: (id: string) => shopifyApi.getProduct(id),
   createProduct: (data: ShopifyProductRequest) => shopifyApi.createProduct(data),
   updateProduct: (id: string, data: Partial<ShopifyProductRequest>) => shopifyApi.updateProduct(id, data),
@@ -412,6 +437,7 @@ export const shopify = {
 
   // Orders
   getOrders: (filters?: ShopifyOrderFilters) => shopifyApi.getOrders(filters),
+  getOrdersWithPagination: (filters?: ShopifyOrderFilters) => shopifyApi.getOrdersWithPagination(filters),
   getOrder: (id: string) => shopifyApi.getOrder(id),
   createOrder: (data: ShopifyOrderRequest) => shopifyApi.createOrder(data),
   updateOrder: (id: string, data: Partial<ShopifyOrderRequest>) => shopifyApi.updateOrder(id, data),
@@ -443,6 +469,7 @@ export const shopify = {
 
   // Analytics
   getStoreStats: () => shopifyApi.getStoreStats(),
+  getAnalytics: (filters?: ShopifyAnalyticsFilters) => shopifyApi.getAnalytics(filters),
   getSalesAnalytics: (period: string, startDate: string, endDate: string) => 
     shopifyApi.getSalesAnalytics(period, startDate, endDate),
 
