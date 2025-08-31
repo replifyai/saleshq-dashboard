@@ -68,7 +68,7 @@ A comprehensive Shopify store management system built for the Replify dashboard,
 4. **State Management**: React hooks for local state management
 5. **Error Handling**: User-friendly error messages and retry options
 
-## Getting Started
+## Getting Started!
 
 ### Prerequisites
 - Node.js 18+ and npm
