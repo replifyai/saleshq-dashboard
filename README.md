@@ -1,4 +1,4 @@
-# Shopify Integration Module
+# Shopify Integration Modul
 
 A comprehensive Shopify store management system built for the Replify dashboard, featuring direct integration with Shopify's REST Admin API.
 
