@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import LandingNavigation from "./LandingNavigation";
-
+// import NavigationHeader from "./new/NavigationHeader";
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
 

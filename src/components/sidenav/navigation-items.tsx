@@ -1,4 +1,4 @@
-import { MessageCircle, Upload, FolderOpen, AlertCircle, Brain, Home, Building2,Bot } from "lucide-react";
+import { MessageCircle, Upload, FolderOpen, AlertCircle, Brain, Home, Building2, Bot, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useSideNav } from "@/contexts/sideNav-context";
@@ -62,6 +62,14 @@ const navigationTabs = [
     icon: Bot, 
     description: "Live Assistant", 
     path: "/live", 
+    disabled: true 
+  },
+  { 
+    id: "shopify", 
+    label: "Shopify Store", 
+    icon: ShoppingCart, 
+    description: "Manage store", 
+    path: "/shopify", 
     disabled: true 
   },
 ];
