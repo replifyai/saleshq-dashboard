@@ -101,8 +101,8 @@ export default function ShopifyPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Shopify Store Management</h1>
-        <p className="text-gray-600">Manage your products, orders, customers, and store analytics</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2 dark:text-white">Shopify Store Management</h1>
+        <p className="text-gray-600 dark:text-gray-400">Manage your products, orders, customers, and store analytics</p>
       </div>
       {/* Main Management Tabs */}
       <Tabs defaultValue="overview" className="w-full">
@@ -231,7 +231,7 @@ export default function ShopifyPage() {
                           <summary className="flex items-center justify-between cursor-pointer">
                             <div>
                               <p className="font-medium">#{order.order_number}</p>
-                              <p className="text-xs text-gray-500">Customer ID: {order.customer?.id || 'N/A'}</p>
+                              <p className="text-xs text-gray-500">Customer ID: {order.customer?.id?.split('/').pop() || 'N/A'}</p>
                             </div>
                             <div className="text-right">
                               <p className="font-medium">
@@ -244,26 +244,26 @@ export default function ShopifyPage() {
                           </summary>
                           <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700">
                             <div>
-                              <p className="text-gray-500">Subtotal</p>
-                              <p className="font-medium">{formatCurrency(parseFloat(order.subtotal_price || '0'))}</p>
+                              <p className="text-gray-500 dark:text-gray-400">Subtotal</p>
+                              <p className="font-medium text-gray-500 dark:text-gray-400">{formatCurrency(parseFloat(order.subtotal_price || '0'))}</p>
                             </div>
                             <div>
-                              <p className="text-gray-500">Tax</p>
-                              <p className="font-medium">{formatCurrency(parseFloat(order.total_tax || '0'))}</p>
+                              <p className="text-gray-500 dark:text-gray-400">Tax</p>
+                              <p className="font-medium text-gray-500 dark:text-gray-400">{formatCurrency(parseFloat(order.total_tax || '0'))}</p>
                             </div>
                             <div>
-                              <p className="text-gray-500">Total</p>
-                              <p className="font-medium">{formatCurrency(parseFloat(order.total_price || '0'))}</p>
+                              <p className="text-gray-500 dark:text-gray-400">Total</p>
+                              <p className="font-medium text-gray-500 dark:text-gray-400">{formatCurrency(parseFloat(order.total_price || '0'))}</p>
                             </div>
                           </div>
                           {order.line_items?.length > 0 && (
                             <div className="mt-3 border-t pt-3">
-                              <p className="text-sm text-gray-600 mb-2">Items</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Items</p>
                               <div className="space-y-1">
                                 {order.line_items.map((item, idx) => (
                                   <div key={idx} className="flex items-center justify-between text-sm">
                                     <span>{item.quantity}x {item.title}</span>
-                                    <span className="text-gray-600">{formatCurrency(parseFloat(item.price || '0'))}</span>
+                                    <span className="text-gray-600 dark:text-white">{formatCurrency(parseFloat(item.price || '0'))}</span>
                                   </div>
                                 ))}
                               </div>

@@ -569,6 +569,12 @@ export interface ShopifyOrderRequest {
   currency?: string;
   financialStatus?: string;
   fulfillmentStatus?: string;
+  // Tax and discount fields
+  discountCode?: string;
+  discountType?: 'percentage' | 'fixed';
+  discountValue?: number;
+  taxBreakdown?: any;
+  totalTax?: number;
 }
 
 export interface ShopifyCartRequest {
@@ -580,6 +586,7 @@ export interface ShopifyCartRequest {
   customerId?: string;
   note?: string;
   attributes?: ShopifyCartAttribute[];
+  orderPunchedBy?: string;
 }
 
 // Filter and Search Types

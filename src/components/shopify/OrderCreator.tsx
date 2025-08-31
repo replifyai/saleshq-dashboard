@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Plus, Minus, Trash2, ShoppingCart, Package, DollarSign, Percent, Tag, User, MapPin, CreditCard } from 'lucide-react';
 import { shopify } from '@/lib/shopifyApi';
 import { ShopifyProduct, ShopifyCart, ShopifyCartRequest, ShopifyOrderRequest, ShopifyCustomer } from '@/types/shopify';
+import { useAuth } from '@/contexts/auth-context';
 
 interface CartItem {
   id: string;
@@ -21,6 +22,8 @@ interface CartItem {
   quantity: number;
   image?: string;
   sku?: string;
+  taxable?: boolean;
+  taxCategory?: string;
 }
 
 interface Discount {
@@ -29,7 +32,24 @@ interface Discount {
   code?: string;
 }
 
+interface TaxRate {
+  category: string;
+  rate: number;
+  name: string;
+}
+
+// Tax configuration - in a real app, this would come from settings/API
+const TAX_RATES: TaxRate[] = [
+  { category: 'default', rate: 0.18, name: 'Standard Tax (18%)' },
+  { category: 'food', rate: 0.05, name: 'Food Tax (5%)' },
+  { category: 'clothing', rate: 0.06, name: 'Clothing Tax (6%)' },
+  { category: 'electronics', rate: 0.10, name: 'Electronics Tax (10%)' },
+  { category: 'books', rate: 0.00, name: 'Books (Tax Free)' },
+  { category: 'medical', rate: 0.00, name: 'Medical (Tax Free)' },
+];
+
 export default function OrderCreator() {
+  const { user } = useAuth();
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<string>('');
@@ -60,11 +80,21 @@ export default function OrderCreator() {
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [priceUpdateAnimation, setPriceUpdateAnimation] = useState(false);
 
   useEffect(() => {
     loadProducts();
     loadCustomers();
   }, []);
+
+  // Trigger price update animation when cart items change
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      setPriceUpdateAnimation(true);
+      const timer = setTimeout(() => setPriceUpdateAnimation(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [cartItems, discounts]);
 
   useEffect(() => {
     if (customerSearchTerm.trim() === '') {
@@ -224,6 +254,21 @@ export default function OrderCreator() {
       updatedItems[existingItemIndex].quantity = newTotalQuantity;
       setCartItems(updatedItems);
     } else {
+      // Determine tax category from product type or tags
+      const getTaxCategory = (product: ShopifyProduct): string => {
+        const productType = product.productType?.toLowerCase() || '';
+        const tags = product.tags?.map(tag => tag.toLowerCase()) || [];
+        
+        // Check product type first
+        if (productType.includes('food') || tags.includes('food')) return 'food';
+        if (productType.includes('clothing') || tags.includes('clothing')) return 'clothing';
+        if (productType.includes('electronics') || tags.includes('electronics')) return 'electronics';
+        if (productType.includes('book') || tags.includes('books')) return 'books';
+        if (productType.includes('medical') || tags.includes('medical')) return 'medical';
+        
+        return 'default';
+      };
+
       // Add new item
       const newItem: CartItem = {
         id: `${variant.id}-${Date.now()}`,
@@ -234,7 +279,9 @@ export default function OrderCreator() {
         price: variant.price,
         quantity: quantity,
         image: product.images?.[0]?.src,
-        sku: variant.sku
+        sku: variant.sku,
+        taxable: variant.taxable !== false, // Default to taxable unless explicitly false
+        taxCategory: getTaxCategory(product)
       };
       setCartItems([...cartItems, newItem]);
     }
@@ -299,12 +346,101 @@ export default function OrderCreator() {
   };
 
   const calculateTax = () => {
-    // Simple tax calculation - you might want to implement proper tax logic
-    return (calculateSubtotal() - calculateDiscounts()) * 0.08; // 8% tax
+    const subtotalAfterDiscounts = calculateSubtotal() - calculateDiscounts();
+    let totalTax = 0;
+
+    cartItems.forEach(item => {
+      if (!item.taxable) return; // Skip non-taxable items
+      
+      const taxRate = TAX_RATES.find(rate => rate.category === item.taxCategory) || TAX_RATES[0];
+      const itemSubtotal = item.price * item.quantity;
+      const itemAfterDiscount = itemSubtotal * (subtotalAfterDiscounts / calculateSubtotal());
+      totalTax += itemAfterDiscount * taxRate.rate;
+    });
+
+    return totalTax;
+  };
+
+  const getTaxBreakdown = () => {
+    const subtotalAfterDiscounts = calculateSubtotal() - calculateDiscounts();
+    const breakdown: { [category: string]: { amount: number; rate: number; name: string } } = {};
+
+    cartItems.forEach(item => {
+      if (!item.taxable) return;
+      
+      const taxRate = TAX_RATES.find(rate => rate.category === item.taxCategory) || TAX_RATES[0];
+      const itemSubtotal = item.price * item.quantity;
+      const itemAfterDiscount = itemSubtotal * (subtotalAfterDiscounts / calculateSubtotal());
+      const itemTax = itemAfterDiscount * taxRate.rate;
+
+      if (!breakdown[taxRate.category]) {
+        breakdown[taxRate.category] = {
+          amount: 0,
+          rate: taxRate.rate,
+          name: taxRate.name
+        };
+      }
+      breakdown[taxRate.category].amount += itemTax;
+    });
+
+    return breakdown;
   };
 
   const calculateTotal = () => {
     return calculateSubtotal() - calculateDiscounts() + calculateTax();
+  };
+
+  const handleCreateCart = async () => {
+    if (cartItems.length === 0) {
+      setError('Please add items to cart before creating cart');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Create cart with logged-in user information
+      const cartData: ShopifyCartRequest = {
+        lineItems: cartItems.map(item => ({
+          merchandiseId: item.variantId,
+          quantity: item.quantity
+        })),
+        customerId: customerType === 'existing' && selectedCustomerId ? selectedCustomerId : undefined,
+        note: `Cart created via admin interface. Customer Type: ${customerType}, Customer: ${customerName}. Tax Details: ${JSON.stringify(getTaxBreakdown())}`,
+        // Add logged-in user as orderPunchedBy
+        orderPunchedBy: user?.name || 'Unknown User'
+      };
+
+      // Create the cart
+      const cart = await shopify.createCart(cartData);
+
+      setSuccess(`Cart created successfully! Cart ID: ${cart.id}`);
+      setCartItems([]);
+      setDiscounts([]);
+      setSelectedCustomerId('');
+      setCustomerEmail('');
+      setCustomerName('');
+      setCustomerPhone('');
+      setCustomerSearchTerm('');
+      setShippingAddress({
+        address1: '',
+        city: '',
+        province: '',
+        country: 'US',
+        zip: ''
+      });
+      setCustomerType('existing');
+
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccess(null), 5000);
+
+    } catch (err) {
+      console.error('Failed to create cart:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create cart');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCreateOrder = async () => {
@@ -341,6 +477,9 @@ export default function OrderCreator() {
       setError(null);
 
       // Create order directly with discount support
+      console.log('Tax breakdown for order:', getTaxBreakdown());
+      console.log('Total tax for order:', calculateTax());
+      
       const orderData: any = {
         email: customerEmail,
         lineItems: cartItems.map(item => ({
@@ -373,15 +512,19 @@ export default function OrderCreator() {
           country: shippingAddress.country,
           zip: shippingAddress.zip
         } : undefined,
-        note: `Order created via admin interface. Customer Type: ${customerType}, Customer: ${customerName}`,
-        tags: ['admin-created', 'manual-order', `customer-${customerType}`],
+        note: `Order created via salesHQ. Created by: ${user?.name}`,
+        tags: ['salesHQ', 'manual-order',`Created by: ${user?.name}`],
+        orderPunchedBy: user?.name || 'Unknown User',
         currency: 'INR',
         financialStatus: 'pending',
         fulfillmentStatus: 'unfulfilled',
         // Add discount information if any discounts are applied
         discountCode: discounts.length > 0 && discounts[0].code ? discounts[0].code : undefined,
         discountType: discounts.length > 0 ? discounts[0].type : undefined,
-        discountValue: discounts.length > 0 ? discounts[0].value : undefined
+        discountValue: discounts.length > 0 ? discounts[0].value : undefined,
+        // Add tax breakdown information
+        taxBreakdown: getTaxBreakdown(),
+        totalTax: calculateTax()
       };
 
       // Create the order
@@ -593,6 +736,59 @@ export default function OrderCreator() {
                 </div>
               </div>
 
+              {/* Live Price Preview */}
+              {selectedProduct && selectedVariant && quantity > 0 && (() => {
+                const variant = getSelectedVariant();
+                const product = getSelectedProduct();
+                if (!variant || !product) return null;
+                
+                const itemTotal = variant.price * quantity;
+                const getTaxCategory = (product: ShopifyProduct): string => {
+                  const productType = product.productType?.toLowerCase() || '';
+                  const tags = product.tags?.map(tag => tag.toLowerCase()) || [];
+                  
+                  if (productType.includes('food') || tags.includes('food')) return 'food';
+                  if (productType.includes('clothing') || tags.includes('clothing')) return 'clothing';
+                  if (productType.includes('electronics') || tags.includes('electronics')) return 'electronics';
+                  if (productType.includes('book') || tags.includes('books')) return 'books';
+                  if (productType.includes('medical') || tags.includes('medical')) return 'medical';
+                  
+                  return 'default';
+                };
+                
+                const taxCategory = getTaxCategory(product);
+                const taxRate = TAX_RATES.find(rate => rate.category === taxCategory) || TAX_RATES[0];
+                const itemTax = variant.taxable !== false ? itemTotal * taxRate.rate : 0;
+                const itemTotalWithTax = itemTotal + itemTax;
+                
+                return (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-blue-800">Preview</span>
+                      <Badge variant="outline" className="text-xs">
+                        {taxRate.name}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Subtotal ({quantity} × {formatCurrency(variant.price)})</span>
+                        <span className="font-medium">{formatCurrency(itemTotal)}</span>
+                      </div>
+                      {itemTax > 0 && (
+                        <div className="flex justify-between text-blue-700">
+                          <span>Tax</span>
+                          <span>{formatCurrency(itemTax)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-bold text-blue-800 pt-1 border-t border-blue-200">
+                        <span>Total</span>
+                        <span>{formatCurrency(itemTotalWithTax)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               <Button
                 onClick={handleAddToCart}
                 disabled={!selectedProduct || !selectedVariant || quantity <= 0 || selectedProduct === '' || selectedVariant === ''}
@@ -639,6 +835,15 @@ export default function OrderCreator() {
                         {item.sku && (
                           <p className="text-sm text-gray-500">SKU: {item.sku}</p>
                         )}
+                        <div className="flex items-center gap-2 mt-1">
+                          {item.taxable ? (
+                            <Badge variant="outline" className="text-xs">
+                              {TAX_RATES.find(rate => rate.category === item.taxCategory)?.name || 'Standard Tax'}
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">Tax Free</Badge>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
@@ -770,7 +975,7 @@ export default function OrderCreator() {
                 Order Summary
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className={`space-y-3 transition-all duration-300 ${priceUpdateAnimation ? 'bg-blue-50 scale-[1.02]' : ''}`}>
               <div className="flex justify-between">
                 <span>Subtotal ({cartItems.length} items)</span>
                 <span>{formatCurrency(calculateSubtotal())}</span>
@@ -781,10 +986,35 @@ export default function OrderCreator() {
                   <span>-{formatCurrency(calculateDiscounts())}</span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span>Tax (8%)</span>
-                <span>{formatCurrency(calculateTax())}</span>
-              </div>
+              {/* Tax Breakdown */}
+              {(() => {
+                const taxBreakdown = getTaxBreakdown();
+                const totalTax = calculateTax();
+                
+                if (totalTax === 0) {
+                  return (
+                    <div className="flex justify-between">
+                      <span>Tax</span>
+                      <span>{formatCurrency(0)}</span>
+                    </div>
+                  );
+                }
+                
+                return (
+                  <div className="space-y-1">
+                    {Object.entries(taxBreakdown).map(([category, tax]) => (
+                      <div key={category} className="flex justify-between text-sm">
+                        <span>{tax.name}</span>
+                        <span>{formatCurrency(tax.amount)}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between font-medium">
+                      <span>Total Tax</span>
+                      <span>{formatCurrency(totalTax)}</span>
+                    </div>
+                  </div>
+                );
+              })()}
               <Separator />
               <div className="flex justify-between text-lg font-bold">
                 <span>Total</span>
@@ -1149,16 +1379,28 @@ export default function OrderCreator() {
             </CardContent>
           </Card>
 
-          {/* Create Order Button */}
-          <Button
-            onClick={handleCreateOrder}
-            disabled={loading || cartItems.length === 0}
-            className="w-full h-12 text-lg"
-            size="lg"
-          >
-            <CreditCard className="h-5 w-5 mr-2" />
-            {loading ? 'Creating Order...' : 'Create Order'}
-          </Button>
+          {/* Action Buttons */}
+          <div className="flex gap-4">
+            <Button
+              onClick={handleCreateCart}
+              disabled={loading || cartItems.length === 0}
+              className="flex-1 h-12 text-lg"
+              size="lg"
+              variant="outline"
+            >
+              <ShoppingCart className="h-5 w-5 mr-2" />
+              {loading ? 'Creating Cart...' : 'Create Cart'}
+            </Button>
+            <Button
+              onClick={handleCreateOrder}
+              disabled={loading || cartItems.length === 0}
+              className="flex-1 h-12 text-lg"
+              size="lg"
+            >
+              <CreditCard className="h-5 w-5 mr-2" />
+              {loading ? 'Creating Order...' : 'Create Order'}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

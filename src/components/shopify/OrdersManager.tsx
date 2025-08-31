@@ -15,7 +15,6 @@ import OrderCreator from './OrderCreator';
 
 export default function OrdersManager() {
   const [orders, setOrders] = useState<ShopifyOrder[]>([]);
-  console.log("🚀 ~ OrdersManager ~ orders:", orders);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,8 +31,8 @@ export default function OrdersManager() {
     try {
       setLoading(true);
       setError(null);
-      const ordersData = await shopify.getOrders({ limit: 50 });
-      setOrders(ordersData);
+      const ordersData = await shopify.getOrders({ limit: 5 });
+      setOrders(ordersData); // Orders are already sorted by createdAt (latest first) from the API
     } catch (err) {
       console.error('Failed to load orders:', err);
       setError(err instanceof Error ? err.message : 'Failed to load orders');

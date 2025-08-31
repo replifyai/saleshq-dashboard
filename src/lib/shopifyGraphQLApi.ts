@@ -363,7 +363,7 @@ export class ShopifyGraphQLApiService {
 
       const gqlQuery = `
         query GetOrders($first: Int!, $query: String) {
-          orders(first: $first, query: $query) {
+          orders(first: $first, query: $query, sortKey: CREATED_AT, reverse: true) {
             nodes {
               id
               name
@@ -503,7 +503,13 @@ export class ShopifyGraphQLApiService {
     }
   }
 
-  async createOrder(orderData: ShopifyOrderRequest & { discountCode?: string; discountType?: 'percentage' | 'fixed'; discountValue?: number }): Promise<ShopifyOrder> {
+  async createOrder(orderData: ShopifyOrderRequest & { 
+    discountCode?: string; 
+    discountType?: 'percentage' | 'fixed'; 
+    discountValue?: number;
+    taxBreakdown?: any;
+    totalTax?: number;
+  }): Promise<ShopifyOrder> {
     try {
       const gqlQuery = `
         mutation OrderCreate($order: OrderCreateOrderInput!) {
@@ -518,6 +524,28 @@ export class ShopifyGraphQLApiService {
                 shopMoney {
                   amount
                   currencyCode
+                }
+              }
+              totalTaxSet {
+                shopMoney {
+                  amount
+                  currencyCode
+                }
+              }
+              totalDiscountsSet {
+                shopMoney {
+                  amount
+                  currencyCode
+                }
+              }
+              taxLines {
+                title
+                rate
+                priceSet {
+                  shopMoney {
+                    amount
+                    currencyCode
+                  }
                 }
               }
               customer { id }
@@ -965,7 +993,13 @@ export class ShopifyGraphQLApiService {
     }));
   }
 
-  private transformOrderInput(orderData: ShopifyOrderRequest & { discountCode?: string; discountType?: 'percentage' | 'fixed'; discountValue?: number }): any {
+  private transformOrderInput(orderData: ShopifyOrderRequest & { 
+    discountCode?: string; 
+    discountType?: 'percentage' | 'fixed'; 
+    discountValue?: number;
+    taxBreakdown?: any;
+    totalTax?: number;
+  }): any {
     const input: any = {
       email: orderData.email,
       lineItems: orderData.lineItems.map(item => ({
@@ -1047,6 +1081,26 @@ export class ShopifyGraphQLApiService {
 
     if (orderData.tags) {
       input.tags = orderData.tags;
+    }
+
+    // Add tax lines if tax breakdown is provided
+    if (orderData.taxBreakdown && orderData.totalTax && orderData.totalTax > 0) {
+      try {
+        input.taxLines = Object.entries(orderData.taxBreakdown).map(([category, tax]: [string, any]) => ({
+          title: tax.name || `Tax (${category})`,
+          rate: tax.rate || 0,
+          priceSet: {
+            shopMoney: {
+              amount: (tax.amount || 0).toFixed(2),
+              currencyCode: 'INR'
+            }
+          }
+        }));
+        console.log('Tax lines added to order:', input.taxLines);
+      } catch (error) {
+        console.error('Error creating tax lines:', error);
+        // Continue without tax lines if there's an error
+      }
     }
 
     return input;

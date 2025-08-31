@@ -163,7 +163,8 @@ class ShopifyServerApi {
       })),
       customer: cartData.customerId ? { id: cartData.customerId } : undefined,
       note: cartData.note,
-      tags: cartData.tags
+      tags: cartData.tags,
+      orderPunchedBy: cartData.orderPunchedBy
     };
 
     const response = await this.makeShopifyRequest('/draft_orders.json', {
@@ -413,6 +414,7 @@ class ShopifyServerApi {
       discountCodes: [],
       discountApplications: [],
       note: draftOrder.note,
+      orderPunchedBy: draftOrder.orderPunchedBy,
       tags: draftOrder.tags
     };
   }
