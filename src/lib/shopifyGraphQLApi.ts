@@ -487,6 +487,10 @@ export class ShopifyGraphQLApiService {
                       amount
                       currencyCode
                     }
+                    presentmentMoney {
+                      amount
+                      currencyCode
+                    }
                   }
                   customAttributes {
                     key
@@ -615,6 +619,10 @@ export class ShopifyGraphQLApiService {
               }
               totalDiscountsSet {
                 shopMoney {
+                  amount
+                  currencyCode
+                }
+                presentmentMoney {
                   amount
                   currencyCode
                 }
@@ -978,6 +986,16 @@ export class ShopifyGraphQLApiService {
       subtotal_price: subtotalPrice,
       tags: node.tags?.join(',') || '',
       total_discounts: node.totalDiscountsSet?.shopMoney?.amount || '0',
+      totalDiscountsSet: node.totalDiscountsSet ? {
+        shopMoney: {
+          amount: parseFloat(node.totalDiscountsSet.shopMoney?.amount || '0'),
+          currencyCode: node.totalDiscountsSet.shopMoney?.currencyCode || currency
+        },
+        presentmentMoney: {
+          amount: parseFloat(node.totalDiscountsSet.presentmentMoney?.amount || node.totalDiscountsSet.shopMoney?.amount || '0'),
+          currencyCode: node.totalDiscountsSet.presentmentMoney?.currencyCode || node.totalDiscountsSet.shopMoney?.currencyCode || currency
+        }
+      } : undefined,
       total_line_items_price: subtotalPrice,
       total_outstanding: '0',
       total_price: totalPrice,
@@ -1064,6 +1082,16 @@ export class ShopifyGraphQLApiService {
           currency_code: node.originalUnitPriceSet?.shopMoney?.currencyCode || 'INR'
         }
       },
+      originalUnitPriceSet: node.originalUnitPriceSet ? {
+        shopMoney: {
+          amount: parseFloat(node.originalUnitPriceSet.shopMoney?.amount || '0'),
+          currencyCode: node.originalUnitPriceSet.shopMoney?.currencyCode || 'INR'
+        },
+        presentmentMoney: {
+          amount: parseFloat(node.originalUnitPriceSet.presentmentMoney?.amount || node.originalUnitPriceSet.shopMoney?.amount || '0'),
+          currencyCode: node.originalUnitPriceSet.presentmentMoney?.currencyCode || node.originalUnitPriceSet.shopMoney?.currencyCode || 'INR'
+        }
+      } : undefined,
       properties: node.customAttributes?.map((attr: any) => ({
         name: attr.key,
         value: attr.value

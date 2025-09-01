@@ -658,26 +658,72 @@ function OrderDetails({
       {/* Financial Information */}
       <div>
         <h3 className="text-lg font-semibold mb-4">Financial Details</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 border rounded-lg">
-            <Label className="text-sm font-medium text-gray-600">Subtotal</Label>
-                                     <p className="text-xl font-bold text-gray-900">
-              {formatCurrency(order.subtotal_price || '0', order.currency)}
-            </p>
-           </div>
-           <div className="p-4 border rounded-lg">
-             <Label className="text-sm font-medium text-gray-600">Tax</Label>
-                         <p className="text-xl font-bold text-gray-900">
-              {formatCurrency(order.total_tax || '0', order.currency)}
-            </p>
-           </div>
-           <div className="p-4 border rounded-lg bg-blue-50">
-             <Label className="text-sm font-medium text-gray-600">Total</Label>
-                         <p className="text-xl font-bold text-blue-900">
-              {formatCurrency(order.total_price || '0', order.currency)}
-            </p>
-          </div>
-        </div>
+        {(() => {
+          // Calculate original subtotal from line items
+          const originalSubtotal = order.line_items?.reduce((sum, item) => {
+            const originalPrice = item.originalUnitPriceSet?.shopMoney?.amount || parseFloat(item.price || '0');
+            return sum + (originalPrice * item.quantity);
+          }, 0) || 0;
+          
+          const discountAmount = parseFloat(String(order.totalDiscountsSet?.shopMoney?.amount || order.total_discounts || '0'));
+          
+          return (
+            <>
+              {/* Show original amount if discounts exist */}
+              {discountAmount > 0 && (
+                <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-sm font-medium text-amber-800">Original Subtotal</Label>
+                      <p className="text-lg font-semibold text-amber-900">
+                        {formatCurrency(originalSubtotal, order.currency)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <Label className="text-sm font-medium text-amber-800">You Saved</Label>
+                      <p className="text-lg font-semibold text-green-600">
+                        {formatCurrency(discountAmount, order.totalDiscountsSet?.shopMoney?.currencyCode || order.currency)}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-amber-700 mt-2">
+                    Subtotal shown below is after applying discounts
+                  </p>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <Label className="text-sm font-medium text-gray-600">Subtotal (After Discounts)</Label>
+                  <p className="text-xl font-bold text-gray-900">
+                    {formatCurrency(order.subtotal_price || '0', order.currency)}
+                  </p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <Label className="text-sm font-medium text-gray-600">Tax</Label>
+                  <p className="text-xl font-bold text-gray-900">
+                    {formatCurrency(order.total_tax || '0', order.currency)}
+                  </p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <Label className="text-sm font-medium text-gray-600">Discounts Applied</Label>
+                  <p className="text-xl font-bold text-green-600">
+                    -{formatCurrency(
+                      discountAmount, 
+                      order.totalDiscountsSet?.shopMoney?.currencyCode || order.currency
+                    )}
+                  </p>
+                </div>
+                <div className="p-4 border rounded-lg bg-blue-50">
+                  <Label className="text-sm font-medium text-gray-600">Final Total</Label>
+                  <p className="text-xl font-bold text-blue-900">
+                    {formatCurrency(order.total_price || '0', order.currency)}
+                  </p>
+                </div>
+              </div>
+            </>
+          );
+        })()}
       </div>
 
       {/* Line Items */}

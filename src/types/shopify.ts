@@ -154,6 +154,7 @@ export interface ShopifyOrder {
   total_cash_rounding_refund_adjustment_set?: any;
   total_discounts: string;
   total_discounts_set?: any;
+  totalDiscountsSet?: ShopifyMoneySet;
   total_line_items_price: string;
   total_line_items_price_set?: any;
   total_outstanding: string;
@@ -238,6 +239,7 @@ export interface ShopifyLineItem {
   discount_allocations?: any[];
   duties?: any[];
   tax_lines?: any[];
+  originalUnitPriceSet?: ShopifyMoneySet;
 }
 
 export interface ShopifyAddress {
