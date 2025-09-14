@@ -26,8 +26,8 @@ export default function CompactLeaderboard() {
       try {
         setLoading(true);
         const res = await moduleApi.getLeaderboard();
-        // Only show top 3 for compact view
-        setEntries((res.data?.data || []).slice(0, 3));
+        // Show top 5 entries for compact view
+        setEntries((res.data?.data || []).slice(0, 5));
       } catch (error) {
         console.error('Failed to fetch leaderboard:', error);
         setEntries([]);
@@ -40,11 +40,8 @@ export default function CompactLeaderboard() {
   }, []);
 
   const handleViewAll = () => {
-    // Navigate to full leaderboard or scroll to it
-    const leaderboardElement = document.querySelector('[data-leaderboard-full]');
-    if (leaderboardElement) {
-      leaderboardElement.scrollIntoView({ behavior: 'smooth' });
-    }
+    // Navigate to dedicated full leaderboard page
+    router.push('/leaderboard');
   };
 
   if (loading) {
@@ -74,39 +71,46 @@ export default function CompactLeaderboard() {
   }
 
   return (
-    <div className="space-y-3">
-      {entries.map((entry, index) => (
-        <div key={entry.userId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-          <div className="w-6 text-center">
-            {index === 0 ? (
-              <Crown className="w-5 h-5 text-yellow-500" />
-            ) : index === 1 ? (
-              <Crown className="w-5 h-5 text-gray-400" />
-            ) : (
-              <Crown className="w-5 h-5 text-amber-700" />
-            )}
+    <div className="h-full flex flex-col space-y-3">
+      {/* Scrollable leaderboard container - shows exactly 5 rows */}
+      <div className="flex-1 overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+        {entries.map((entry, index) => (
+          <div key={entry.userId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+            <div className="w-6 text-center">
+              {entry.rank <= 3 ? (
+                <Crown className={`w-5 h-5 ${
+                  entry.rank === 1 ? 'text-yellow-500' : 
+                  entry.rank === 2 ? 'text-gray-400' : 
+                  'text-amber-700'
+                }`} />
+              ) : (
+                <span className="text-xs font-medium text-gray-500">#{entry.rank}</span>
+              )}
+            </div>
+            <Avatar className="w-8 h-8">
+              <AvatarFallback className="text-xs">{initials(entry.userName)}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm truncate">{entry.userName}</p>
+              <p className="text-xs text-gray-500">{entry.quizCount} quiz{entry.quizCount === 1 ? '' : 'zes'}</p>
+            </div>
+            <div className="text-right">
+              <p className="font-bold text-sm">{entry.averageScore.toFixed(0)}%</p>
+            </div>
           </div>
-          <Avatar className="w-8 h-8">
-            <AvatarFallback className="text-xs">{initials(entry.userName)}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate">{entry.userName}</p>
-            <p className="text-xs text-gray-500">{entry.quizCount} quiz{entry.quizCount === 1 ? '' : 'zes'}</p>
-          </div>
-          <div className="text-right">
-            <p className="font-bold text-sm">{entry.averageScore.toFixed(0)}%</p>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
       
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="w-full mt-3" 
-        onClick={handleViewAll}
-      >
-        View Full Leaderboard <ArrowRight className="w-4 h-4 ml-1" />
-      </Button>
+      <div className="pt-2 border-t flex-shrink-0">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full" 
+          onClick={handleViewAll}
+        >
+          View Full Leaderboard <ArrowRight className="w-4 h-4 ml-1" />
+        </Button>
+      </div>
     </div>
   );
 }

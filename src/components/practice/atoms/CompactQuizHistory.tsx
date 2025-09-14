@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { moduleApi, type UserQuizResponseItem } from '@/lib/moduleApi';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,6 +35,7 @@ function timeAgo(ts?: number): string {
 }
 
 export default function CompactQuizHistory() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<UserQuizResponseItem[]>([]);
 
@@ -42,8 +44,8 @@ export default function CompactQuizHistory() {
       try {
         setLoading(true);
         const res = await moduleApi.getUserQuizResponses();
-        // Only show recent 3 for compact view
-        setItems((res.data || []).slice(0, 3));
+        // Show recent 5 entries for compact view
+        setItems((res.data || []).slice(0, 5));
       } catch (error) {
         console.error('Failed to fetch quiz history:', error);
         setItems([]);
@@ -56,11 +58,8 @@ export default function CompactQuizHistory() {
   }, []);
 
   const handleViewAll = () => {
-    // Navigate to full quiz history or scroll to it
-    const historyElement = document.querySelector('[data-quiz-history-full]');
-    if (historyElement) {
-      historyElement.scrollIntoView({ behavior: 'smooth' });
-    }
+    // Navigate to dedicated complete quiz history page
+    router.push('/quiz-history');
   };
 
   if (loading) {
@@ -90,36 +89,41 @@ export default function CompactQuizHistory() {
   }
 
   return (
-    <div className="space-y-3">
-      {items.map((item, index) => (
-        <div key={index} className="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-          <div className="flex justify-between items-start mb-2">
-            <h4 className="font-medium text-sm truncate pr-2">{item.title}</h4>
-            <Badge variant={scoreToVariant(item.score)} className="text-xs">
-              {item.score.toFixed(0)}%
-            </Badge>
-          </div>
-          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <div className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              {timeAgo(item.takenAt)}
+    <div className="h-full flex flex-col space-y-3">
+      {/* Scrollable quiz history container - shows exactly 5 rows */}
+      <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+        {items.map((item, index) => (
+          <div key={index} className="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+            <div className="flex justify-between items-start mb-2">
+              <h4 className="font-medium text-sm truncate pr-2">{item.title}</h4>
+              <Badge variant={scoreToVariant(item.score)} className="text-xs">
+                {item.score.toFixed(0)}%
+              </Badge>
             </div>
-            <div className="flex gap-2">
-              <span className="text-green-600">✓{item.correct}</span>
-              <span className="text-red-600">✗{item.wrong}</span>
+            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {timeAgo(item.takenAt)}
+              </div>
+              <div className="flex gap-2">
+                <span className="text-green-600">✓{item.correct}</span>
+                <span className="text-red-600">✗{item.wrong}</span>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
       
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="w-full mt-3" 
-        onClick={handleViewAll}
-      >
-        View All Results <ArrowRight className="w-4 h-4 ml-1" />
-      </Button>
+      <div className="pt-2 border-t flex-shrink-0">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full" 
+          onClick={handleViewAll}
+        >
+          View All Results <ArrowRight className="w-4 h-4 ml-1" />
+        </Button>
+      </div>
     </div>
   );
 }

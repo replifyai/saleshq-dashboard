@@ -5,7 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Shield } from 'lucide-react';
 
-export default function AdminToggle() {
+export default function HeaderAdminToggle() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -25,18 +25,17 @@ export default function AdminToggle() {
   };
 
   return (
-    <div className="absolute bottom-4 right-4 z-50 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 border">
-      <div className="flex items-center space-x-2">
-        <Shield className="h-4 w-4 text-blue-600" />
-        <Label htmlFor="admin-mode" className="text-sm font-medium">
-          Admin Mode
-        </Label>
-        <Switch
-          id="admin-mode"
-          checked={isAdmin}
-          onCheckedChange={handleToggle}
-        />
-      </div>
+    <div className="flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg border">
+      <Shield className="h-4 w-4 text-blue-600" />
+      <Label htmlFor="header-admin-mode" className="text-sm font-medium cursor-pointer">
+        Admin Mode
+      </Label>
+      <Switch
+        id="header-admin-mode"
+        checked={isAdmin}
+        onCheckedChange={handleToggle}
+        size="sm"
+      />
     </div>
   );
 }
