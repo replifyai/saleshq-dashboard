@@ -34,7 +34,7 @@ export default function HeaderAdminToggle() {
         id="header-admin-mode"
         checked={isAdmin}
         onCheckedChange={handleToggle}
-        size="sm"
+        // size="sm"
       />
     </div>
   );
