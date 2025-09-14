@@ -8,7 +8,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ChevronRight, ChevronDown, FolderTree, BookOpen, Dot, Search, Layers } from 'lucide-react';
+import { 
+  ChevronRight, 
+  ChevronDown, 
+  FolderTree, 
+  BookOpen, 
+  FileText, 
+  HelpCircle, 
+  Search, 
+  Layers,
+  Play,
+  Download,
+  Eye,
+  Folder,
+  FolderOpen
+} from 'lucide-react';
 
 interface TreeNode {
   id: string;
@@ -96,97 +110,301 @@ export default function ModuleTree() {
   };
 
   const renderNode = (node: TreeNode, depth = 0) => {
-    const paddingLeft = 8 + depth * 16;
+    const paddingLeft = 8 + depth * 20;
+    const isSelected = selectedPath === node.path;
+    
     return (
-      <div key={node.path}>
-        <div className="flex items-center py-1" style={{ paddingLeft }}>
-          {node.hasChildren ? (
-            <button
-              className="mr-1 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
-              onClick={() => toggleNode(node.path)}
-              aria-label={node.isExpanded ? 'Collapse' : 'Expand'}
-            >
-              {node.isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </button>
-          ) : <button className="mr-1 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200" disabled={true}><Dot className="h-4 w-4" /></button>}
+      <div key={node.path} className="group">
+        <div 
+          className={`flex items-center py-2 px-2 rounded-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 ${
+            isSelected ? 'bg-primary/10 border border-primary/20 shadow-sm' : ''
+          }`} 
+          style={{ paddingLeft }}
+        >
+          {/* Expand/Collapse Button */}
+          <div className="w-6 flex justify-center">
+            {node.hasChildren ? (
+              <button
+                className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                onClick={() => toggleNode(node.path)}
+                aria-label={node.isExpanded ? 'Collapse' : 'Expand'}
+              >
+                {node.isExpanded ? (
+                  <ChevronDown className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+                ) : (
+                  <ChevronRight className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+                )}
+              </button>
+            ) : (
+              <div className="w-5 h-5 flex items-center justify-center">
+                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+              </div>
+            )}
+          </div>
+
+          {/* Module Icon */}
+          <div className="mr-3">
+            {node.hasChildren ? (
+              node.isExpanded ? (
+                <FolderOpen className="h-4 w-4 text-blue-500" />
+              ) : (
+                <Folder className="h-4 w-4 text-blue-600" />
+              )
+            ) : (
+              <BookOpen className="h-4 w-4 text-green-600" />
+            )}
+          </div>
+
+          {/* Module Name */}
           <button
-            className={`flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${selectedPath === node.path ? 'bg-primary/10 text-primary' : ''}`}
+            className={`flex-1 text-left px-2 py-1 rounded transition-colors ${
+              isSelected 
+                ? 'text-primary font-medium' 
+                : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
+            }`}
             onClick={() => onSelect(node.path)}
-            aria-current={selectedPath === node.path ? 'true' : 'false'}
+            aria-current={isSelected ? 'true' : 'false'}
           >
-            <BookOpen className="h-4 w-4 text-blue-600" />
-            <span className="text-sm truncate max-w-[220px]" title={node.name}>{node.name}</span>
+            <span className="text-sm truncate block" title={node.name}>
+              {node.name}
+            </span>
           </button>
+
+          {/* Quick Action Buttons (visible on hover or selection) */}
+          <div className={`flex items-center gap-1 transition-opacity ${
+            isSelected || 'group-hover:opacity-100 opacity-0'
+          }`}>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 w-6 p-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNavigate(node.path);
+              }}
+              title="Open Module"
+            >
+              <Eye className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
+
+        {/* Children */}
         {node.isExpanded && node.children && node.children.length > 0 && (
-          <div>{node.children.map((c) => renderNode(c, depth + 1))}</div>
+          <div className="ml-2 border-l border-gray-200 dark:border-gray-700">
+            {node.children.map((c) => renderNode(c, depth + 1))}
+          </div>
         )}
-        {/* No async loading state since full tree is provided */}
       </div>
     );
   };
 
   return (
     <div>
-      <CardHeader className="py-3">
-        <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <FolderTree className="h-4 w-4" />
-             Browse Modules
-          </CardTitle>
-          <div className="relative w-64">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+      <CardHeader className="py-4 border-b">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <CardTitle className="text-lg flex items-center gap-2 mb-1">
+              <FolderTree className="h-5 w-5 text-primary" />
+              Browse Learning Modules
+            </CardTitle>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Explore course materials, PDFs, and quizzes organized by topic
+            </p>
+          </div>
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
             <Input
-              placeholder="Search modules..."
-              className="pl-8 h-8"
+              placeholder="Search modules, topics, or content..."
+              className="pl-10 h-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="pt-6">
         {loading ? (
-          <div className="text-sm text-gray-500">Loading module tree...</div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1 bg-white dark:bg-gray-800 border rounded-lg p-4">
+              <div className="space-y-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 p-2">
+                    <Skeleton className="h-4 w-4" />
+                    <Skeleton className="h-4 w-4" />
+                    <Skeleton className="h-4 flex-1" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="lg:col-span-2 border rounded-lg p-6 bg-gray-50/50 dark:bg-gray-800/20">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-6 w-2/3" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                </div>
+                <Skeleton className="h-20 w-full" />
+              </div>
+            </div>
+          </div>
         ) : roots.length === 0 ? (
-          <div className="text-sm text-gray-500">No modules available.</div>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+              <FolderTree className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+              No Modules Available
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
+              There are no learning modules available at the moment. Check back later or contact your administrator.
+            </p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="md:col-span-1 border rounded-md p-2 max-h-[60vh] overflow-auto" role="tree" aria-label="Modules">
-              <div className="divide-y divide-gray-100 dark:divide-gray-800">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1 bg-white dark:bg-gray-800 border rounded-lg p-4 max-h-[70vh] overflow-auto" role="tree" aria-label="Modules">
+              <div className="space-y-1">
                 {(filterTree(roots, query)).map((n) => renderNode(n))}
               </div>
             </div>
-            <div className="md:col-span-2 border rounded-md p-4 min-h-[60vh]" role="region" aria-label="Module details">
+            <div className="lg:col-span-2 border rounded-lg p-6 min-h-[60vh] bg-gray-50/50 dark:bg-gray-800/20" role="region" aria-label="Module details">
               {!selectedPath ? (
-                <div className="h-full flex items-center justify-center text-sm text-gray-500">
-                  Select a module to see details and quick actions
+                <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                    <BookOpen className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                      Select a Module
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
+                      Choose a module from the tree to view its contents, including PDFs, quizzes, and other learning materials.
+                    </p>
+                  </div>
                 </div>
               ) : detailsLoading ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-6 w-2/3" />
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-24 w-full" />
-                </div>
-              ) : details ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Layers className="h-4 w-4 text-primary" />
-                      <h3 className="text-lg font-semibold">{details.name}</h3>
-                    </div>
-                    <div className="flex gap-2">
-                      <Badge variant="secondary">PDFs: {details.pdfs}</Badge>
-                      <Badge variant="secondary">Quizzes: {details.quizzes}</Badge>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-6 w-2/3" />
+                      <Skeleton className="h-4 w-1/2" />
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{details.description || 'No description provided.'}</p>
+                  <Skeleton className="h-20 w-full" />
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => onNavigate(selectedPath!)}>Open Module</Button>
+                    <Skeleton className="h-8 w-20" />
+                    <Skeleton className="h-8 w-20" />
+                  </div>
+                  <Skeleton className="h-10 w-32" />
+                </div>
+              ) : details ? (
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                        <Layers className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+                          {details.name}
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Learning Module
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content Overview */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
+                      <div className="flex items-center gap-2 mb-2">
+                        <FileText className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Knowledge Base
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold text-blue-600 mb-1">
+                        {details.pdfs}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        PDF{details.pdfs !== 1 ? 's' : ''} available
+                      </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
+                      <div className="flex items-center gap-2 mb-2">
+                        <HelpCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Assessments
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold text-green-600 mb-1">
+                        {details.quizzes}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Quiz{details.quizzes !== 1 ? 'zes' : ''} available
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  {details.description && (
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Description
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                        {details.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+                    <Button 
+                      onClick={() => onNavigate(selectedPath!)}
+                      className="flex items-center gap-2"
+                    >
+                      <Play className="h-4 w-4" />
+                      Start Learning
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => onNavigate(selectedPath!)}
+                      className="flex items-center gap-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      View Contents
+                    </Button>
+                  </div>
+
+                  {/* Quick Stats */}
+                  <div className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t">
+                    <div className="flex justify-between">
+                      <span>Total Resources: {details.pdfs + details.quizzes}</span>
+                      <span>Module Path: {selectedPath}</span>
+                    </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-sm text-red-500">Failed to load details.</div>
+                <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+                    <HelpCircle className="w-8 h-8 text-red-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-2">
+                      Failed to Load
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Unable to load module details. Please try again.
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
           </div>
