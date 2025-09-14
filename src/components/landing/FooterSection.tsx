@@ -1,4 +1,4 @@
-import { Bot, Building, Mail, Globe } from "lucide-react";
+import { Bot, Building, Mail, Globe, Lock, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 export default function FooterSection() {
   return (
@@ -52,11 +52,31 @@ export default function FooterSection() {
             </ul>
           </div>
         </div>
+
+        {/* Security / Compliance Badges (early stage) */}
+        <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="flex items-center space-x-3 rounded-lg border border-gray-200 dark:border-white/10 p-3">
+            <Lock className="w-5 h-5 text-emerald-500" />
+            <span className="text-sm text-gray-600 dark:text-gray-400">HTTPS & data encryption</span>
+          </div>
+          <div className="flex items-center space-x-3 rounded-lg border border-gray-200 dark:border-white/10 p-3">
+            <ShieldCheck className="w-5 h-5 text-blue-500" />
+            <span className="text-sm text-gray-600 dark:text-gray-400">SOC 2 in planning</span>
+          </div>
+          <div className="flex items-center space-x-3 rounded-lg border border-gray-200 dark:border-white/10 p-3">
+            <CheckCircle2 className="w-5 h-5 text-indigo-500" />
+            <span className="text-sm text-gray-600 dark:text-gray-400">GDPR friendly</span>
+          </div>
+          <div className="flex items-center space-x-3 rounded-lg border border-gray-200 dark:border-white/10 p-3">
+            <CheckCircle2 className="w-5 h-5 text-purple-500" />
+            <span className="text-sm text-gray-600 dark:text-gray-400">Privacy-first by design</span>
+          </div>
+        </div>
         
         <div className="border-t border-gray-200 dark:border-white/10 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-600 dark:text-gray-400 mb-4 md:mb-0">
-              &copy; 2024 SalesHQ. All rights reserved.
+              &copy; {new Date().getFullYear()} SalesHQ. All rights reserved.
             </p>
             <div className="flex items-center space-x-6 text-gray-600 dark:text-gray-400">
               <a href="#" className="hover:text-gray-900 dark:hover:text-white transition-colors text-sm">Terms of Service</a>

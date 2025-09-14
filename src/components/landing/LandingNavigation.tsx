@@ -1,13 +1,16 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Bot, LayoutDashboard, Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 
 export default function LandingNavigation() {
   const { isAuthenticated, isLoading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -16,6 +19,15 @@ export default function LandingNavigation() {
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 8);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
 
   return (
@@ -37,8 +49,8 @@ export default function LandingNavigation() {
               <Bot className="w-6 h-6 text-white" />
             </div> */}
             <div>
-              <h1 className="text-xl sm:text-3xl font-bold">
-                SalesHQ
+              <h1 className={`font-extrabold tracking-tight text-gray-900 dark:text-white transition-all duration-300 ${isScrolled ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-4xl'}`}>
+                <span>Sales</span><span className="text-blue-600 dark:text-blue-400">HQ</span>
               </h1>
               {/* <p className="text-xs text-gray-500 dark:text-gray-400">Self-Learning AI Platform</p> */}
             </div>
@@ -58,8 +70,8 @@ export default function LandingNavigation() {
                 </Link>
               ) : (
                 <Link href="/login">
-                  <Button size="sm" className="bg-gradient-to-r from-blue-600 to-emerald-500 text-white hover:from-blue-500 hover:to-emerald-400 shadow-lg">
-                    Start Free Trial
+                  <Button size="sm" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-500 hover:to-emerald-400 shadow-lg">
+                    Join Early Access
                   </Button>
                 </Link>
               )
@@ -131,7 +143,7 @@ export default function LandingNavigation() {
                   ) : (
                     <Link href="/login">
                       <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg" onClick={closeMobileMenu}>
-                        Start Free Trial
+                        Join Early Access
                       </Button>
                     </Link>
                   )

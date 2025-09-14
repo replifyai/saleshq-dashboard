@@ -132,7 +132,7 @@ export default function FAQSection() {
               Frequently Asked
             </span>
             {" "}
-            <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               Questions
             </span>
           </h2>

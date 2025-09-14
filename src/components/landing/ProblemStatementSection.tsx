@@ -121,64 +121,63 @@ export default function ProblemStatementSection() {
         <div ref={headerRef} className="text-center mb-12">
           <Badge className="mb-4 px-3 py-1 bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-300 border-0">
             <HelpCircle className="w-3 h-3 mr-1" />
-            Sales Challenges
+            The Problem
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-4" ref={titleRef}>
             <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
-              Stop Wasting Time
-            </span>
-            {" "}
-            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Searching for Info
+              Docs everywhere
+            </span>{" "}
+            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Answers nowhere
             </span>
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto" ref={descriptionRef}>
-            Sales teams lose 3+ hours daily hunting through scattered documents. Every minute searching is a minute not selling.
+            Product knowledge lives across PDFs, Notion, email and Slack. Reps burn time digging for the right
+            answer—right when a buyer is waiting.
           </p>
         </div>
-
 
         <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <Card
             data-problem-card
             className="p-8 rounded-2xl shadow-xl bg-white/5 border border-white/10 backdrop-blur text-center transition-transform duration-300 ease-out will-change-transform hover:-translate-y-2 hover:scale-[1.01]"
           >
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-red-500/20">
-              <Clock className="w-8 h-8 text-red-400" />
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-blue-500/20">
+              <Clock className="w-8 h-8 text-blue-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Productivity Loss</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Time sinks</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              3+ hours daily wasted searching through scattered documents instead of selling.
+              Constant context switching between PDFs, Notion, Slack and email to find basic answers.
             </p>
-            <div className="text-2xl font-bold text-red-400">3+ Hours Daily Lost</div>
+            <div className="text-sm font-medium text-blue-400">Hours lost searching</div>
           </Card>
 
           <Card
             data-problem-card
             className="p-8 rounded-2xl shadow-xl bg-white/5 border border-white/10 backdrop-blur text-center transition-transform duration-300 ease-out will-change-transform hover:-translate-y-2 hover:scale-[1.01]"
           >
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-orange-500/20">
-              <AlertCircle className="w-8 h-8 text-orange-400" />
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-indigo-500/20">
+              <AlertCircle className="w-8 h-8 text-indigo-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Revenue Impact</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Slow cycles</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Slow responses lead to missed deals and lost revenue opportunities.
+              Waiting on specs and pricing breaks momentum and delays follow‑ups when interest is highest.
             </p>
-            <div className="text-2xl font-bold text-orange-400">40% Revenue Loss</div>
+            <div className="text-sm font-medium text-indigo-400">Longer response loops</div>
           </Card>
 
           <Card
             data-problem-card
             className="p-8 rounded-2xl shadow-xl bg-white/5 border border-white/10 backdrop-blur text-center transition-transform duration-300 ease-out will-change-transform hover:-translate-y-2 hover:scale-[1.01]"
           >
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-yellow-500/20">
-              <Users className="w-8 h-8 text-yellow-400" />
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-purple-500/20">
+              <Users className="w-8 h-8 text-purple-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Team Morale</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Inconsistent answers</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Frustration with outdated info and inconsistent answers across teams.
+              Specs drift, messaging varies by rep, and confidence drops on calls when sources disagree.
             </p>
-            <div className="text-2xl font-bold text-yellow-400">High Turnover Risk</div>
+            <div className="text-sm font-medium text-purple-400">Buyer confusion risk</div>
           </Card>
         </div>
       </div>

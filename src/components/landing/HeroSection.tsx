@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Award, Clock, TrendingUp, Zap, ArrowRight, Play } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import LandingNavigation from "./LandingNavigation";
@@ -17,8 +17,23 @@ const HeroSection = () => {
   const benefitsRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const trustTextRef = useRef<HTMLParagraphElement>(null);
+  const accentRef = useRef<HTMLDivElement>(null);
+
+  // Rotating headline phrases to convey the product use case
+  const rotatingPhrases: string[] = [
+    "Instant, Accurate Answers",
+    "Source-Backed Responses",
+    "Up-to-Date Specs",
+    "Objection-Handling Scripts",
+    "Competitive Battlecards",
+    "Pricing & Packaging Details"
+  ];
+  const phraseIndexRef = useRef(0);
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const rotationPausedRef = useRef(false);
 
   useEffect(() => {
+    const cleanups: Array<() => void> = [];
     const ctx = gsap.context(() => {
       // Initial setup - hide all elements
       gsap.set([trustIndicatorRef.current, headlineRef.current, headlineSpanRef.current, subheadlineRef.current, benefitsRef.current?.children, ctaRef.current, trustTextRef.current], {
@@ -79,7 +94,7 @@ const HeroSection = () => {
       // Button hover animations
       const ctaButtons = ctaRef.current?.querySelectorAll('button');
       ctaButtons?.forEach((button) => {
-        button.addEventListener('mouseenter', () => {
+        const onEnter = () => {
           gsap.to(button, {
             scale: 1.02,
             y: -2,
@@ -87,9 +102,8 @@ const HeroSection = () => {
             duration: 0.3,
             ease: "power2.out"
           });
-        });
-        
-        button.addEventListener('mouseleave', () => {
+        };
+        const onLeave = () => {
           gsap.to(button, {
             scale: 1,
             y: 0,
@@ -97,11 +111,129 @@ const HeroSection = () => {
             duration: 0.3,
             ease: "power2.out"
           });
+        };
+        button.addEventListener('mouseenter', onEnter);
+        button.addEventListener('mouseleave', onLeave);
+        cleanups.push(() => {
+          button.removeEventListener('mouseenter', onEnter);
+          button.removeEventListener('mouseleave', onLeave);
+        });
+      });
+
+      // Accent blob parallax (mouse)
+      if (sectionRef.current && accentRef.current) {
+        const qx = gsap.quickTo(accentRef.current, "x", { duration: 0.6, ease: "power3.out" });
+        const qy = gsap.quickTo(accentRef.current, "y", { duration: 0.6, ease: "power3.out" });
+        const onMove = (e: MouseEvent) => {
+          const rect = sectionRef.current!.getBoundingClientRect();
+          const dx = (e.clientX - (rect.left + rect.width / 2)) / rect.width; // -0.5..0.5
+          const dy = (e.clientY - (rect.top + rect.height / 2)) / rect.height;
+          qx(dx * 40);
+          qy(dy * 40);
+        };
+        sectionRef.current.addEventListener('mousemove', onMove);
+        cleanups.push(() => sectionRef.current?.removeEventListener('mousemove', onMove));
+
+        // Accent blob parallax (scroll)
+        gsap.to(accentRef.current, {
+          y: "+=60",
+          ease: "none",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top top",
+            end: "bottom top",
+            scrub: 0.3
+          }
+        });
+      }
+
+      // Benefit cards interactive tilt
+      const cards = benefitsRef.current?.querySelectorAll<HTMLElement>('.benefit-card');
+      cards?.forEach((card) => {
+        const onCardMove = (e: MouseEvent) => {
+          const rect = card.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const dx = (e.clientX - cx) / (rect.width / 2);
+          const dy = (e.clientY - cy) / (rect.height / 2);
+          const rotateY = dx * 6; // left/right
+          const rotateX = -dy * 6; // up/down
+          gsap.to(card, {
+            rotateX,
+            rotateY,
+            transformPerspective: 600,
+            transformOrigin: "center",
+            duration: 0.2,
+            ease: "power2.out"
+          });
+        };
+        const onCardEnter = () => {
+          gsap.to(card, { scale: 1.02, boxShadow: "0 12px 30px rgba(0,0,0,0.12)", duration: 0.25, ease: "power2.out" });
+        };
+        const onCardLeave = () => {
+          gsap.to(card, { rotateX: 0, rotateY: 0, scale: 1, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", duration: 0.35, ease: "power2.out" });
+        };
+        card.addEventListener('mousemove', onCardMove);
+        card.addEventListener('mouseenter', onCardEnter);
+        card.addEventListener('mouseleave', onCardLeave);
+        cleanups.push(() => {
+          card.removeEventListener('mousemove', onCardMove);
+          card.removeEventListener('mouseenter', onCardEnter);
+          card.removeEventListener('mouseleave', onCardLeave);
         });
       });
     }, sectionRef);
 
-    return () => ctx.revert();
+    return () => { cleanups.forEach(fn => fn()); ctx.revert(); };
+  }, []);
+
+  // Rotate the headline span to communicate full product proposition
+  useEffect(() => {
+    const element = headlineSpanRef.current;
+    const headlineEl = headlineRef.current;
+    if (!element) return;
+
+    const prefersReduced = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const onMouseEnter = () => { rotationPausedRef.current = true; };
+    const onMouseLeave = () => { rotationPausedRef.current = false; };
+    headlineEl?.addEventListener('mouseenter', onMouseEnter);
+    headlineEl?.addEventListener('mouseleave', onMouseLeave);
+
+    const onVisibility = () => { rotationPausedRef.current = document.hidden; };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    const intervalId = window.setInterval(() => {
+      if (rotationPausedRef.current || prefersReduced) return;
+      const next = (phraseIndexRef.current + 1) % rotatingPhrases.length;
+      gsap.to(element, {
+        y: 12,
+        opacity: 0,
+        filter: "blur(6px)",
+        scale: 0.98,
+        duration: 0.35,
+        ease: "power2.out",
+        onComplete: () => {
+          phraseIndexRef.current = next;
+          setPhraseIndex(next);
+          gsap.fromTo(element, { y: -12, opacity: 0, filter: "blur(6px)", scale: 0.98 }, {
+            y: 0,
+            opacity: 1,
+            filter: "blur(0px)",
+            scale: 1,
+            duration: 0.5,
+            ease: "power2.out"
+          });
+        }
+      });
+    }, 2600);
+
+    return () => {
+      window.clearInterval(intervalId);
+      headlineEl?.removeEventListener('mouseenter', onMouseEnter);
+      headlineEl?.removeEventListener('mouseleave', onMouseLeave);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, []);
 
   useEffect(() => {
@@ -123,7 +255,7 @@ const HeroSection = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900" />
           
           {/* Single accent element */}
-          <div className="absolute top-1/2 right-0 w-96 h-96 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-full blur-3xl opacity-60" />
+          <div ref={accentRef} aria-hidden className="absolute top-1/2 right-0 w-96 h-96 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-full blur-3xl opacity-60" />
           
           {/* Subtle grid pattern */}
           <div className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] [background-size:4rem_4rem]" />
@@ -137,7 +269,7 @@ const HeroSection = () => {
               className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 text-sm font-medium mb-12 border border-blue-200 dark:border-blue-800/50"
             >
               <Award className="w-4 h-4 mr-2" />
-              Trusted by 1,000+ Sales Teams Worldwide
+              Now Open for Early Access
             </div>
 
             {/* Main Headline */}
@@ -145,12 +277,12 @@ const HeroSection = () => {
               ref={headlineRef}
               className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-8 leading-[1.1] tracking-tight max-w-5xl mx-auto"
             >
-              Stop Searching Through{' '}
+              Give Reps{' '}<br/>
               <span 
                 ref={headlineSpanRef}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent will-change-transform"
               >
-                Documents.
+                {rotatingPhrases[phraseIndex]}
               </span>
             </h1>
 
@@ -164,7 +296,7 @@ const HeroSection = () => {
             
             {/* Key Benefits */}
             <div ref={benefitsRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 max-w-4xl mx-auto">
-              <div className="flex flex-col items-center text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+              <div className="benefit-card flex flex-col items-center text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 will-change-transform transform-gpu shadow-sm">
                 <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mb-4">
                   <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
@@ -172,7 +304,7 @@ const HeroSection = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-400">Get answers instantly instead of searching through documents</p>
               </div>
               
-              <div className="flex flex-col items-center text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+              <div className="benefit-card flex flex-col items-center text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 will-change-transform transform-gpu shadow-sm">
                 <div className="w-12 h-12 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center mb-4">
                   <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                 </div>
@@ -180,7 +312,7 @@ const HeroSection = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-400">Comprehensive answers with source citations</p>
               </div>
               
-              <div className="flex flex-col items-center text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+              <div className="benefit-card flex flex-col items-center text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 will-change-transform transform-gpu shadow-sm">
                 <div className="w-12 h-12 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center mb-4">
                   <Zap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                 </div>
@@ -195,7 +327,7 @@ const HeroSection = () => {
                 size="lg" 
                 className="bg-blue-600 hover:bg-blue-700 px-8 py-4 text-lg font-semibold shadow-lg transition-all duration-300 rounded-xl"
               >
-                Start Free 14-Day Trial
+                Join Early Access
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button 

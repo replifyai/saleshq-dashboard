@@ -5,6 +5,11 @@ import {
   HeroSection,
   // SocialProofSection,
   ProblemStatementSection,
+  UseCasesSection,
+  TeamSection,
+  ResourcesSection,
+  EarlyAccessSection,
+  RoadmapSection,
   // HowItWorksSection,
   // TestimonialsSection,
   // FeaturesSection,
@@ -131,12 +136,17 @@ export default function LandingPage() {
         {/* <SocialProofSection /> */}
         <ProblemStatementSection />
         <HowItWorksSection />
+        <UseCasesSection />
+        {/* <TeamSection /> */}
         {/* <TestimonialsSection /> */}
         <FeaturesSection />
         {/* <ROISection /> */}
         <FAQSection />
+        {/* <ResourcesSection /> */}
+        {/* <RoadmapSection /> */}
+        <EarlyAccessSection />
         {/* <PricingSection /> */}
-        <ContactSection />
+        {/* <ContactSection /> */}
         <FooterSection />
       </div>
 

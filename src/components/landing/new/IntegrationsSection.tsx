@@ -130,7 +130,7 @@ export default function IntegrationsSection() {
               Connect Your Entire
             </span>
             <br />
-            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               Sales Stack
             </span>
           </h2>
