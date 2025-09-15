@@ -19,15 +19,24 @@ function initials(name: string): string {
 interface LeaderboardProps {
   // Optional list of quizzes for per-quiz filter
   quizzes?: Array<{ id: string; name: string }>; // pass ModuleFile list mapped to id/name
+  // Optional pre-fetched entries to avoid duplicate API calls
+  entries?: LeaderboardEntry[];
 }
 
-export default function Leaderboard({ quizzes = [] }: LeaderboardProps) {
-  const [loading, setLoading] = useState(true);
-  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+export default function Leaderboard({ quizzes = [], entries: propEntries }: LeaderboardProps) {
+  const [loading, setLoading] = useState(!propEntries);
+  const [entries, setEntries] = useState<LeaderboardEntry[]>(propEntries || []);
   const [quizId, setQuizId] = useState<string | undefined>(undefined);
   const [q, setQ] = useState('');
 
   useEffect(() => {
+    // Only fetch data if entries weren't passed as props or if a specific quiz is selected
+    if (propEntries && !quizId) {
+      setEntries(propEntries);
+      setLoading(false);
+      return;
+    }
+
     (async () => {
       try {
         setLoading(true);
@@ -37,7 +46,7 @@ export default function Leaderboard({ quizzes = [] }: LeaderboardProps) {
         setLoading(false);
       }
     })();
-  }, [quizId]);
+  }, [quizId, propEntries]);
 
   const filtered = useMemo(() => {
     const list = q.trim()
