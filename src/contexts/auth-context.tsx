@@ -3,6 +3,21 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { authService, LoginRequest } from '@/lib/auth';
 import { profileApi, UserProfile } from '@/lib/apiUtils';
 
+// Helper function to decode JWT payload
+function decodeJWTPayload(token: string) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    
+    const payload = parts[1];
+    const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(decoded);
+  } catch (error) {
+    console.error('Error decoding JWT:', error);
+    return null;
+  }
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -32,34 +47,50 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<UserProfile | null>(null);
 
   const fetchUserProfile = async () => {
-    try {
-      const profileData = await profileApi.getUserProfile();
-      setUser(profileData);
-    } catch (error) {
-      console.error('Failed to fetch user profile:', error);
-      // If profile fetch fails, fallback to token data
-      const tokens = authService.getTokens();
-      if (tokens) {
-        try {
-          const payload = JSON.parse(atob(tokens.idToken.split('.')[1]));
-          setUser({
+    // Always prioritize JWT token data for user role and basic info
+    const tokens = authService.getTokens();
+    if (tokens) {
+      try {
+        const payload = decodeJWTPayload(tokens.idToken);
+        if (payload) {
+          const userFromToken = {
             uid: payload.user_id || payload.sub,
             email: payload.email,
-            name: payload.name || payload.email.split('@')[0],
-            role: payload.role || 'user',
+            name: payload.name || payload.email?.split('@')[0] || 'User',
+            role: payload.role || 'user', // Always use role from JWT token
             createdAt: {
               _seconds: Math.floor(Date.now() / 1000),
               _nanoseconds: 0
             }
-          });
-        } catch {
-          // If token is malformed, clear it
-          authService.clearTokens();
-          setIsAuthenticated(false);
-          setUser(null);
+          };
+          
+          // Try to enhance with API data, but keep JWT role
+          try {
+            const profileData = await profileApi.getUserProfile();
+            setUser({
+              ...profileData,
+              role: userFromToken.role // Always override API role with JWT role
+            });
+            console.log('✅ User profile loaded with JWT role:', userFromToken.role);
+          } catch (apiError) {
+            console.log('⚠️ API profile fetch failed, using JWT data only');
+            setUser(userFromToken);
+          }
+          return;
         }
+      } catch (tokenError) {
+        console.error('Error decoding JWT token:', tokenError);
+        // If token is malformed, clear it
+        authService.clearTokens();
+        setIsAuthenticated(false);
+        setUser(null);
+        return;
       }
     }
+    
+    // If no valid token, clear auth state
+    setIsAuthenticated(false);
+    setUser(null);
   };
 
   const refreshProfile = async () => {
