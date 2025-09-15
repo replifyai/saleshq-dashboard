@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Plus, Search } from 'lucide-react';
 import AddMediaModal from './add-media-modal';
 import { LayoutToggle } from '../atoms/LayoutToggle';
+import { useAdminAccess } from '@/hooks/useAdminAccess';
 import type { Product } from '@/lib/apiUtils';
 
 interface LibraryHeaderProps {
@@ -22,21 +23,25 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({
   searchQuery,
   onSearchChange
 }) => {
+  const { isAdmin } = useAdminAccess();
+
   return (
     <CardHeader>
       <div className="flex justify-between items-center">
         <CardTitle>Product Library</CardTitle>
         <div className="flex items-center space-x-3">
-          {/* Add Media Button */}
-          <AddMediaModal 
-            products={products?.map(p => ({ id: p.id, name: p.name })) || []}
-            trigger={
-              <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700">
-                <Plus className="w-4 h-4 mr-1" />
-                Add Media
-              </Button>
-            }
-          />
+          {/* Add Media Button - Admin Only */}
+          {isAdmin && (
+            <AddMediaModal 
+              products={products?.map(p => ({ id: p.id, name: p.name })) || []}
+              trigger={
+                <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Media
+                </Button>
+              }
+            />
+          )}
           
           <LayoutToggle layout={layout} onLayoutChange={onLayoutChange} />
         </div>

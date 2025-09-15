@@ -29,6 +29,9 @@ import {
   useOrganizationPermissionsRedux
 } from '@/hooks/useOrganizationRedux';
 
+// Admin access hook
+import { useAdminAccess } from '@/hooks/useAdminAccess';
+
 // Types
 import type { 
   OrganizationNode,
@@ -44,6 +47,9 @@ export default function OrganizationPage() {
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<OrganizationNode | null>(null);
   const [parentNode, setParentNode] = useState<OrganizationNode | null>(null);
+
+  // Admin access
+  const { isAdmin } = useAdminAccess();
 
   // Redux hooks
   const { 
@@ -195,12 +201,14 @@ export default function OrganizationPage() {
             Manage organizational structure, units, and team assignments
           </p>
         </div>
-        <div>
-          <Button onClick={handleCreateRootNode} disabled={operationLoading}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create Unit
-          </Button>
-        </div>
+        {isAdmin && (
+          <div>
+            <Button onClick={handleCreateRootNode} disabled={operationLoading}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Unit
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Quick Stats */}

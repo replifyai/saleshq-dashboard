@@ -2,6 +2,7 @@ import { MessageCircle, Upload, FolderOpen, AlertCircle, Brain, Home, Building2,
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useSideNav } from "@/contexts/sideNav-context";
+import { useAuth } from "@/contexts/auth-context";
 interface NavigationItemsProps {
   activeTab: string;
   onNavigate: (path: string) => void;
@@ -16,7 +17,8 @@ const navigationTabs = [
     icon: Upload, 
     description: "Add documents", 
     path: "/upload", 
-    disabled: false 
+    disabled: false,
+    forAdmin: true
   },
   { 
     id: "library", 
@@ -24,7 +26,8 @@ const navigationTabs = [
     icon: FolderOpen, 
     description: "View documents", 
     path: "/library", 
-    disabled: false 
+    disabled: false,
+    forAdmin: false
   },
   { 
     id: "organization", 
@@ -32,21 +35,26 @@ const navigationTabs = [
     icon: Building2, 
     description: "Manage hierarchy", 
     path: "/organization", 
-    disabled: false 
+    disabled: false,
+    forAdmin: false
   },
   { 
     id: "practice", 
     label: "Learn & Practice", 
     icon: Brain, 
     description: "Take quiz", 
-    path: "/practice" 
+    path: "/practice",
+    disabled: false,
+    forAdmin: false
   },
   { 
     id: "chat", 
     label: "Chat", 
     icon: MessageCircle, 
     description: "Ask questions", 
-    path: "/chat" 
+    path: "/chat",
+    disabled: false,
+    forAdmin: false
   },
   { 
     id: "queries", 
@@ -54,7 +62,8 @@ const navigationTabs = [
     icon: AlertCircle, 
     description: "Unanswered queries", 
     path: "/queries", 
-    disabled: false 
+    disabled: false,
+    forAdmin: true
   },
   { 
     id: "liveAssistant", 
@@ -62,7 +71,8 @@ const navigationTabs = [
     icon: Bot, 
     description: "Live Assistant", 
     path: "/live", 
-    disabled: true 
+    disabled: true,
+    forAdmin: true
   },
   { 
     id: "shopify", 
@@ -70,12 +80,15 @@ const navigationTabs = [
     icon: ShoppingCart, 
     description: "Manage store", 
     path: "/shopify", 
-    disabled: true 
+    disabled: true,
+    forAdmin: true
   },
 ];
 
 export function NavigationItems({ activeTab, onNavigate, isMobile = false, isCollapsed = false }: NavigationItemsProps) {
   const { handleNavigate } = useSideNav();
+  const { user } = useAuth();
+  console.log("🚀 ~ NavigationItems ~ user:", user);
   return (
     <div className="space-y-1">
       <nav className="space-y-1">
@@ -83,7 +96,10 @@ export function NavigationItems({ activeTab, onNavigate, isMobile = false, isCol
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           const isDisabled = tab.disabled;
-          
+          const isForAdmin = tab.forAdmin;
+          if (isForAdmin && user?.role !== 'admin') {
+            return null;
+          }
           return (
             <Button
               key={tab.id}
@@ -114,7 +130,7 @@ export function NavigationItems({ activeTab, onNavigate, isMobile = false, isCol
       </nav>
       
       {/* Back to Landing Link */}
-      <div className="pt-4 border-t border-gray-200 dark:border-gray-700 mt-4">
+      {/* <div className="pt-4 border-t border-gray-200 dark:border-gray-700 mt-4">
         <Link href="/">
           <Button
             variant="ghost"
@@ -131,7 +147,7 @@ export function NavigationItems({ activeTab, onNavigate, isMobile = false, isCol
             )}
           </Button>
         </Link>
-      </div>
+      </div> */}
     </div>
   );
 }

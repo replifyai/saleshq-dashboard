@@ -6,44 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BookOpen, BarChart3, Trophy, ArrowRight, Settings, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
 import PracticeWelcome from '@/components/practice/atoms/PracticeWelcome';
 import CompactLeaderboard from '@/components/practice/atoms/CompactLeaderboard';
 import CompactQuizHistory from '@/components/practice/atoms/CompactQuizHistory';
 import CompactModuleList from '@/components/practice/atoms/CompactModuleList';
 import HeaderAdminToggle from '@/components/practice/atoms/HeaderAdminToggle';
+import { useAdminAccess } from '@/hooks/useAdminAccess';
 
 export default function PracticePage() {
   const router = useRouter();
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const checkAdminStatus = () => {
-      const adminStatus = localStorage.getItem('isAdmin') === 'true';
-      setIsAdmin(adminStatus);
-    };
-    
-    checkAdminStatus();
-    
-    // Listen for localStorage changes (when admin toggle is used)
-    const handleStorageChange = () => {
-      checkAdminStatus();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also listen for the custom event that AdminToggle fires
-    const handleAdminToggle = () => {
-      checkAdminStatus();
-    };
-    
-    window.addEventListener('adminToggle', handleAdminToggle);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('adminToggle', handleAdminToggle);
-    };
-  }, []);
+  const { isAdmin } = useAdminAccess();
 
   const handleAdminClick = () => {
     router.push('/modules/admin');

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { BookOpen, FolderOpen, ArrowRight, FileText, HelpCircle, Plus, Settings } from 'lucide-react';
 import { moduleApi, type ModuleTreeNode } from '@/lib/moduleApi';
 import { useToast } from '@/hooks/use-toast';
+import { useAdminAccess } from '@/hooks/useAdminAccess';
 
 interface ModulePreview {
   id: string;
@@ -23,9 +24,9 @@ interface ModulePreview {
 export default function CompactModuleList() {
   const router = useRouter();
   const { toast } = useToast();
+  const { isAdmin } = useAdminAccess();
   const [modules, setModules] = useState<ModulePreview[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const fetchModules = async () => {
@@ -63,13 +64,7 @@ export default function CompactModuleList() {
       }
     };
 
-    const checkAdminStatus = () => {
-      const adminStatus = localStorage.getItem('isAdmin') === 'true';
-      setIsAdmin(adminStatus);
-    };
-
     fetchModules();
-    checkAdminStatus();
   }, [toast]);
 
   const handleModuleClick = (path: string) => {

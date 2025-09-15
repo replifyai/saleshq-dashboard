@@ -1,41 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Shield } from 'lucide-react';
+import { useAdminAccess } from '@/hooks/useAdminAccess';
 
 export default function HeaderAdminToggle() {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { isAdmin, user } = useAdminAccess();
 
-  useEffect(() => {
-    const adminStatus = localStorage.getItem('isAdmin') === 'true';
-    setIsAdmin(adminStatus);
-  }, []);
-
-  const handleToggle = (checked: boolean) => {
-    setIsAdmin(checked);
-    localStorage.setItem('isAdmin', checked.toString());
-    
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new CustomEvent('adminToggle', { detail: { isAdmin: checked } }));
-    
-    // Refresh the page to apply admin status changes
-    window.location.reload();
-  };
+  // Only show admin indicator if user has admin role
+  if (!isAdmin) {
+    return null;
+  }
 
   return (
-    <div className="flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg border">
-      <Shield className="h-4 w-4 text-blue-600" />
-      <Label htmlFor="header-admin-mode" className="text-sm font-medium cursor-pointer">
-        Admin Mode
-      </Label>
-      <Switch
-        id="header-admin-mode"
-        checked={isAdmin}
-        onCheckedChange={handleToggle}
-        // size="sm"
-      />
+    <div className="flex items-center space-x-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+      <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+      <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+        Admin: {user?.name || user?.email}
+      </span>
     </div>
   );
 }

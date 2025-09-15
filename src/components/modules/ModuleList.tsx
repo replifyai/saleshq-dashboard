@@ -8,27 +8,20 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { BookOpen, GraduationCap, FolderOpen, Plus, Settings } from 'lucide-react';
 import { moduleApi, type SubModule, type RootModuleEntry } from '@/lib/moduleApi';
 import { useToast } from '@/hooks/use-toast';
+import { useAdminAccess } from '@/hooks/useAdminAccess';
 import AdminToggle from './AdminToggle';
 import ModuleTree from './ModuleTree';
 
 export default function ModuleList({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const { toast } = useToast();
+  const { isAdmin } = useAdminAccess();
   const [modules, setModules] = useState<RootModuleEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     fetchModules();
-    checkAdminStatus();
   }, []);
-
-  const checkAdminStatus = () => {
-    // Check if user is admin from localStorage or auth context
-    // For now, we'll check a simple flag
-    const adminStatus = localStorage.getItem('isAdmin') === 'true';
-    setIsAdmin(adminStatus);
-  };
 
   const fetchModules = async () => {
     try {
