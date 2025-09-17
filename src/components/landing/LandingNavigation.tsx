@@ -32,7 +32,7 @@ export default function LandingNavigation() {
 
 
   return (
-    <nav className="sticky top-4 z-50 relative isolate mx-auto max-w-6xl rounded-3xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-white/10 bg-transparent">
+    <nav className="sticky top-4 z-50 relative isolate mx-4 sm:mx-auto max-w-6xl rounded-3xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-white/10 bg-transparent mt-4 sm:mt-0">
       {/* Liquid glass background */}
       <div className="absolute inset-0 -z-10 pointer-events-none rounded-2xl">
         <div className="absolute inset-0 rounded-2xl backdrop-blur-2xl bg-white-500/10 dark:bg-white/5" />
@@ -46,13 +46,8 @@ export default function LandingNavigation() {
       <div className="px-6 sm:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-3">
-            {/* <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Bot className="w-6 h-6 text-white" />
-            </div> */}
             <div>
-              {/* <h1 className={`font-extrabold tracking-tight text-gray-900 dark:text-white transition-all duration-300 ${isScrolled ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-4xl'}`}> */}
-              <Image src="/logo.png" alt="SalesHQ" width={isScrolled ? 100 : 150} height={isScrolled ? 100 : 150} className="transition-all duration-300" />
-                {/* <span>Sales</span><span className="text-blue-600 dark:text-blue-400">HQ</span> */}
+              <Image src="/logo.png" alt="SalesHQ" width={isScrolled ? 100 : 110} height={isScrolled ? 100 : 150} className="transition-all duration-300" />
               </div>
           </div>
           <div className="hidden md:flex items-center space-x-6">

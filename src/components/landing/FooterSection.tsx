@@ -36,7 +36,7 @@ export default function FooterSection() {
         </div>
 
         {/* Security / Compliance Badges (early stage) */}
-        <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {/* <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="flex items-center space-x-3 rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm p-3">
             <Lock className="w-5 h-5 text-emerald-400" />
             <span className="text-sm" style={{color: '#2C2C2C'}}>HTTPS & data encryption</span>
@@ -53,7 +53,7 @@ export default function FooterSection() {
             <CheckCircle2 className="w-5 h-5 text-purple-400" />
             <span className="text-sm" style={{color: '#2C2C2C'}}>Privacy-first by design</span>
           </div>
-        </div>
+        </div> */}
         
         <div className="border-t border-white/20 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">

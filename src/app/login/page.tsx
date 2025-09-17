@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Loader2,CheckCircle2 } from 'lucide-react';
-
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -82,13 +82,11 @@ export default function Login() {
         <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl" />
 
         <div className="relative max-w-md w-full text-center">
-          <div className="mx-auto h-16 w-16 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <svg className="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
+          <div className="mx-auto flex items-center justify-center">
+            <Image src="/logo.png" alt="SalesHQ" width={0} height={0} sizes="100vw" className="w-[50%] h-full" />
           </div>
           <h2 className="mt-6 text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">
-            Welcome back to <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-emerald-500">SalesHQ</span>
+            Welcome back!
           </h2>
           <p className="mt-3 text-base text-gray-600 dark:text-gray-400">
             Supercharge product support with an AI that knows your catalog.
