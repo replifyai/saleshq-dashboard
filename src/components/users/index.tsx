@@ -232,6 +232,7 @@ export function UsersPageComponent() {
                           </Badge>
                         </TableCell>
                         <TableCell>
+                          {/* @ts-ignore */}
                           {user.createdAt ? new Date(user?.createdAt?._seconds * 1000).toLocaleDateString() : 'N/A'}
                         </TableCell>
                         <TableCell className="text-right">
