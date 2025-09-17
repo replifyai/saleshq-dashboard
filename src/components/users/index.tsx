@@ -135,15 +135,12 @@ export function UsersPageComponent() {
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         {/* Header */}
         <div className="flex items-center justify-between space-y-2">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-              <UsersIcon className="h-8 w-8" />
-              User Management
-            </h2>
-            <p className="text-muted-foreground">
-              Manage users, roles, and permissions across your organization
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">User Management</h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Manage users, roles, and permissions across your organization
+          </p>
+        </div>
           <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Add User
@@ -235,7 +232,7 @@ export function UsersPageComponent() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                          {user.createdAt ? new Date(user?.createdAt?._seconds * 1000).toLocaleDateString() : 'N/A'}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>

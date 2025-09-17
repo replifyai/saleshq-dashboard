@@ -38,14 +38,12 @@ export const HeaderSection: React.FC<HeaderSectionProps> = ({
       <div className="mb-3">
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white">
-                Feedback Questions
-              </h1>
-              <p className="text-xs md:text-base text-gray-600 dark:text-gray-400 mt-1">
-                Manage customer queries and enhance AI knowledge with new documentation
-              </p>
-            </div>
+          <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Feedback Questions</h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Manage customer queries and enhance AI knowledge with new documentation
+          </p>
+        </div>
             
             {/* Action Buttons */}
             <div className="flex items-center gap-2">

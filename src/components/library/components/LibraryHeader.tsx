@@ -28,7 +28,14 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({
   return (
     <CardHeader>
       <div className="flex justify-between items-center">
-        <CardTitle>Product Library</CardTitle>
+        <CardTitle>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Product Library</h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Manage your product library and add new products
+          </p>
+        </div>
+        </CardTitle>
         <div className="flex items-center space-x-3">
           {/* Add Media Button - Admin Only */}
           {isAdmin && (

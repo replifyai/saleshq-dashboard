@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useEffect, useState } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function LandingNavigation() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -21,6 +22,19 @@ export default function LandingNavigation() {
     setIsMobileMenuOpen(false);
   };
 
+  const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const targetElement = document.getElementById(targetId);
+    if (targetElement) {
+      const offsetTop = targetElement.offsetTop - 50; // Account for sticky nav height
+      window.scrollTo({
+        top: offsetTop,
+        behavior: 'smooth'
+      });
+    }
+    closeMobileMenu(); // Close mobile menu if open
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 8);
@@ -30,7 +44,7 @@ export default function LandingNavigation() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-
+  const router = useRouter();
   return (
     <nav className="sticky top-4 z-50 relative isolate mx-4 sm:mx-auto max-w-6xl rounded-3xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-white/10 bg-transparent mt-4 sm:mt-0">
       {/* Liquid glass background */}
@@ -46,14 +60,13 @@ export default function LandingNavigation() {
       <div className="px-6 sm:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-3">
-            <div>
-              <Image src="/logo.png" alt="SalesHQ" width={isScrolled ? 100 : 110} height={isScrolled ? 100 : 150} className="transition-all duration-300" />
-              </div>
+            <div className="flex items-center space-x-3 bg-transparent dark:bg-white p-2 rounded-xl">
+              <Image src="/logo.png" alt="SalesHQ" width={isScrolled ? 100 : 110} height={isScrolled ? 100 : 150} className="transition-all duration-300" onClick={() => router.push("/")} />
+            </div>
           </div>
           <div className="hidden md:flex items-center space-x-6">
-            <a href="#how-it-works" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">How It Works</a>
-            <a href="#features" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">Features</a>
-            <a href="#pricing" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">Pricing</a>
+            <a href="#how-it-works" onClick={(e) => handleSmoothScroll(e, 'how-it-works')} className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">How It Works</a>
+            <a href="#integrations" onClick={(e) => handleSmoothScroll(e, 'integrations')} className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">Integrations</a>
             <Link href="/contact" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">Contact</Link>
             {!isLoading && (
               isAuthenticated ? (
@@ -98,29 +111,22 @@ export default function LandingNavigation() {
                 <span className="text-sm text-gray-700 dark:text-gray-300">Theme</span>
                 <ThemeToggle />
               </div>
-              <a 
-                href="#how-it-works" 
+              <a
+                href="#how-it-works"
                 className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                onClick={closeMobileMenu}
+                onClick={(e) => handleSmoothScroll(e, 'how-it-works')}
               >
                 How It Works
               </a>
-              <a 
-                href="#features" 
+              <a
+                href="#integrations"
                 className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                onClick={closeMobileMenu}
+                onClick={(e) => handleSmoothScroll(e, 'integrations')}
               >
-                Features
+                Integrations
               </a>
-              <a 
-                href="#pricing" 
-                className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                onClick={closeMobileMenu}
-              >
-                Pricing
-              </a>
-              <Link 
-                href="/contact" 
+              <Link
+                href="/contact"
                 className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
                 onClick={closeMobileMenu}
               >
