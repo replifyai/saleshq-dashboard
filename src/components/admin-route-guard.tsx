@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminAccess } from '@/hooks/useAdminAccess';
+import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Shield, ArrowLeft } from 'lucide-react';
@@ -18,9 +19,15 @@ interface AdminRouteGuardProps {
  */
 export default function AdminRouteGuard({ children, fallbackPath = '/practice' }: AdminRouteGuardProps) {
   const { isAdmin, isAuthenticated } = useAdminAccess();
+  const { isLoading } = useAuth(); // Get loading state from auth context
   const router = useRouter();
 
   useEffect(() => {
+    // Don't make any redirect decisions while still loading
+    if (isLoading) {
+      return;
+    }
+
     // If not authenticated, let the auth system handle the redirect
     if (!isAuthenticated) {
       return;
@@ -28,12 +35,13 @@ export default function AdminRouteGuard({ children, fallbackPath = '/practice' }
 
     // If authenticated but not admin, redirect to fallback path
     if (isAuthenticated && !isAdmin) {
+      console.log('🚫 Non-admin user accessing admin route, redirecting to:', fallbackPath);
       router.replace(fallbackPath);
     }
-  }, [isAdmin, isAuthenticated, router, fallbackPath]);
+  }, [isAdmin, isAuthenticated, isLoading, router, fallbackPath]);
 
   // Show loading state while checking authentication
-  if (!isAuthenticated) {
+  if (isLoading || !isAuthenticated) {
     return null; // Let the auth system handle this
   }
 

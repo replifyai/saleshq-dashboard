@@ -1,4 +1,4 @@
-import { MessageCircle, Upload, FolderOpen, AlertCircle, Brain, Home, Building2, Bot, ShoppingCart } from "lucide-react";
+import { MessageCircle, Upload, FolderOpen, AlertCircle, Brain, Home, Building2, Bot, ShoppingCart, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useSideNav } from "@/contexts/sideNav-context";
@@ -62,6 +62,15 @@ const navigationTabs = [
     icon: AlertCircle, 
     description: "Unanswered queries", 
     path: "/queries", 
+    disabled: false,
+    forAdmin: true
+  },
+  { 
+    id: "users", 
+    label: "User Management", 
+    icon: Users, 
+    description: "Manage users", 
+    path: "/users", 
     disabled: false,
     forAdmin: true
   },

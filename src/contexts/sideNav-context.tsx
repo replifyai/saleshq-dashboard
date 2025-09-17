@@ -27,6 +27,8 @@ const getActiveTab = (pathname: string): string => {
             return "organization";
         case "/shopify":
             return "shopify";
+        case "/users":
+            return "users";
         case "/app":
             return "chat"; // Default to chat for app path
         default:

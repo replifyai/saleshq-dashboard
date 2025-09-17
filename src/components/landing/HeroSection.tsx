@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Award, Clock, TrendingUp, Zap, ArrowRight, Play } from "lucide-react";
+import { Award, Clock, TrendingUp, Zap, ArrowRight, Play, Calendar } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -248,7 +248,7 @@ const HeroSection = () => {
       <div className="fixed top-0 left-0 w-full h-16 sm:h-20 z-50">
         <LandingNavigation />
       </div>
-      <section ref={sectionRef} className="relative isolate overflow-hidden py-24 lg:py-32 bg-white dark:bg-gray-950">
+      <section ref={sectionRef} className="relative overflow-hidden py-24 lg:py-32 bg-white dark:bg-gray-950">
         {/* Clean, minimal background */}
         <div className="absolute inset-0 -z-10">
           {/* Subtle gradient background */}
@@ -261,7 +261,7 @@ const HeroSection = () => {
           <div className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] [background-size:4rem_4rem]" />
         </div>
         
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 max-w-6xl mx-auto p-4 sm:px-6 lg:px-8 rounded-xl">
           <div className="text-center">
             {/* Trust Indicator */}
             <div 
@@ -333,10 +333,10 @@ const HeroSection = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="px-8 py-4 text-lg font-semibold transition-all duration-300 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
+                className="px-8 py-4 text-lg font-semibold transition-all duration-300 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl hover:text-gray-700 dark:hover:text-gray-300"
               >
-                <Play className="mr-2 w-5 h-5" />
-                Watch Demo
+                <Calendar className="mr-2 w-5 h-5" />
+                Book a Demo
               </Button>
             </div>
 

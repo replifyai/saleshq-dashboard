@@ -1,87 +1,68 @@
 import { Bot, Building, Mail, Globe, Lock, ShieldCheck, CheckCircle2 } from "lucide-react";
-
+import Image from "next/image";
+import Link from "next/link";
 export default function FooterSection() {
   return (
-    <footer className="bg-transparent text-gray-900 dark:text-white py-16">
+    <footer className="py-16" style={{backgroundImage: 'url(/1.png)', backgroundSize: 'cover', backgroundPosition: 'center', color: '#2C2C2C'}}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-2">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <Bot className="w-6 h-6 text-white" />
-              </div>
               <div>
-                <span className="text-2xl font-bold">SalesHQ</span>
-                <p className="text-gray-400 text-sm">Self-Learning AI Platform</p>
+                <Image src="/logo.png" alt="SalesHQ" width={150} height={150} />
+                <p className="text-sm" style={{color: '#2C2C2C'}}>Self-Learning AI Platform</p>
               </div>
             </div>
-            <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md">
+            <p className="mb-6 max-w-md" style={{color: '#2C2C2C'}}>
               Transform your sales team with AI-powered document intelligence. Get instant answers, 
               train your AI in real-time, and close more deals faster.
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Building className="w-6 h-6" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Mail className="w-6 h-6" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Globe className="w-6 h-6" />
-              </a>
-            </div>
           </div>
           <div>
-            <h4 className="font-semibold mb-6 text-lg">Product</h4>
-            <ul className="space-y-3 text-gray-600 dark:text-gray-400">
-              <li><a href="#how-it-works" className="hover:text-gray-900 dark:hover:text-white transition-colors">How It Works</a></li>
-              <li><a href="#features" className="hover:text-gray-900 dark:hover:text-white transition-colors">Features</a></li>
-              <li><a href="#pricing" className="hover:text-gray-900 dark:hover:text-white transition-colors">Pricing</a></li>
-              <li><a href="#" className="hover:text-gray-900 dark:hover:text-white transition-colors">API Documentation</a></li>
-              <li><a href="#" className="hover:text-gray-900 dark:hover:text-white transition-colors">Integrations</a></li>
+            <h4 className="font-semibold mb-6 text-lg" style={{color: '#2C2C2C'}}>Product</h4>
+            <ul className="space-y-3">
+              <li><a href="#how-it-works" className="transition-colors" style={{color: '#2c2c2c'}} onMouseEnter={(e) => (e.target as HTMLElement).style.color = '#F5F5F5'} onMouseLeave={(e) => (e.target as HTMLElement).style.color = '#2c2c2c'}>How It Works</a></li>
+              <li><a href="#features" className="transition-colors" style={{color: '#2c2c2c'}} onMouseEnter={(e) => (e.target as HTMLElement).style.color = '#F5F5F5'} onMouseLeave={(e) => (e.target as HTMLElement).style.color = '#2c2c2c'}>Features</a></li>
+              <li><a href="#pricing" className="transition-colors" style={{color: '#2c2c2c'}} onMouseEnter={(e) => (e.target as HTMLElement).style.color = '#F5F5F5'} onMouseLeave={(e) => (e.target as HTMLElement).style.color = '#2c2c2c'}>Pricing</a></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold mb-6 text-lg">Support</h4>
-            <ul className="space-y-3 text-gray-600 dark:text-gray-400">
-              <li><a href="#" className="hover:text-gray-900 dark:hover:text-white transition-colors">Help Center</a></li>
-              <li><a href="#contact" className="hover:text-gray-900 dark:hover:text-white transition-colors">Contact Us</a></li>
-              <li><a href="#" className="hover:text-gray-900 dark:hover:text-white transition-colors">System Status</a></li>
-              <li><a href="#" className="hover:text-gray-900 dark:hover:text-white transition-colors">Security</a></li>
-              <li><a href="#" className="hover:text-gray-900 dark:hover:text-white transition-colors">Privacy Policy</a></li>
+            <h4 className="font-semibold mb-6 text-lg" style={{color: '#2C2C2C'}}>Support</h4>
+            <ul className="space-y-3">
+              <li><Link href="/contact" className="transition-colors" style={{color: '#2c2c2c'}} onMouseEnter={(e) => (e.target as HTMLElement).style.color = '#F5F5F5'} onMouseLeave={(e) => (e.target as HTMLElement).style.color = '#2c2c2c'}>Contact Us</Link></li>
+              <li><Link href="/privacy-policy" className="transition-colors" style={{color: '#2c2c2c'}} onMouseEnter={(e) => (e.target as HTMLElement).style.color = '#F5F5F5'} onMouseLeave={(e) => (e.target as HTMLElement).style.color = '#2c2c2c'}>Privacy Policy</Link></li>
             </ul>
           </div>
         </div>
 
         {/* Security / Compliance Badges (early stage) */}
         <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="flex items-center space-x-3 rounded-lg border border-gray-200 dark:border-white/10 p-3">
-            <Lock className="w-5 h-5 text-emerald-500" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">HTTPS & data encryption</span>
+          <div className="flex items-center space-x-3 rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm p-3">
+            <Lock className="w-5 h-5 text-emerald-400" />
+            <span className="text-sm" style={{color: '#2C2C2C'}}>HTTPS & data encryption</span>
           </div>
-          <div className="flex items-center space-x-3 rounded-lg border border-gray-200 dark:border-white/10 p-3">
-            <ShieldCheck className="w-5 h-5 text-blue-500" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">SOC 2 in planning</span>
+          <div className="flex items-center space-x-3 rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm p-3">
+            <ShieldCheck className="w-5 h-5 text-blue-400" />
+            <span className="text-sm" style={{color: '#2C2C2C'}}>SOC 2 in planning</span>
           </div>
-          <div className="flex items-center space-x-3 rounded-lg border border-gray-200 dark:border-white/10 p-3">
-            <CheckCircle2 className="w-5 h-5 text-indigo-500" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">GDPR friendly</span>
+          <div className="flex items-center space-x-3 rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm p-3">
+            <CheckCircle2 className="w-5 h-5 text-indigo-400" />
+            <span className="text-sm" style={{color: '#2C2C2C'}}>GDPR friendly</span>
           </div>
-          <div className="flex items-center space-x-3 rounded-lg border border-gray-200 dark:border-white/10 p-3">
-            <CheckCircle2 className="w-5 h-5 text-purple-500" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">Privacy-first by design</span>
+          <div className="flex items-center space-x-3 rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm p-3">
+            <CheckCircle2 className="w-5 h-5 text-purple-400" />
+            <span className="text-sm" style={{color: '#2C2C2C'}}>Privacy-first by design</span>
           </div>
         </div>
         
-        <div className="border-t border-gray-200 dark:border-white/10 mt-12 pt-8">
+        <div className="border-t border-white/20 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-600 dark:text-gray-400 mb-4 md:mb-0">
+            <p className="mb-4 md:mb-0" style={{color: '#666666'}}>
               &copy; {new Date().getFullYear()} SalesHQ. All rights reserved.
             </p>
-            <div className="flex items-center space-x-6 text-gray-600 dark:text-gray-400">
-              <a href="#" className="hover:text-gray-900 dark:hover:text-white transition-colors text-sm">Terms of Service</a>
-              <a href="#" className="hover:text-gray-900 dark:hover:text-white transition-colors text-sm">Privacy Policy</a>
-              <a href="#" className="hover:text-gray-900 dark:hover:text-white transition-colors text-sm">Cookie Policy</a>
+            <div className="flex items-center space-x-6">
+              <Link href="/terms-of-service" className="transition-colors text-sm" style={{color: '#6A5ACD'}} onMouseEnter={(e) => (e.target as HTMLElement).style.color = '#F5F5F5'} onMouseLeave={(e) => (e.target as HTMLElement).style.color = '#6A5ACD'}>Terms of Service</Link>
+              <Link href="/privacy-policy" className="transition-colors text-sm" style={{color: '#6A5ACD'}} onMouseEnter={(e) => (e.target as HTMLElement).style.color = '#F5F5F5'} onMouseLeave={(e) => (e.target as HTMLElement).style.color = '#6A5ACD'}>Privacy Policy</Link>
             </div>
           </div>
         </div>

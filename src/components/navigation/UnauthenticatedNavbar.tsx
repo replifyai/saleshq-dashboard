@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Bot, LayoutDashboard, Menu, X } from "lucide-react";
+import { Bot, LayoutDashboard, Menu, X, Home } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useEffect, useState } from "react";
-import ThemeToggle from "@/components/theme-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 import Image from "next/image";
 
-export default function LandingNavigation() {
+export default function UnauthenticatedNavbar() {
   const { isAuthenticated, isLoading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -30,9 +30,8 @@ export default function LandingNavigation() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-
   return (
-    <nav className="sticky top-4 z-50 relative isolate mx-auto max-w-6xl rounded-3xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-white/10 bg-transparent">
+    <nav className="fixed top-4 left-4 right-4 z-50 mx-auto max-w-6xl rounded-3xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-white/10 bg-transparent">
       {/* Liquid glass background */}
       <div className="absolute inset-0 -z-10 pointer-events-none rounded-2xl">
         <div className="absolute inset-0 rounded-2xl backdrop-blur-2xl bg-white-500/10 dark:bg-white/5" />
@@ -45,21 +44,27 @@ export default function LandingNavigation() {
       </div>
       <div className="px-6 sm:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-3">
-            {/* <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Bot className="w-6 h-6 text-white" />
-            </div> */}
+          {/* Logo/Brand */}
+          <Link href="/" className="flex items-center space-x-3">
             <div>
-              {/* <h1 className={`font-extrabold tracking-tight text-gray-900 dark:text-white transition-all duration-300 ${isScrolled ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-4xl'}`}> */}
-              <Image src="/logo.png" alt="SalesHQ" width={isScrolled ? 100 : 150} height={isScrolled ? 100 : 150} className="transition-all duration-300" />
-                {/* <span>Sales</span><span className="text-blue-600 dark:text-blue-400">HQ</span> */}
-              </div>
-          </div>
+              <h1 className={`font-extrabold tracking-tight text-gray-900 dark:text-white transition-all duration-300 ${isScrolled ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-4xl'}`}>
+                <Image src="/logo.png" alt="SalesHQ" width={100} height={100} />
+              </h1>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            <a href="#how-it-works" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">How It Works</a>
-            <a href="#features" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">Features</a>
-            <a href="#pricing" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">Pricing</a>
-            <Link href="/contact" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">Contact</Link>
+            <Link href="/" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium flex items-center">
+              <Home className="w-4 h-4 mr-1" />
+              Home
+            </Link>
+            <Link href="/terms-of-service" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">
+              Terms of Service
+            </Link>
+            <a href="/#contact" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">
+              Contact
+            </a>
             {!isLoading && (
               isAuthenticated ? (
                 <Link href="/chat">
@@ -71,7 +76,7 @@ export default function LandingNavigation() {
               ) : (
                 <Link href="/login">
                   <Button size="sm" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-500 hover:to-emerald-400 shadow-lg">
-                    Join Early Access
+                    Sign In
                   </Button>
                 </Link>
               )
@@ -103,47 +108,41 @@ export default function LandingNavigation() {
                 <span className="text-sm text-gray-700 dark:text-gray-300">Theme</span>
                 <ThemeToggle />
               </div>
-              <a 
-                href="#how-it-works" 
-                className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                onClick={closeMobileMenu}
-              >
-                How It Works
-              </a>
-              <a 
-                href="#features" 
-                className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                onClick={closeMobileMenu}
-              >
-                Features
-              </a>
-              <a 
-                href="#pricing" 
-                className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                onClick={closeMobileMenu}
-              >
-                Pricing
-              </a>
               <Link 
-                href="/contact" 
+                href="/" 
+                className="flex items-center px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+                onClick={closeMobileMenu}
+              >
+                <Home className="w-4 h-4 mr-2" />
+                Home
+              </Link>
+              <Link 
+                href="/terms-of-service" 
+                className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+                onClick={closeMobileMenu}
+              >
+                Terms of Service
+              </Link>
+              <a 
+                href="/#contact" 
                 className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
                 onClick={closeMobileMenu}
               >
                 Contact
-              </Link>
+              </a>
               <div className="pt-2">
                 {!isLoading && (
                   isAuthenticated ? (
                     <Link href="/chat">
-                      <Button size="sm" className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700 shadow-lg" onClick={closeMobileMenu}>
+                      <Button size="sm" className="w-full bg-gradient-to-r from-emerald-600 to-blue-600 text-white hover:from-emerald-700 hover:to-blue-700 shadow-lg" onClick={closeMobileMenu}>
                         <LayoutDashboard className="w-4 h-4 mr-2" />
                         Dashboard
                       </Button>
                     </Link>
                   ) : (
                     <Link href="/login">
-                      <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg" onClick={closeMobileMenu}>
-                        Join Early Access
+                      <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg" onClick={closeMobileMenu}>
+                        Sign In
                       </Button>
                     </Link>
                   )
@@ -155,4 +154,4 @@ export default function LandingNavigation() {
       </div>
     </nav>
   );
-} 
+}

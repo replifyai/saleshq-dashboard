@@ -1,3 +1,5 @@
+import UnauthenticatedFooter from "@/components/navigation/UnauthenticatedFooter";
+
 export default function UnauthenticatedLayout({
   children,
 }: Readonly<{
@@ -6,6 +8,9 @@ export default function UnauthenticatedLayout({
   return (
     <div className="min-h-screen bg-background">
       {children}
+      <div className="px-4">
+        <UnauthenticatedFooter />
+      </div>
     </div>
   );
 }

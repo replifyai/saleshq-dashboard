@@ -58,6 +58,10 @@ const navigationItems = [
       { label: "API Docs", href: "/docs", description: "Developer documentation" },
       { label: "Case Studies", href: "/cases", description: "Customer success stories" }
     ]
+  },
+  { 
+    label: "Contact", 
+    href: "/contact" 
   }
 ];
 

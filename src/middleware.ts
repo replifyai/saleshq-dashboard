@@ -63,12 +63,14 @@ export function middleware(request: NextRequest) {
     "/leaderboard",
     "/queries",
     "/quiz-history",
-    "/shopify"
+    "/shopify",
+    "/users"
   ];
   const adminRoutes = [ 
     "/upload",
     "/shopify",
     "/live",
+    "/users",
   ]
 
   // Check if current path is a protected route
