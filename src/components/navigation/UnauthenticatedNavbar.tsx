@@ -62,9 +62,9 @@ export default function UnauthenticatedNavbar() {
             <Link href="/terms-of-service" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">
               Terms of Service
             </Link>
-            <a href="/#contact" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">
+            <Link href="/contact" className="text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors font-medium">
               Contact
-            </a>
+            </Link>
             {!isLoading && (
               isAuthenticated ? (
                 <Link href="/chat">
@@ -123,13 +123,13 @@ export default function UnauthenticatedNavbar() {
               >
                 Terms of Service
               </Link>
-              <a 
-                href="/#contact" 
+              <Link 
+                href="/contact" 
                 className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
                 onClick={closeMobileMenu}
               >
                 Contact
-              </a>
+              </Link>
               <div className="pt-2">
                 {!isLoading && (
                   isAuthenticated ? (

@@ -66,20 +66,20 @@ export default function UnauthenticatedFooter() {
                 </Link>
               </li>
               <li>
-                <a 
+                <Link 
                   href="/#features" 
                   className="text-gray-800 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors text-sm"
                 >
                   Features
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
+                <Link 
                   href="/#pricing" 
                   className="text-gray-800 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white transition-colors text-sm"
                 >
                   Pricing
-                </a>
+                </Link>
               </li>
               <li>
                 <Link 
