@@ -119,6 +119,7 @@ export default function CTASection() {
                 size="lg" 
                 variant="outline" 
                 className="group px-10 py-7 text-lg font-bold bg-transparent text-white border-2 border-white/50 hover:bg-white/10 hover:border-white transition-all duration-300"
+                onClick={() => window.open('https://calendly.com/saleshqai/30min', '_blank')}
               >
                 <Calendar className="mr-2 w-5 h-5" />
                 Schedule Demo

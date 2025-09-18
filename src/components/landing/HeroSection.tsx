@@ -340,6 +340,7 @@ const HeroSection = () => {
                 size="lg" 
                 variant="outline" 
                 className="px-8 py-4 text-lg font-semibold transition-all duration-300 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl hover:text-gray-700 dark:hover:text-gray-300"
+                onClick={() => window.open('https://calendly.com/saleshqai/30min', '_blank')}
               >
                 <Calendar className="mr-2 w-5 h-5" />
                 Book a Demo

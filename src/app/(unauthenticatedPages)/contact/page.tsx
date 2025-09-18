@@ -75,9 +75,9 @@ export default function ContactPage() {
     {
       icon: Mail,
       title: "Email Us",
-      content: "support@saleshq.ai",
+      content: "shubham@saleshq.ai",
       description: "Send us an email anytime",
-      action: "mailto:support@saleshq.ai"
+      action: "mailto:shubham@saleshq.ai"
     },
     {
       icon: Phone,
@@ -202,7 +202,15 @@ export default function ContactPage() {
                     Do you offer demos?
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Yes! We offer personalized demos to show how SalesHQ can benefit your team.
+                    Yes! We offer personalized demos to show how SalesHQ can benefit your team.{" "}
+                    <a 
+                      href="https://calendly.com/saleshqai/30min" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                    >
+                      Book a demo here
+                    </a>
                   </p>
                 </div>
                 <div>
