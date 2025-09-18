@@ -1,6 +1,5 @@
-import UnauthenticatedFooter from "@/components/navigation/UnauthenticatedFooter";
 import UnauthenticatedNavbar from "@/components/navigation/UnauthenticatedNavbar";
-
+import FooterSection from "@/components/landing/FooterSection";
 export default function UnauthenticatedLayout({
   children,
 }: Readonly<{
@@ -12,9 +11,7 @@ export default function UnauthenticatedLayout({
       <UnauthenticatedNavbar />
       </div>
       {children}
-      <div className="px-4">
-        <UnauthenticatedFooter />
-      </div>
+      <FooterSection />
     </div>
   );
 }

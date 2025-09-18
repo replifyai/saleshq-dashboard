@@ -3,17 +3,18 @@ import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import {
   HeroSection,
-  // SocialProofSection,
   ProblemStatementSection,
+  ChallengesSection,
   UseCasesSection,
   TeamSection,
   ResourcesSection,
   EarlyAccessSection,
   RoadmapSection,
+  CaseStudiesSection,
   // HowItWorksSection,
   // TestimonialsSection,
   // FeaturesSection,
-  // ROISection,
+  ROISection,
   // FAQSection,
   //PricingSection,
   // ContactSection,
@@ -133,18 +134,19 @@ export default function LandingPage() {
       <div className="relative z-10">
         {/* <LandingNavigation /> */}
         <HeroSection />
-        {/* <SocialProofSection /> */}
         <ProblemStatementSection />
+        <ChallengesSection />
         <HowItWorksSection />
         <UseCasesSection />
         {/* <TeamSection /> */}
         {/* <TestimonialsSection /> */}
         <FeaturesSection />
-        {/* <ROISection /> */}
+        <ROISection />
+        <CaseStudiesSection />
         <FAQSection />
         {/* <ResourcesSection /> */}
         {/* <RoadmapSection /> */}
-        <EarlyAccessSection />
+        {/* <EarlyAccessSection /> */}
         {/* <PricingSection /> */}
         {/* <ContactSection /> */}
         <FooterSection />

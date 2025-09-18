@@ -1,6 +1,3 @@
-import UnauthenticatedFooter from "@/components/navigation/UnauthenticatedFooter";
-import UnauthenticatedNavbar from "@/components/navigation/UnauthenticatedNavbar";
-
 export default function PrivacyPolicyPage() {
   return (
     <div>

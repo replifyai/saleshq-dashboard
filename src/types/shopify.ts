@@ -363,6 +363,7 @@ export interface ShopifyTaxLine {
   rate: number;
   title: string;
   priceSet: ShopifyMoneySet;
+  ratePercentage?: number;
 }
 
 export interface ShopifyReceipt {
@@ -798,4 +799,290 @@ export interface ShopifyAppInstallation {
   installedAt: string;
   updatedAt: string;
   status: 'active' | 'uninstalled' | 'suspended';
+}
+
+// Abandoned Checkout Types
+export interface ShopifyAbandonedCheckout {
+  id: string;
+  abandonedCheckoutUrl: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  closedAt?: string;
+  name: string;
+  note?: string;
+  token: string;
+  cartToken: string;
+  currencyCode: string;
+  presentmentCurrencyCode: string;
+  totalPriceSet: ShopifyMoneySet;
+  subtotalPriceSet: ShopifyMoneySet;
+  totalDiscountSet: ShopifyMoneySet;
+  totalTaxSet: ShopifyMoneySet;
+  totalDutiesSet?: ShopifyMoneySet;
+  totalLineItemsPriceSet: ShopifyMoneySet;
+  taxesIncluded: boolean;
+  discountCodes: string[];
+  customAttributes: ShopifyCustomAttribute[];
+  customer?: ShopifyCustomer;
+  billingAddress?: ShopifyAddress;
+  shippingAddress?: ShopifyAddress;
+  lineItems: ShopifyAbandonedCheckoutLineItem[];
+  taxLines: ShopifyTaxLine[];
+  shippingLines?: ShopifyShippingLine[];
+  referringSite?: string;
+  landingSite?: string;
+  gateway?: string;
+}
+
+export interface ShopifyAbandonedCheckoutLineItem {
+  id: string;
+  title: string;
+  quantity: number;
+  sku?: string;
+  variantTitle?: string;
+  presentmentTitle?: string;
+  presentmentVariantTitle?: string;
+  requiresShipping: boolean;
+  weight: number;
+  fulfillmentService: string;
+  originalUnitPriceSet: ShopifyMoneySet;
+  originalTotalPriceSet: ShopifyMoneySet;
+  discountedUnitPriceSet: ShopifyMoneySet;
+  discountedTotalPriceSet: ShopifyMoneySet;
+  discountedUnitPriceWithCodeDiscount: ShopifyMoneySet;
+  discountedTotalPriceWithCodeDiscount: ShopifyMoneySet;
+  customAttributes: ShopifyCustomAttribute[];
+  discountAllocations: ShopifyDiscountAllocation[];
+  taxLines: ShopifyTaxLine[];
+  product?: ShopifyProduct;
+  variant?: ShopifyProductVariant;
+  image?: ShopifyProductImage;
+}
+
+// Detailed checkout view types based on actual API response
+export interface ShopifyDetailedAbandonedCheckout {
+  id: string;
+  abandonedCheckoutUrl: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  name: string;
+  note?: string;
+  totalPriceSet: ShopifyMoneySet;
+  subtotalPriceSet: ShopifyMoneySet;
+  totalDiscountSet: ShopifyMoneySet;
+  totalTaxSet: ShopifyMoneySet;
+  totalLineItemsPriceSet: ShopifyMoneySet;
+  taxesIncluded: boolean;
+  discountCodes: any[];
+  customAttributes: any[];
+  customer?: {
+    id: string;
+  };
+  lineItems: {
+    edges: Array<{
+      node: ShopifyDetailedCheckoutLineItem;
+    }>;
+  };
+  taxLines: ShopifyDetailedTaxLine[];
+}
+
+export interface ShopifyDetailedCheckoutLineItem {
+  id: string;
+  title: string;
+  quantity: number;
+  sku?: string;
+  variantTitle?: string;
+  originalUnitPriceSet: ShopifyMoneySet;
+  originalTotalPriceSet: ShopifyMoneySet;
+  product: {
+    id: string;
+    title: string;
+    handle: string;
+  };
+  variant: {
+    id: string;
+    title: string;
+    sku?: string;
+  };
+  image?: {
+    id: string;
+    src: string;
+  };
+}
+
+export interface ShopifyDetailedTaxLine {
+  title: string;
+  priceSet: ShopifyMoneySet;
+  rate: number;
+  ratePercentage: number;
+}
+
+export interface ShopifyCustomAttribute {
+  key: string;
+  value: string;
+}
+
+export interface ShopifyShippingLine {
+  id: string;
+  title: string;
+  price: number;
+  priceSet: ShopifyMoneySet;
+  discountedPrice: number;
+  discountedPriceSet: ShopifyMoneySet;
+  source: string;
+  code?: string;
+  carrierIdentifier?: string;
+  requestedFulfillmentServiceId?: string;
+}
+
+// Abandoned Checkout Filters
+export interface ShopifyAbandonedCheckoutFilters {
+  searchTerm?: string;
+  customerId?: string;
+  createdAtAfter?: string;
+  createdAtBefore?: string;
+  totalPriceMin?: number;
+  totalPriceMax?: number;
+  hasCustomer?: boolean;
+  hasEmail?: boolean;
+  hasPhone?: boolean;
+  // Pagination parameters
+  limit?: number;
+  cursor?: string;
+  page?: number;
+  // Sorting
+  sortKey?: 'CREATED_AT' | 'UPDATED_AT' | 'TOTAL_PRICE' | 'CUSTOMER_NAME' | 'ID' | 'RELEVANCE';
+  reverse?: boolean;
+}
+
+// Abandoned Checkout Response
+export interface ShopifyAbandonedCheckoutsResponse {
+  abandonedCheckouts: ShopifyAbandonedCheckout[];
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  totalCount?: number;
+  pageInfo: {
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+    startCursor?: string;
+    endCursor?: string;
+  };
+}
+
+// Discount Code Types for Recovery
+export interface ShopifyDiscountCodeRequest {
+  title: string;
+  code: string;
+  startsAt: string;
+  endsAt?: string;
+  customerSelection: {
+    all?: boolean;
+    customers?: {
+      add?: string[];
+      remove?: string[];
+    };
+    customerSegments?: {
+      add?: string[];
+      remove?: string[];
+    };
+  };
+  customerGets: {
+    value: {
+      percentage?: number;
+      discountAmount?: {
+        amount: number;
+        appliesOnEachItem?: boolean;
+      };
+    };
+    items: {
+      all?: boolean;
+      products?: {
+        productsToAdd?: string[];
+        productsToRemove?: string[];
+        productVariantsToAdd?: string[];
+        productVariantsToRemove?: string[];
+      };
+      collections?: {
+        add?: string[];
+        remove?: string[];
+      };
+    };
+  };
+  minimumRequirement?: {
+    subtotal?: {
+      greaterThanOrEqualToSubtotal: number;
+    };
+    quantity?: {
+      greaterThanOrEqualToQuantity: number;
+    };
+  };
+  usageLimit?: number;
+  appliesOncePerCustomer?: boolean;
+}
+
+// Customer Contact Types
+export interface ShopifyCustomerContact {
+  email?: string;
+  phone?: string;
+  firstName?: string;
+  lastName?: string;
+  message?: string;
+  subject?: string;
+}
+
+// Discount Code Management Types
+export interface ShopifyDiscountCodeManagement {
+  id: string;
+  title: string;
+  summary: string;
+  status: string;
+  startsAt: string;
+  endsAt: string;
+  usageLimit: number | null;
+  appliesOncePerCustomer: boolean;
+  code: string;
+  discountType: 'basic' | 'bxgy' | 'free_shipping' | 'app';
+}
+
+export interface ShopifyDiscountCodeNode {
+  id: string;
+  codeDiscount: {
+    __typename: string;
+    title: string;
+    summary: string;
+    status: string;
+    startsAt: string;
+    endsAt: string;
+    usageLimit: number | null;
+    appliesOncePerCustomer: boolean;
+    codes: {
+      nodes: Array<{
+        id: string;
+        code: string;
+      }>;
+    };
+  };
+}
+
+export interface ShopifyDiscountCodesResponse {
+  edges: Array<{
+    cursor: string;
+    node: ShopifyDiscountCodeNode;
+  }>;
+  pageInfo: {
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+    startCursor: string | null;
+    endCursor: string | null;
+  };
+}
+
+export interface ShopifyDiscountCodeFilters {
+  first?: number;
+  after?: string;
+  query?: string;
+  sortKey?: 'CREATED_AT' | 'ENDS_AT' | 'ID' | 'RELEVANCE' | 'STARTS_AT' | 'TITLE' | 'UPDATED_AT';
+  reverse?: boolean;
 } 

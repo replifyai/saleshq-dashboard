@@ -142,7 +142,7 @@ export default function LandingNavigation() {
                       </Button>
                     </Link>
                   ) : (
-                    <Link href="/login">
+                    <Link href="/contact">
                       <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg" onClick={closeMobileMenu}>
                         Join Early Access
                       </Button>

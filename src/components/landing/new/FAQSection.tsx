@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 import {
   Accordion,
   AccordionContent,
@@ -109,6 +110,7 @@ const faqCategories: FAQCategory[] = [
 export default function FAQSection() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("general");
+  const router = useRouter();
 
   const filteredFAQs = faqCategories
     .find(cat => cat.id === selectedCategory)
@@ -119,12 +121,12 @@ export default function FAQSection() {
     );
 
   return (
-    <section id="faq" className="py-24 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="faq" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-transparent">
+      <div className="max-w-6xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-12">
           <Badge className="mb-4 px-3 py-1 bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-300 border-0">
-            <HelpCircle className="w-3 h-3 mr-1" />
+            <HelpCircle className="w-4 h-4 mr-1" />
             FAQ
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -213,7 +215,7 @@ export default function FAQSection() {
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                   Our team is here to help you get started.
                 </p>
-                <Button size="sm" className="gap-2">
+                <Button size="sm" className="gap-2" onClick={() => router.push('/contact')}>
                   Chat with Support
                   <ChevronRight className="w-4 h-4" />
                 </Button>

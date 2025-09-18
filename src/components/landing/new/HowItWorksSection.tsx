@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { 
   Brain, 
   MessageSquare,
@@ -46,14 +47,14 @@ const steps: Step[] = [
   {
     id: 2,
     title: "AI Processes & Learns",
-    description: "Our AI analyzes, categorizes, and creates a searchable knowledge graph.",
+    description: "Our AI analyzes, categorizes, and creates a searchable knowledge graph with LSM integration.",
     icon: <Brain className="w-6 h-6" />,
     duration: "Instant",
     details: [
       "Natural language processing",
-      "Auto-categorization",
+      "LSM-powered categorization",
       "Entity extraction",
-      "Relationship mapping"
+      "Lead scoring integration"
     ],
     color: "from-purple-500 to-purple-600",
     image: "/ai-process.png"
@@ -61,13 +62,13 @@ const steps: Step[] = [
   {
     id: 3,
     title: "Team Gets Instant Answers",
-    description: "Sales reps ask questions and receive accurate, cited responses immediately.",
+    description: "Sales reps ask questions and receive LSM-scored, accurate, cited responses immediately.",
     icon: <MessageSquare className="w-6 h-6" />,
     duration: "Real-time",
     details: [
       "Natural language queries",
-      "Source citations",
-      "Suggested follow-ups",
+      "LSM-powered source citations",
+      "Scored follow-up suggestions",
       "Multi-language support"
     ],
     color: "from-green-500 to-green-600",
@@ -93,7 +94,7 @@ const steps: Step[] = [
 export default function HowItWorksSection() {
   const [activeStep, setActiveStep] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
-  const timelineRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -123,20 +124,20 @@ export default function HowItWorksSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} id="how-it-works" className="py-12 md:py-24 bg-white dark:bg-gray-900 relative overflow-hidden">
+    <section ref={sectionRef} id="how-it-works" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-transparent relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-700" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
         {/* Section header */}
-        <div className="text-center mb-10 md:mb-16 process-animate opacity-0 translate-y-4 transition-all duration-700">
+        <div className="text-center mb-12 process-animate opacity-0 translate-y-4 transition-all duration-700">
           <Badge className="mb-4 px-3 py-1 bg-green-100 text-green-900 dark:bg-green-900/30 dark:text-green-300 border-0">
-            <Rocket className="w-3 h-3 mr-1" />
+            <Rocket className="w-4 h-4 mr-1" />
             How It Works
           </Badge>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 px-2">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
               Get Started in
             </span>
@@ -145,7 +146,7 @@ export default function HowItWorksSection() {
               Under 5 Minutes
             </span>
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto px-4">
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
             Four simple steps to transform your sales team into AI-powered closers.
           </p>
         </div>
@@ -514,7 +515,7 @@ export default function HowItWorksSection() {
                 Join 2,847+ teams already using SalesHQ
               </p>
             </div>
-            <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+            <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700" onClick={() => router.push('/contact')}>
               Start Free Trial
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>

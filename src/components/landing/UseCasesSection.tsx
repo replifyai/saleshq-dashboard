@@ -10,14 +10,14 @@ export default function UseCasesSection() {
       color: "bg-blue-500/20 text-blue-400",
     },
     {
-      title: "Build battlecards on the fly",
-      description: "Pull competitive diffs and ready‑to‑use talking points while you’re on a call.",
+      title: "Build LSM-powered battlecards",
+      description: "Pull competitive diffs and LSM-scored talking points while you're on a call.",
       icon: Sparkles,
       color: "bg-indigo-500/20 text-indigo-400",
     },
     {
       title: "Keep specs and pricing current",
-      description: "SalesHQ learns continuously from your docs so reps never share outdated info.",
+      description: "SalesHQ learns continuously from your docs and LSM data so reps never share outdated info.",
       icon: RefreshCcw,
       color: "bg-purple-500/20 text-purple-400",
     },

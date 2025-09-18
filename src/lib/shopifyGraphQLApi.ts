@@ -1,4 +1,4 @@
-import { ShopifyProduct, ShopifyProductRequest, ShopifyOrder, ShopifyOrderRequest, ShopifyCustomer, ShopifyCart, ShopifyCartRequest, ShopifyProductFilters, ShopifyProductsResponse, ShopifyOrderFilters, ShopifyOrdersResponse, ShopifyStoreStats, ShopifyAnalyticsFilters, ShopifyAnalyticsResponse, ShopifyAnalyticsDataPoint, ShopifyAnalyticsMetric, ShopifyError } from '@/types/shopify';
+import { ShopifyProduct, ShopifyProductRequest, ShopifyOrder, ShopifyOrderRequest, ShopifyCustomer, ShopifyCart, ShopifyCartRequest, ShopifyProductFilters, ShopifyProductsResponse, ShopifyOrderFilters, ShopifyOrdersResponse, ShopifyStoreStats, ShopifyAnalyticsFilters, ShopifyAnalyticsResponse, ShopifyAnalyticsDataPoint, ShopifyAnalyticsMetric, ShopifyError, ShopifyAbandonedCheckout, ShopifyAbandonedCheckoutFilters, ShopifyAbandonedCheckoutsResponse, ShopifyDiscountCodeRequest, ShopifyDiscountCodeManagement, ShopifyDiscountCodeFilters, ShopifyDiscountCodesResponse } from '@/types/shopify';
 
 /**
  * GraphQL-based Shopify API Service
@@ -1601,6 +1601,662 @@ export class ShopifyGraphQLApiService {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
+  // Abandoned Checkout Management
+  async getAbandonedCheckouts(filters?: ShopifyAbandonedCheckoutFilters): Promise<ShopifyAbandonedCheckout[]> {
+    try {
+      const query = `
+        query GetAbandonedCheckouts($first: Int, $after: String, $query: String, $sortKey: AbandonedCheckoutSortKeys, $reverse: Boolean) {
+          abandonedCheckouts(first: $first, after: $after, query: $query, sortKey: $sortKey, reverse: $reverse) {
+            edges {
+              cursor
+              node {
+                id
+                abandonedCheckoutUrl
+                createdAt
+                updatedAt
+                completedAt
+                name
+                note
+                totalPriceSet {
+                  presentmentMoney {
+                    amount
+                    currencyCode
+                  }
+                  shopMoney {
+                    amount
+                    currencyCode
+                  }
+                }
+                subtotalPriceSet {
+                  presentmentMoney {
+                    amount
+                    currencyCode
+                  }
+                  shopMoney {
+                    amount
+                    currencyCode
+                  }
+                }
+                totalDiscountSet {
+                  presentmentMoney {
+                    amount
+                    currencyCode
+                  }
+                  shopMoney {
+                    amount
+                    currencyCode
+                  }
+                }
+                totalTaxSet {
+                  presentmentMoney {
+                    amount
+                    currencyCode
+                  }
+                  shopMoney {
+                    amount
+                    currencyCode
+                  }
+                }
+                totalLineItemsPriceSet {
+                  presentmentMoney {
+                    amount
+                    currencyCode
+                  }
+                  shopMoney {
+                    amount
+                    currencyCode
+                  }
+                }
+                taxesIncluded
+                discountCodes
+                customAttributes {
+                  key
+                  value
+                }
+                customer {
+                  id
+                }
+                lineItems(first: 10) {
+                  edges {
+                    node {
+                      id
+                      title
+                      quantity
+                      sku
+                      variantTitle
+                      originalUnitPriceSet {
+                        presentmentMoney {
+                          amount
+                          currencyCode
+                        }
+                        shopMoney {
+                          amount
+                          currencyCode
+                        }
+                      }
+                      originalTotalPriceSet {
+                        presentmentMoney {
+                          amount
+                          currencyCode
+                        }
+                        shopMoney {
+                          amount
+                          currencyCode
+                        }
+                      }
+                      product {
+                        id
+                        title
+                        handle
+                      }
+                      variant {
+                        id
+                        title
+                        sku
+                      }
+                      image {
+                        id
+                        src
+                      }
+                    }
+                  }
+                }
+                taxLines {
+                  title
+                  priceSet {
+                    presentmentMoney {
+                      amount
+                      currencyCode
+                    }
+                    shopMoney {
+                      amount
+                      currencyCode
+                    }
+                  }
+                  rate
+                  ratePercentage
+                }
+              }
+            }
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+          }
+        }
+      `;
+
+      const variables = {
+        first: filters?.limit || 50,
+        after: filters?.cursor,
+        query: this.buildAbandonedCheckoutQuery(filters),
+        sortKey: filters?.sortKey || 'CREATED_AT',
+        reverse: filters?.reverse || false
+      };
+
+      const result = await this.makeGraphQLRequest(query, variables);
+      // Handle both response structures: result.abandonedCheckouts.edges or result.edges
+      const edges = result.abandonedCheckouts?.edges || result.edges;
+      return edges.map((edge: any) => this.transformAbandonedCheckout(edge.node));
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getAbandonedCheckoutsWithPagination(filters?: ShopifyAbandonedCheckoutFilters): Promise<ShopifyAbandonedCheckoutsResponse> {
+    try {
+      const abandonedCheckouts = await this.getAbandonedCheckouts(filters);
+      
+      // Get count for total
+      const countQuery = `
+        query GetAbandonedCheckoutsCount($query: String) {
+          abandonedCheckoutsCount(query: $query) {
+            count
+            precision
+          }
+        }
+      `;
+
+      const countResult = await this.makeGraphQLRequest(countQuery, {
+        query: this.buildAbandonedCheckoutQuery(filters)
+      });
+
+      return {
+        abandonedCheckouts,
+        hasNextPage: false, // This would need to be determined from the actual response
+        hasPreviousPage: false,
+        totalCount: countResult.abandonedCheckoutsCount?.count || countResult.count || 0,
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: undefined,
+          endCursor: undefined
+        }
+      };
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getAbandonedCheckout(id: string): Promise<ShopifyAbandonedCheckout> {
+    try {
+      const query = `
+        query GetAbandonedCheckout($id: ID!) {
+          abandonedCheckout(id: $id) {
+            id
+            abandonedCheckoutUrl
+            createdAt
+            updatedAt
+            completedAt
+            closedAt
+            name
+            note
+            token
+            cartToken
+            currencyCode
+            presentmentCurrencyCode
+            totalPriceSet {
+              presentmentMoney {
+                amount
+                currencyCode
+              }
+              shopMoney {
+                amount
+                currencyCode
+              }
+            }
+            customer {
+              id
+              firstName
+              lastName
+              email
+              phone
+              displayName
+            }
+            lineItems(first: 50) {
+              edges {
+                node {
+                  id
+                  title
+                  quantity
+                  sku
+                  variantTitle
+                  originalUnitPriceSet {
+                    presentmentMoney {
+                      amount
+                      currencyCode
+                    }
+                  }
+                  product {
+                    id
+                    title
+                    handle
+                  }
+                  variant {
+                    id
+                    title
+                    sku
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      const result = await this.makeGraphQLRequest(query, { id });
+      return this.transformAbandonedCheckout(result.abandonedCheckout);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getAbandonedCheckoutsCount(filters?: ShopifyAbandonedCheckoutFilters): Promise<number> {
+    try {
+      const query = `
+        query GetAbandonedCheckoutsCount($query: String) {
+          abandonedCheckoutsCount(query: $query) {
+            count
+            precision
+          }
+        }
+      `;
+
+      const result = await this.makeGraphQLRequest(query, {
+        query: this.buildAbandonedCheckoutQuery(filters)
+      });
+
+      return result.abandonedCheckoutsCount?.count || result.count || 0;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  // Discount Code Management for Recovery
+  async createDiscountCode(discountData: ShopifyDiscountCodeRequest): Promise<any> {
+    try {
+      const query = `
+        mutation CreateDiscountCode($basicCodeDiscount: DiscountCodeBasicInput!) {
+          discountCodeBasicCreate(basicCodeDiscount: $basicCodeDiscount) {
+            codeDiscountNode {
+              id
+              codeDiscount {
+                ... on DiscountCodeBasic {
+                  title
+                  startsAt
+                  endsAt
+                  status
+                }
+              }
+            }
+            userErrors {
+              field
+              message
+              code
+            }
+          }
+        }
+      `;
+
+      const variables = {
+        basicCodeDiscount: {
+          title: discountData.title,
+          code: discountData.code,
+          startsAt: discountData.startsAt,
+          endsAt: discountData.endsAt,
+          customerSelection: discountData.customerSelection,
+          customerGets: discountData.customerGets,
+          minimumRequirement: discountData.minimumRequirement,
+          usageLimit: discountData.usageLimit,
+          appliesOncePerCustomer: discountData.appliesOncePerCustomer
+        }
+      };
+
+      const result = await this.makeGraphQLRequest(query, variables);
+      
+      if (result.discountCodeBasicCreate.userErrors.length > 0) {
+        throw new Error(`Discount code creation failed: ${result.discountCodeBasicCreate.userErrors.map((e: any) => e.message).join(', ')}`);
+      }
+
+      return result.discountCodeBasicCreate.codeDiscountNode;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async updateDiscountCode(id: string, discountData: Partial<ShopifyDiscountCodeRequest>): Promise<any> {
+    try {
+      const query = `
+        mutation UpdateDiscountCode($id: ID!, $basicCodeDiscount: DiscountCodeBasicInput!) {
+          discountCodeBasicUpdate(id: $id, basicCodeDiscount: $basicCodeDiscount) {
+            codeDiscountNode {
+              id
+              codeDiscount {
+                ... on DiscountCodeBasic {
+                  title
+                  startsAt
+                  endsAt
+                  status
+                }
+              }
+            }
+            userErrors {
+              field
+              message
+              code
+            }
+          }
+        }
+      `;
+
+      const variables = {
+        id,
+        basicCodeDiscount: {
+          title: discountData.title,
+          code: discountData.code,
+          startsAt: discountData.startsAt,
+          endsAt: discountData.endsAt,
+          customerSelection: discountData.customerSelection,
+          customerGets: discountData.customerGets,
+          minimumRequirement: discountData.minimumRequirement,
+          usageLimit: discountData.usageLimit,
+          appliesOncePerCustomer: discountData.appliesOncePerCustomer
+        }
+      };
+
+      const result = await this.makeGraphQLRequest(query, variables);
+      
+      if (result.discountCodeBasicUpdate.userErrors.length > 0) {
+        throw new Error(`Discount code update failed: ${result.discountCodeBasicUpdate.userErrors.map((e: any) => e.message).join(', ')}`);
+      }
+
+      return result.discountCodeBasicUpdate.codeDiscountNode;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async deleteDiscountCode(id: string): Promise<void> {
+    try {
+      const query = `
+        mutation DeleteDiscountCode($id: ID!) {
+          discountCodeBasicDelete(id: $id) {
+            deletedId
+            userErrors {
+              field
+              message
+              code
+            }
+          }
+        }
+      `;
+
+      const result = await this.makeGraphQLRequest(query, { id });
+      
+      if (result.discountCodeBasicDelete.userErrors.length > 0) {
+        throw new Error(`Discount code deletion failed: ${result.discountCodeBasicDelete.userErrors.map((e: any) => e.message).join(', ')}`);
+      }
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  private buildAbandonedCheckoutQuery(filters?: ShopifyAbandonedCheckoutFilters): string {
+    if (!filters) return '';
+
+    const conditions: string[] = [];
+
+    if (filters.searchTerm) {
+      conditions.push(`name:*${filters.searchTerm}* OR customer_email:*${filters.searchTerm}*`);
+    }
+
+    if (filters.customerId) {
+      conditions.push(`customer_id:${filters.customerId}`);
+    }
+
+    if (filters.createdAtAfter) {
+      conditions.push(`created_at:>=${filters.createdAtAfter}`);
+    }
+
+    if (filters.createdAtBefore) {
+      conditions.push(`created_at:<=${filters.createdAtBefore}`);
+    }
+
+    if (filters.totalPriceMin) {
+      conditions.push(`total_price:>=${filters.totalPriceMin}`);
+    }
+
+    if (filters.totalPriceMax) {
+      conditions.push(`total_price:<=${filters.totalPriceMax}`);
+    }
+
+    if (filters.hasCustomer) {
+      conditions.push(`customer_id:*`);
+    }
+
+    if (filters.hasEmail) {
+      conditions.push(`customer_email:*`);
+    }
+
+    if (filters.hasPhone) {
+      conditions.push(`customer_phone:*`);
+    }
+
+    return conditions.join(' AND ');
+  }
+
+  private transformAbandonedCheckout(data: any): ShopifyAbandonedCheckout {
+    return {
+      id: data.id,
+      abandonedCheckoutUrl: data.abandonedCheckoutUrl,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      completedAt: data.completedAt,
+      closedAt: data.closedAt || null,
+      name: data.name,
+      note: data.note,
+      token: data.token || '',
+      cartToken: data.cartToken || '',
+      currencyCode: data.currencyCode || data.totalPriceSet?.presentmentMoney?.currencyCode || 'USD',
+      presentmentCurrencyCode: data.presentmentCurrencyCode || data.totalPriceSet?.presentmentMoney?.currencyCode || 'USD',
+      totalPriceSet: data.totalPriceSet,
+      subtotalPriceSet: data.subtotalPriceSet,
+      totalDiscountSet: data.totalDiscountSet,
+      totalTaxSet: data.totalTaxSet,
+      totalDutiesSet: data.totalDutiesSet,
+      totalLineItemsPriceSet: data.totalLineItemsPriceSet,
+      taxesIncluded: data.taxesIncluded,
+      discountCodes: data.discountCodes || [],
+      customAttributes: data.customAttributes || [],
+      customer: data.customer ? {
+        id: data.customer.id,
+        admin_graphql_api_id: data.customer.id,
+        created_at: new Date().toISOString(),
+        currency: 'USD',
+        first_name: 'Customer', // Placeholder due to plan limitations
+        last_name: 'Info',
+        email: 'customer@example.com', // Placeholder due to plan limitations
+        phone: '', // Placeholder due to plan limitations
+        state: 'enabled' as const,
+        tags: '',
+        tax_exempt: false,
+        tax_exemptions: [],
+        total_spent: 0,
+        updated_at: new Date().toISOString(),
+        verified_email: true
+      } : undefined,
+      billingAddress: undefined, // Not available due to plan limitations
+      shippingAddress: undefined, // Not available due to plan limitations
+      lineItems: data.lineItems?.edges?.map((edge: any) => ({
+        id: edge.node.id,
+        title: edge.node.title,
+        quantity: edge.node.quantity,
+        sku: edge.node.sku,
+        variantTitle: edge.node.variantTitle,
+        presentmentTitle: edge.node.presentmentTitle || edge.node.title,
+        presentmentVariantTitle: edge.node.presentmentVariantTitle || edge.node.variantTitle,
+        requiresShipping: edge.node.requiresShipping || true,
+        weight: edge.node.weight || 0,
+        fulfillmentService: edge.node.fulfillmentService || 'manual',
+        originalUnitPriceSet: edge.node.originalUnitPriceSet,
+        originalTotalPriceSet: edge.node.originalTotalPriceSet,
+        discountedUnitPriceSet: edge.node.discountedUnitPriceSet,
+        discountedTotalPriceSet: edge.node.discountedTotalPriceSet,
+        discountedUnitPriceWithCodeDiscount: edge.node.discountedUnitPriceWithCodeDiscount,
+        discountedTotalPriceWithCodeDiscount: edge.node.discountedTotalPriceWithCodeDiscount,
+        customAttributes: edge.node.customAttributes || [],
+        discountAllocations: edge.node.discountAllocations || [],
+        taxLines: edge.node.taxLines || [],
+        product: edge.node.product,
+        variant: edge.node.variant,
+        image: edge.node.image ? {
+          ...edge.node.image,
+          alt: edge.node.image.alt || edge.node.title
+        } : undefined
+      })) || [],
+      taxLines: data.taxLines || [],
+      shippingLines: data.shippingLines,
+      referringSite: data.referringSite || null,
+      landingSite: data.landingSite || null,
+      gateway: data.gateway || null
+    };
+  }
+
+  async getDiscountCodes(filters?: ShopifyDiscountCodeFilters): Promise<ShopifyDiscountCodeManagement[]> {
+    try {
+      const query = `
+        query GetDiscountCodes($first: Int, $after: String, $query: String, $sortKey: CodeDiscountSortKeys, $reverse: Boolean) {
+          codeDiscountNodes(first: $first, after: $after, query: $query, sortKey: $sortKey, reverse: $reverse) {
+            edges {
+              cursor
+              node {
+                id
+                codeDiscount {
+                  ... on DiscountCodeBasic {
+                    title
+                    summary
+                    status
+                    startsAt
+                    endsAt
+                    usageLimit
+                    appliesOncePerCustomer
+                    codes(first: 1) {
+                      nodes {
+                        id
+                        code
+                      }
+                    }
+                  }
+                  ... on DiscountCodeBxgy {
+                    title
+                    summary
+                    status
+                    startsAt
+                    endsAt
+                    usageLimit
+                    appliesOncePerCustomer
+                    codes(first: 1) {
+                      nodes {
+                        id
+                        code
+                      }
+                    }
+                  }
+                  ... on DiscountCodeFreeShipping {
+                    title
+                    summary
+                    status
+                    startsAt
+                    endsAt
+                    usageLimit
+                    appliesOncePerCustomer
+                    codes(first: 1) {
+                      nodes {
+                        id
+                        code
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+          }
+        }
+      `;
+
+      const variables = {
+        first: filters?.first || 50,
+        after: filters?.after,
+        query: filters?.query,
+        sortKey: filters?.sortKey || 'CREATED_AT',
+        reverse: filters?.reverse || false
+      };
+
+      const result = await this.makeGraphQLRequest(query, variables);
+      const edges = result.codeDiscountNodes?.edges || [];
+      
+      return edges.map((edge: any) => this.transformDiscountCode(edge.node));
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  private transformDiscountCode(node: any): ShopifyDiscountCodeManagement {
+    const codeDiscount = node.codeDiscount;
+    const code = codeDiscount.codes?.nodes?.[0]?.code || 'N/A';
+    
+    // Determine discount type based on __typename
+    let type: 'basic' | 'bxgy' | 'free_shipping' | 'app' = 'basic';
+    if (codeDiscount.__typename === 'DiscountCodeBxgy') {
+      type = 'bxgy';
+    } else if (codeDiscount.__typename === 'DiscountCodeFreeShipping') {
+      type = 'free_shipping';
+    } else if (codeDiscount.__typename === 'DiscountCodeApp') {
+      type = 'app';
+    }
+
+    return {
+      id: node.id,
+      title: codeDiscount.title || 'Untitled Discount',
+      summary: codeDiscount.summary || '',
+      status: codeDiscount.status || 'ACTIVE',
+      startsAt: codeDiscount.startsAt || new Date().toISOString(),
+      endsAt: codeDiscount.endsAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      usageLimit: codeDiscount.usageLimit,
+      appliesOncePerCustomer: codeDiscount.appliesOncePerCustomer || false,
+      code,
+      discountType: type
+    };
+  }
+
   private handleError(error: any): ShopifyError {
     return {
       code: 'GRAPHQL_ERROR',
@@ -1638,5 +2294,17 @@ export const shopifyGraphQL = {
   getStoreStats: () => shopifyGraphQLApi.getStoreStats(),
   
   // Analytics
-  getAnalytics: (filters?: ShopifyAnalyticsFilters) => shopifyGraphQLApi.getAnalytics(filters)
+  getAnalytics: (filters?: ShopifyAnalyticsFilters) => shopifyGraphQLApi.getAnalytics(filters),
+
+  // Abandoned Checkouts
+  getAbandonedCheckouts: (filters?: ShopifyAbandonedCheckoutFilters) => shopifyGraphQLApi.getAbandonedCheckouts(filters),
+  getAbandonedCheckoutsWithPagination: (filters?: ShopifyAbandonedCheckoutFilters) => shopifyGraphQLApi.getAbandonedCheckoutsWithPagination(filters),
+  getAbandonedCheckout: (id: string) => shopifyGraphQLApi.getAbandonedCheckout(id),
+  getAbandonedCheckoutsCount: (filters?: ShopifyAbandonedCheckoutFilters) => shopifyGraphQLApi.getAbandonedCheckoutsCount(filters),
+
+  // Discount Codes for Recovery
+  getDiscountCodes: (filters?: ShopifyDiscountCodeFilters) => shopifyGraphQLApi.getDiscountCodes(filters),
+  createDiscountCode: (data: ShopifyDiscountCodeRequest) => shopifyGraphQLApi.createDiscountCode(data),
+  updateDiscountCode: (id: string, data: Partial<ShopifyDiscountCodeRequest>) => shopifyGraphQLApi.updateDiscountCode(id, data),
+  deleteDiscountCode: (id: string) => shopifyGraphQLApi.deleteDiscountCode(id)
 };

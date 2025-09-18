@@ -1,4 +1,4 @@
-import { ShopifyProduct, ShopifyProductRequest, ShopifyOrder, ShopifyOrderRequest, ShopifyCustomer, ShopifyCart, ShopifyCartRequest, ShopifyProductFilters, ShopifyProductsResponse, ShopifyOrderFilters, ShopifyOrdersResponse, ShopifyStoreStats, ShopifyAnalyticsFilters, ShopifyAnalyticsResponse, ShopifyError } from '@/types/shopify';
+import { ShopifyProduct, ShopifyProductRequest, ShopifyOrder, ShopifyOrderRequest, ShopifyCustomer, ShopifyCart, ShopifyCartRequest, ShopifyProductFilters, ShopifyProductsResponse, ShopifyOrderFilters, ShopifyOrdersResponse, ShopifyStoreStats, ShopifyAnalyticsFilters, ShopifyAnalyticsResponse, ShopifyError, ShopifyAbandonedCheckout, ShopifyAbandonedCheckoutFilters, ShopifyAbandonedCheckoutsResponse, ShopifyDiscountCodeRequest, ShopifyCustomerContact, ShopifyDiscountCodeManagement, ShopifyDiscountCodeFilters } from '@/types/shopify';
 import { shopifyGraphQL } from './shopifyGraphQLApi';
 
 // This service is designed to work with Next.js API routes
@@ -362,6 +362,97 @@ export class ShopifyApiService {
     }
   }
 
+  // Abandoned Checkout Management - Using GraphQL
+  async getAbandonedCheckouts(filters?: ShopifyAbandonedCheckoutFilters): Promise<ShopifyAbandonedCheckout[]> {
+    try {
+      return await shopifyGraphQL.getAbandonedCheckouts(filters);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getAbandonedCheckoutsWithPagination(filters?: ShopifyAbandonedCheckoutFilters): Promise<ShopifyAbandonedCheckoutsResponse> {
+    try {
+      return await shopifyGraphQL.getAbandonedCheckoutsWithPagination(filters);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getAbandonedCheckout(id: string): Promise<ShopifyAbandonedCheckout> {
+    try {
+      return await shopifyGraphQL.getAbandonedCheckout(id);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getAbandonedCheckoutsCount(filters?: ShopifyAbandonedCheckoutFilters): Promise<number> {
+    try {
+      return await shopifyGraphQL.getAbandonedCheckoutsCount(filters);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  // Discount Code Management for Recovery
+  async createDiscountCode(discountData: ShopifyDiscountCodeRequest): Promise<any> {
+    try {
+      return await shopifyGraphQL.createDiscountCode(discountData);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async updateDiscountCode(id: string, discountData: Partial<ShopifyDiscountCodeRequest>): Promise<any> {
+    try {
+      return await shopifyGraphQL.updateDiscountCode(id, discountData);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getDiscountCodes(filters?: ShopifyDiscountCodeFilters): Promise<ShopifyDiscountCodeManagement[]> {
+    try {
+      return await shopifyGraphQL.getDiscountCodes(filters);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async deleteDiscountCode(id: string): Promise<void> {
+    try {
+      return await shopifyGraphQL.deleteDiscountCode(id);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  // Customer Contact for Recovery
+  async sendCustomerEmail(customerId: string, contactData: ShopifyCustomerContact): Promise<void> {
+    try {
+      const response = await this.makeRequest('sendCustomerEmail', {
+        method: 'POST',
+        body: JSON.stringify({ customerId, contact: contactData }),
+      });
+      return response;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async sendCustomerSMS(customerId: string, contactData: ShopifyCustomerContact): Promise<void> {
+    try {
+      const response = await this.makeRequest('sendCustomerSMS', {
+        method: 'POST',
+        body: JSON.stringify({ customerId, contact: contactData }),
+      });
+      return response;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   // Bulk Operations
   async bulkUpdateProducts(products: Partial<ShopifyProduct>[]): Promise<any[]> {
     try {
@@ -486,4 +577,20 @@ export const shopify = {
   // Bulk Operations
   bulkUpdateProducts: (products: Partial<ShopifyProduct>[]) => shopifyApi.bulkUpdateProducts(products),
   bulkCreateOrders: (orders: ShopifyOrderRequest[]) => shopifyApi.bulkCreateOrders(orders),
+
+  // Abandoned Checkouts
+  getAbandonedCheckouts: (filters?: ShopifyAbandonedCheckoutFilters) => shopifyApi.getAbandonedCheckouts(filters),
+  getAbandonedCheckoutsWithPagination: (filters?: ShopifyAbandonedCheckoutFilters) => shopifyApi.getAbandonedCheckoutsWithPagination(filters),
+  getAbandonedCheckout: (id: string) => shopifyApi.getAbandonedCheckout(id),
+  getAbandonedCheckoutsCount: (filters?: ShopifyAbandonedCheckoutFilters) => shopifyApi.getAbandonedCheckoutsCount(filters),
+
+  // Discount Codes for Recovery
+  getDiscountCodes: (filters?: ShopifyDiscountCodeFilters) => shopifyApi.getDiscountCodes(filters),
+  createDiscountCode: (data: ShopifyDiscountCodeRequest) => shopifyApi.createDiscountCode(data),
+  updateDiscountCode: (id: string, data: Partial<ShopifyDiscountCodeRequest>) => shopifyApi.updateDiscountCode(id, data),
+  deleteDiscountCode: (id: string) => shopifyApi.deleteDiscountCode(id),
+
+  // Customer Contact for Recovery
+  sendCustomerEmail: (customerId: string, contact: ShopifyCustomerContact) => shopifyApi.sendCustomerEmail(customerId, contact),
+  sendCustomerSMS: (customerId: string, contact: ShopifyCustomerContact) => shopifyApi.sendCustomerSMS(customerId, contact),
 }; 

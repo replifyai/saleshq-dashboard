@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookOpen, TrendingUp, Users, Target, ArrowRight, Calendar, Clock, ExternalLink } from "lucide-react";
-import { CaseStudyContent } from "@/components/case-studies/CaseStudyContent";
-import { caseStudyData } from "@/components/case-studies/caseStudyData";
+import { BookOpen, TrendingUp, Users, Target, ArrowRight, Calendar, Clock } from "lucide-react";
+import { CaseStudyContent } from "./CaseStudyContent";
+import { caseStudyData } from "./caseStudyData";
 
-export function CaseStudiesSection() {
+export function CaseStudyPage() {
   const [selectedCaseStudy, setSelectedCaseStudy] = useState<string | null>(null);
   const router = useRouter();
 
@@ -25,8 +25,8 @@ export function CaseStudiesSection() {
     const study = caseStudyData.find(s => s.id === selectedCaseStudy);
     if (study) {
       return (
-        <section className="py-20 bg-gray-50 dark:bg-gray-900">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-8">
               <Button
                 variant="ghost"
@@ -58,24 +58,24 @@ export function CaseStudiesSection() {
             </div>
             <CaseStudyContent content={study.content} />
           </div>
-        </section>
+        </div>
       );
     }
   }
 
   return (
-    <section className="py-20 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
               <BookOpen className="h-8 w-8 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
             AI-Powered Sales Enablement Case Studies
-          </h2>
+          </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
             Discover how organizations are transforming their sales operations with AI-powered enablement solutions. 
             Learn from real-world implementations and measurable results.
@@ -83,7 +83,7 @@ export function CaseStudiesSection() {
         </div>
 
         {/* Case Studies Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {caseStudyData.map((study) => (
             <Card 
               key={study.id} 
@@ -153,10 +153,10 @@ export function CaseStudiesSection() {
         </div>
 
         {/* Stats Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-8">
+        <div className="mt-16 bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-8">
             Industry Impact at a Glance
-          </h3>
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="p-3 bg-green-100 dark:bg-green-900 rounded-full w-fit mx-auto mb-3">
@@ -189,6 +189,6 @@ export function CaseStudiesSection() {
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

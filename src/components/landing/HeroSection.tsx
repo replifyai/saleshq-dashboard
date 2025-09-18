@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Award, Clock, TrendingUp, Zap, ArrowRight, Play, Calendar } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -21,11 +22,14 @@ const HeroSection = () => {
 
   // Rotating headline phrases to convey the product use case
   const rotatingPhrases: string[] = [
-    "Instant, Accurate Answers",
-    "Source-Backed Responses",
-    "Up-to-Date Specs",
-    "Objection-Handling Scripts",
-    "Competitive Battlecards",
+    "AI-Powered Sales Intelligence",
+    "Source-Backed Answers",
+    // "Real-Time Product Knowledge",
+    "LMS and training management",
+    "Knowledge base and wiki",
+    "Sales enablement and training",
+    // "Competitive Battlecards",
+    // "Objection-Handling Scripts",
     "Pricing & Packaging Details"
   ];
   const phraseIndexRef = useRef(0);
@@ -269,7 +273,7 @@ const HeroSection = () => {
               className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 text-sm font-medium mb-12 border border-blue-200 dark:border-blue-800/50"
             >
               <Award className="w-4 h-4 mr-2" />
-              Now Open for Early Access
+              Early Access - Limited Beta
             </div>
 
             {/* Main Headline */}
@@ -289,8 +293,8 @@ const HeroSection = () => {
             {/* Subheadline */}
             <div ref={subheadlineRef} className="max-w-3xl mx-auto mb-16">
               <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 leading-relaxed font-normal">
-                Sales teams waste <span className="font-semibold text-red-600 dark:text-red-400">3+ hours daily</span> searching for product information. 
-                SalesHQ's AI delivers instant answers and learns continuously.
+                The AI-powered sales enablement platform that gives your team <span className="font-semibold text-green-600 dark:text-green-400">instant access</span> to product knowledge, 
+                competitive intelligence, and LSM-powered objection-handling scripts—all in one place.
               </p>
             </div>
             
@@ -300,36 +304,38 @@ const HeroSection = () => {
                 <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mb-4">
                   <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">3x Faster Responses</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Get answers instantly instead of searching through documents</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">3+ Hours Saved Daily</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Eliminate time spent searching for product information with AI-powered instant answers</p>
               </div>
               
               <div className="benefit-card flex flex-col items-center text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 will-change-transform transform-gpu shadow-sm">
                 <div className="w-12 h-12 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center mb-4">
                   <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">95% Query Resolution</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Comprehensive answers with source citations</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">40% Faster Deal Closure</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Access to instant competitive intelligence and LSM-powered battlecards</p>
               </div>
               
               <div className="benefit-card flex flex-col items-center text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 will-change-transform transform-gpu shadow-sm">
                 <div className="w-12 h-12 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center mb-4">
                   <Zap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Continuous Learning</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">AI improves with every interaction</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">95% Accuracy Rate</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">AI-powered responses with source citations and real-time updates</p>
               </div>
             </div>
 
             {/* CTA Buttons */}
             <div ref={ctaRef} className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button 
-                size="lg" 
-                className="bg-blue-600 hover:bg-blue-700 px-8 py-4 text-lg font-semibold shadow-lg transition-all duration-300 rounded-xl"
-              >
-                Join Early Access
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
+              <Link href="/contact">
+                <Button 
+                  size="lg" 
+                  className="bg-blue-600 hover:bg-blue-700 px-8 py-4 text-lg font-semibold shadow-lg transition-all duration-300 rounded-xl"
+                >
+                  Join Early Access
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
               <Button 
                 size="lg" 
                 variant="outline" 

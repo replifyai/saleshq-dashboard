@@ -116,24 +116,24 @@ export default function ProblemStatementSection() {
   // Rely on gsap.context cleanup for triggers created here
 
   return (
-    <section ref={sectionRef} className="relative isolate overflow-hidden py-20">
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section ref={sectionRef} className="relative isolate overflow-hidden py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-transparent">
+      <div className="relative z-10 max-w-6xl mx-auto">
         <div ref={headerRef} className="text-center mb-12">
           <Badge className="mb-4 px-3 py-1 bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-300 border-0">
-            <HelpCircle className="w-3 h-3 mr-1" />
+            <HelpCircle className="w-4 h-4 mr-1" />
             The Problem
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-4" ref={titleRef}>
             <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
-              Docs everywhere
+              Sales teams waste
             </span>{" "}
-            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Answers nowhere
+            <span className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+              3+ hours daily
             </span>
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto" ref={descriptionRef}>
-            Product knowledge lives across PDFs, Notion, email and Slack. Reps burn time digging for the right
-            answer—right when a buyer is waiting.
+            Searching through scattered documents, outdated specs, and inconsistent messaging. 
+            <span className="font-semibold text-red-600 dark:text-red-400">Massive productivity losses</span> across sales teams worldwide.
           </p>
         </div>
 
@@ -145,11 +145,12 @@ export default function ProblemStatementSection() {
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-blue-500/20">
               <Clock className="w-8 h-8 text-blue-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Time sinks</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">3+ Hours Daily Lost</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Constant context switching between PDFs, Notion, Slack and email to find basic answers.
+              Constant context switching between PDFs, Notion, Slack and email to find basic answers. 
+              <span className="font-semibold text-red-600 dark:text-red-400">Significant productivity losses</span> per rep annually.
             </p>
-            <div className="text-sm font-medium text-blue-400">Hours lost searching</div>
+            <div className="text-sm font-medium text-blue-400">Massive time waste across teams</div>
           </Card>
 
           <Card
@@ -159,11 +160,12 @@ export default function ProblemStatementSection() {
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-indigo-500/20">
               <AlertCircle className="w-8 h-8 text-indigo-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Slow cycles</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">40% Longer Sales Cycles</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Waiting on specs and pricing breaks momentum and delays follow‑ups when interest is highest.
+              Waiting on specs and pricing breaks momentum and delays follow‑ups when interest is highest. 
+              <span className="font-semibold text-red-600 dark:text-red-400">Significant deal loss</span> due to delayed responses.
             </p>
-            <div className="text-sm font-medium text-indigo-400">Longer response loops</div>
+            <div className="text-sm font-medium text-indigo-400">Lost opportunities due to delays</div>
           </Card>
 
           <Card
@@ -173,11 +175,12 @@ export default function ProblemStatementSection() {
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-purple-500/20">
               <Users className="w-8 h-8 text-purple-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Inconsistent answers</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">67% Inconsistent Messaging</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Specs drift, messaging varies by rep, and confidence drops on calls when sources disagree.
+              Specs drift, messaging varies by rep, and confidence drops on calls when sources disagree. 
+              <span className="font-semibold text-red-600 dark:text-red-400">High buyer confusion</span> leads to lost deals.
             </p>
-            <div className="text-sm font-medium text-purple-400">Buyer confusion risk</div>
+            <div className="text-sm font-medium text-purple-400">Lost opportunities due to inconsistency</div>
           </Card>
         </div>
       </div>

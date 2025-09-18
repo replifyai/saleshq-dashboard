@@ -10,6 +10,8 @@ import ProductsManager from '@/components/shopify/ProductsManager';
 import OrdersManager from '@/components/shopify/OrdersManager';
 import ShopifyChatbot from '@/components/shopify/ShopifyChatbot';
 import ShopifyAnalytics from '@/components/shopify/ShopifyAnalytics';
+import AbandonedCheckoutsManager from '@/components/shopify/AbandonedCheckoutsManager';
+import DiscountManager from '@/components/shopify/DiscountManager';
 import { shopify } from '@/lib/shopifyApi';
 import { ShopifyStoreStats, ShopifyProduct, ShopifyOrder } from '@/types/shopify';
 
@@ -106,10 +108,11 @@ export default function ShopifyPage() {
       </div>
       {/* Main Management Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="abandoned">Abandoned</TabsTrigger>
           <TabsTrigger value="discounting">Discounting</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
@@ -289,27 +292,12 @@ export default function ShopifyPage() {
           <OrdersManager />
         </TabsContent>
 
+        <TabsContent value="abandoned" className="mt-6">
+          <AbandonedCheckoutsManager />
+        </TabsContent>
+
         <TabsContent value="discounting" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer Management</CardTitle>
-              <CardDescription>
-                Manage your customer database, view customer details, and track customer relationships.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">
-                Customer management features will be implemented here. This will include:
-              </p>
-              <ul className="list-disc list-inside mt-2 text-gray-600">
-                <li>Customer search and filtering</li>
-                <li>Customer profile management</li>
-                <li>Order history per customer</li>
-                <li>Customer segmentation</li>
-                <li>Marketing preferences</li>
-              </ul>
-            </CardContent>
-          </Card>
+          <DiscountManager />
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-6">

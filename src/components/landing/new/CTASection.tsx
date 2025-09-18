@@ -62,17 +62,17 @@ export default function CTASection() {
           <div className="cta-animate opacity-0 translate-y-4 transition-all duration-700">
             <Badge className="mb-6 px-4 py-2 bg-white/20 backdrop-blur text-white border-white/30 text-sm">
               <Rocket className="w-4 h-4 mr-2" />
-              Limited Time Offer: 20% Off Annual Plans
+              Limited Beta Access - Free for Early Adopters
             </Badge>
           </div>
 
           {/* Main heading */}
           <div className="cta-animate opacity-0 translate-y-4 transition-all duration-700 delay-100">
             <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
-              Ready to Transform Your
+              Ready to Transform
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300">
-                Sales Performance?
+                Your Sales Process?
               </span>
             </h2>
           </div>
@@ -80,8 +80,8 @@ export default function CTASection() {
           {/* Subheading */}
           <div className="cta-animate opacity-0 translate-y-4 transition-all duration-700 delay-200">
             <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto mb-8 leading-relaxed">
-              Join thousands of sales teams closing deals faster with AI-powered intelligence. 
-              Start your free trial today and see results in minutes.
+              Join our limited beta and be among the first to experience AI-powered sales intelligence with LSM integration. 
+              <span className="font-semibold text-yellow-300">Start free today</span> and help shape the future of sales enablement.
             </p>
           </div>
 

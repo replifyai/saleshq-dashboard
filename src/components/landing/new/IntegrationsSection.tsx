@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { 
   ShoppingBag, 
   MessageCircle, 
@@ -91,7 +92,7 @@ const integrations: Integration[] = [
 export default function IntegrationsSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
-
+  const router = useRouter();
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -111,18 +112,18 @@ export default function IntegrationsSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-24 bg-white dark:bg-gray-900 relative overflow-hidden" id="integrations">
+    <section ref={sectionRef} className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-transparent relative overflow-hidden" id="integrations">
       {/* Background decoration */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-100 dark:bg-blue-950/30 rounded-full blur-3xl opacity-30" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-100 dark:bg-purple-950/30 rounded-full blur-3xl opacity-30" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-6xl mx-auto relative z-10">
         {/* Section header */}
-        <div className="text-center mb-16 integrate-animate opacity-0 translate-y-4 transition-all duration-700">
+        <div className="text-center mb-12 integrate-animate opacity-0 translate-y-4 transition-all duration-700">
           <Badge className="mb-4 px-3 py-1 bg-purple-100 text-purple-900 dark:bg-purple-900/30 dark:text-purple-300 border-0">
-            <Link2 className="w-3 h-3 mr-1" />
+            <Link2 className="w-4 h-4 mr-1" />
             Integrations
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -266,7 +267,7 @@ export default function IntegrationsSection() {
           <p className="text-gray-600 dark:text-gray-300 mb-4">
             Don't see your tool? We're adding new integrations every week.
           </p>
-          <Button variant="outline" size="lg">
+          <Button variant="outline" size="lg" onClick={() => router.push('/contact')}>
             Request Integration
             <Mail className="ml-2 w-4 h-4" />
           </Button>

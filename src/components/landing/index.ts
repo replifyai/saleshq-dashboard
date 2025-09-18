@@ -1,11 +1,11 @@
 export { default as LandingNavigation } from './LandingNavigation';
 export { default as HeroSection } from './HeroSection';
 export { default as ProblemStatementSection } from './ProblemStatementSection';
+export { default as ChallengesSection } from './ChallengesSection';
 export { default as ROISection } from './ROISection';
 export { default as PricingSection } from './PricingSection';
 export { default as FooterSection } from './FooterSection'; 
-export { default as SocialProofSection } from './SocialProofSection';
-export { default as CaseStudiesSection } from './CaseStudiesSection';
+export { CaseStudiesSection } from './CaseStudiesSection';
 export { default as TeamSection } from './TeamSection';
 export { default as ResourcesSection } from './ResourcesSection';
 export { default as UseCasesSection } from './UseCasesSection';
