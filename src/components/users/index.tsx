@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import AdminRouteGuard from '@/components/admin-route-guard';
 import { userManagementApi, User, UserManagementApiError } from '@/lib/userManagementApi';
-import { CreateUserModal, PaginationControls, UserStatsCards } from './components';
+import { CreateUserModal, PaginationControls } from './components';
 
 export function UsersPageComponent() {
   const [users, setUsers] = useState<User[]>([]);
@@ -188,8 +188,10 @@ export function UsersPageComponent() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Created</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead className="text-center">Queries</TableHead>
+                    <TableHead className="text-center">Role</TableHead>
+                    <TableHead className="text-center">Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -205,10 +207,16 @@ export function UsersPageComponent() {
                           <div className="h-4 bg-muted rounded animate-pulse" />
                         </TableCell>
                         <TableCell>
+                          <div className="h-4 bg-muted rounded animate-pulse" />
+                        </TableCell>
+                        <TableCell>
                           <div className="h-6 w-16 bg-muted rounded animate-pulse" />
                         </TableCell>
                         <TableCell>
                           <div className="h-4 bg-muted rounded animate-pulse" />
+                        </TableCell>
+                        <TableCell>
+                          <div className="h-8 w-8 bg-muted rounded animate-pulse ml-auto" />
                         </TableCell>
                         <TableCell>
                           <div className="h-8 w-8 bg-muted rounded animate-pulse ml-auto" />
@@ -226,12 +234,20 @@ export function UsersPageComponent() {
                       <TableRow key={user.id || user.email}>
                         <TableCell className="font-medium">{user.name}</TableCell>
                         <TableCell>{user.email}</TableCell>
-                        <TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant={"outline"} className="bg-gray-100 text-gray-800 capitalize text-center">
+                            {user.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {user.usage}
+                        </TableCell>
+                        <TableCell className="text-center">
                           <Badge variant={getRoleBadgeVariant(user.role)}>
                             {user.role === "user" ? "Agent" : "Admin"}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-center">
                           {/* @ts-ignore */}
                           {user.createdAt ? new Date(user?.createdAt?._seconds * 1000).toLocaleDateString() : 'N/A'}
                         </TableCell>

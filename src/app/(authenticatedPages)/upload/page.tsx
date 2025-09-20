@@ -1,5 +1,5 @@
-import UploadPanel from '@/components/upload';
+import DocumentUpload from '@/components/upload';
 
 export default function UploadPage() {
-  return <UploadPanel />;
+  return <DocumentUpload />;
 }

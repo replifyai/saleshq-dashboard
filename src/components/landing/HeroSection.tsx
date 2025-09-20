@@ -1,194 +1,104 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Award, Clock, TrendingUp, Zap, ArrowRight, Play, Calendar } from "lucide-react";
+'use client'
 import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import Image from "next/image";
+import { 
+  ArrowRight, 
+  Play, 
+  Calendar,
+  Sparkles,
+  Zap,
+  TrendingUp,
+  Shield,
+  Users,
+  Star,
+  CheckCircle,
+  BarChart3,
+  Brain,
+  MessageSquare,
+  Clock
+} from "lucide-react";
+import Link from "next/link";
+import { LandingNavigation } from "@/components/landing";
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import LandingNavigation from "./LandingNavigation";
-// import NavigationHeader from "./new/NavigationHeader";
-// Register ScrollTrigger plugin
-gsap.registerPlugin(ScrollTrigger);
 
-const HeroSection = () => {
-  const sectionRef = useRef<HTMLElement>(null);
-  const trustIndicatorRef = useRef<HTMLDivElement>(null);
-  const headlineRef = useRef<HTMLHeadingElement>(null);
-  const headlineSpanRef = useRef<HTMLSpanElement>(null);
-  const subheadlineRef = useRef<HTMLDivElement>(null);
-  const benefitsRef = useRef<HTMLDivElement>(null);
-  const ctaRef = useRef<HTMLDivElement>(null);
-  const trustTextRef = useRef<HTMLParagraphElement>(null);
-  const accentRef = useRef<HTMLDivElement>(null);
-
+export default function HeroSection() {
+  const [stats, setStats] = useState({
+    users: 2847,
+    accuracy: 95,
+    timeSaved: 3.2
+  });
+  
   // Rotating headline phrases to convey the product use case
   const rotatingPhrases: string[] = [
-    "AI-Powered Sales Intelligence",
-    "Source-Backed Answers",
-    // "Real-Time Product Knowledge",
+    "AI Powered Intelligence",
+    "Source Backed Answers",
     "LMS and training management",
     "Knowledge base and wiki",
     "Sales enablement and training",
-    // "Competitive Battlecards",
-    // "Objection-Handling Scripts",
     "Pricing & Packaging Details"
   ];
   const phraseIndexRef = useRef(0);
   const [phraseIndex, setPhraseIndex] = useState(0);
   const rotationPausedRef = useRef(false);
+  
+  const heroRef = useRef<HTMLElement>(null);
+  const headlineRef = useRef<HTMLHeadingElement>(null);
+  const headlineSpanRef = useRef<HTMLSpanElement>(null);
+  const subheadlineRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
 
+  // Animate stats on mount
   useEffect(() => {
-    const cleanups: Array<() => void> = [];
-    const ctx = gsap.context(() => {
-      // Initial setup - hide all elements
-      gsap.set([trustIndicatorRef.current, headlineRef.current, headlineSpanRef.current, subheadlineRef.current, benefitsRef.current?.children, ctaRef.current, trustTextRef.current], {
-        opacity: 0,
-        y: 30
-      });
-
-      // Create entrance animation timeline for immediate page load
-      const entranceTl = gsap.timeline({
-        delay: 0.3
-      });
-
-      // Animate all elements in sequence on page load
-      entranceTl.to(trustIndicatorRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        ease: "power2.out"
-      })
-      .to(headlineRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: "power2.out"
-      }, "-=0.3")
-      .to(headlineSpanRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: "power2.out"
-      }, "-=0.6")
-      .to(subheadlineRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        ease: "power2.out"
-      }, "-=0.4")
-      .to(benefitsRef.current?.children || [], {
-        opacity: 1,
-        y: 0,
-        duration: 0.5,
-        ease: "power2.out",
-        stagger: 0.1
-      }, "-=0.3")
-      .to(ctaRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.5,
-        ease: "power2.out"
-      }, "-=0.2")
-      .to(trustTextRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.4,
-        ease: "power2.out"
-      }, "-=0.1");
-
-      // Button hover animations
-      const ctaButtons = ctaRef.current?.querySelectorAll('button');
-      ctaButtons?.forEach((button) => {
-        const onEnter = () => {
-          gsap.to(button, {
-            scale: 1.02,
-            y: -2,
-            boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
-            duration: 0.3,
-            ease: "power2.out"
-          });
-        };
-        const onLeave = () => {
-          gsap.to(button, {
-            scale: 1,
-            y: 0,
-            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-            duration: 0.3,
-            ease: "power2.out"
-          });
-        };
-        button.addEventListener('mouseenter', onEnter);
-        button.addEventListener('mouseleave', onLeave);
-        cleanups.push(() => {
-          button.removeEventListener('mouseenter', onEnter);
-          button.removeEventListener('mouseleave', onLeave);
+    const animateStats = () => {
+      const duration = 2000;
+      const steps = 60;
+      const stepDuration = duration / steps;
+      
+      let currentStep = 0;
+      const interval = setInterval(() => {
+        currentStep++;
+        const progress = currentStep / steps;
+        
+        setStats({
+          users: Math.floor(2847 * progress),
+          accuracy: Math.floor(95 * progress),
+          timeSaved: Math.floor(3.2 * progress * 10) / 10
         });
-      });
+        
+        if (currentStep >= steps) {
+          clearInterval(interval);
+          setStats({ users: 2847, accuracy: 95, timeSaved: 3.2 });
+        }
+      }, stepDuration);
+      
+      return () => clearInterval(interval);
+    };
 
-      // Accent blob parallax (mouse)
-      if (sectionRef.current && accentRef.current) {
-        const qx = gsap.quickTo(accentRef.current, "x", { duration: 0.6, ease: "power3.out" });
-        const qy = gsap.quickTo(accentRef.current, "y", { duration: 0.6, ease: "power3.out" });
-        const onMove = (e: MouseEvent) => {
-          const rect = sectionRef.current!.getBoundingClientRect();
-          const dx = (e.clientX - (rect.left + rect.width / 2)) / rect.width; // -0.5..0.5
-          const dy = (e.clientY - (rect.top + rect.height / 2)) / rect.height;
-          qx(dx * 40);
-          qy(dy * 40);
-        };
-        sectionRef.current.addEventListener('mousemove', onMove);
-        cleanups.push(() => sectionRef.current?.removeEventListener('mousemove', onMove));
+    const timer = setTimeout(animateStats, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
-        // Accent blob parallax (scroll)
-        gsap.to(accentRef.current, {
-          y: "+=60",
-          ease: "none",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top top",
-            end: "bottom top",
-            scrub: 0.3
+  // Intersection observer for animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate-in');
           }
         });
-      }
+      },
+      { threshold: 0.1 }
+    );
 
-      // Benefit cards interactive tilt
-      const cards = benefitsRef.current?.querySelectorAll<HTMLElement>('.benefit-card');
-      cards?.forEach((card) => {
-        const onCardMove = (e: MouseEvent) => {
-          const rect = card.getBoundingClientRect();
-          const cx = rect.left + rect.width / 2;
-          const cy = rect.top + rect.height / 2;
-          const dx = (e.clientX - cx) / (rect.width / 2);
-          const dy = (e.clientY - cy) / (rect.height / 2);
-          const rotateY = dx * 6; // left/right
-          const rotateX = -dy * 6; // up/down
-          gsap.to(card, {
-            rotateX,
-            rotateY,
-            transformPerspective: 600,
-            transformOrigin: "center",
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        };
-        const onCardEnter = () => {
-          gsap.to(card, { scale: 1.02, boxShadow: "0 12px 30px rgba(0,0,0,0.12)", duration: 0.25, ease: "power2.out" });
-        };
-        const onCardLeave = () => {
-          gsap.to(card, { rotateX: 0, rotateY: 0, scale: 1, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", duration: 0.35, ease: "power2.out" });
-        };
-        card.addEventListener('mousemove', onCardMove);
-        card.addEventListener('mouseenter', onCardEnter);
-        card.addEventListener('mouseleave', onCardLeave);
-        cleanups.push(() => {
-          card.removeEventListener('mousemove', onCardMove);
-          card.removeEventListener('mouseenter', onCardEnter);
-          card.removeEventListener('mouseleave', onCardLeave);
-        });
-      });
-    }, sectionRef);
+    const elements = heroRef.current?.querySelectorAll('.hero-animate');
+    elements?.forEach((el) => observer.observe(el));
 
-    return () => { cleanups.forEach(fn => fn()); ctx.revert(); };
+    return () => observer.disconnect();
   }, []);
 
   // Rotate the headline span to communicate full product proposition
@@ -230,7 +140,7 @@ const HeroSection = () => {
           });
         }
       });
-    }, 2600);
+    }, 2500);
 
     return () => {
       window.clearInterval(intervalId);
@@ -240,126 +150,225 @@ const HeroSection = () => {
     };
   }, []);
 
-  useEffect(() => {
-    // Cleanup ScrollTrigger instances
-    return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-    };
-  }, []);
-
   return (
     <>
-      <div className="fixed top-0 left-0 w-full h-16 sm:h-20 z-50">
-        <LandingNavigation />
-      </div>
-      <section ref={sectionRef} className="relative overflow-hidden py-24 lg:py-32 bg-white dark:bg-gray-950">
-        {/* Clean, minimal background */}
-        <div className="absolute inset-0 -z-10">
-          {/* Subtle gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900" />
-          
-          {/* Single accent element */}
-          <div ref={accentRef} aria-hidden className="absolute top-1/2 right-0 w-96 h-96 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-full blur-3xl opacity-60" />
-          
-          {/* Subtle grid pattern */}
-          <div className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] [background-size:4rem_4rem]" />
-        </div>
+      <LandingNavigation />
+      <section ref={heroRef} id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-50 via-white to-blue-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-blue-950/20 pt-20">
+      {/* Background Elements */}
+      <div className="absolute inset-0 -z-10">
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05] bg-[linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] [background-size:4rem_4rem]" />
         
-        <div className="relative z-10 max-w-6xl mx-auto p-4 sm:px-6 lg:px-8 rounded-xl">
-          <div className="text-center">
-            {/* Trust Indicator */}
-            <div 
-              ref={trustIndicatorRef}
-              className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 text-sm font-medium mb-12 border border-blue-200 dark:border-blue-800/50"
-            >
-              <Award className="w-4 h-4 mr-2" />
-              Early Access - Limited Beta
+        {/* Gradient Orbs */}
+        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-gradient-to-r from-emerald-400/20 to-cyan-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        
+        {/* Floating Elements */}
+        <div className="absolute top-20 left-1/4 w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-40 right-1/3 w-1 h-1 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '3s' }} />
+        <div className="absolute bottom-32 left-1/3 w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '2s' }} />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Left Column - Content */}
+          <div className="text-center lg:text-left">
+            {/* Trust Badge */}
+            <div className="hero-animate opacity-0 translate-y-4 transition-all duration-700 mb-8">
+              <Badge className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-full">
+                <Sparkles className="w-4 h-4" />
+                <span className="font-semibold">AI-Powered Sales Intelligence</span>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              </Badge>
             </div>
 
             {/* Main Headline */}
             <h1 
               ref={headlineRef}
-              className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-8 leading-[1.1] tracking-tight max-w-5xl mx-auto"
+              className="hero-animate opacity-0 translate-y-4 transition-all duration-700 delay-100 text-4xl sm:text-4xl lg:text-5xl font-bold leading-[1.1] tracking-tight mb-8 h-50"
             >
-              Give Reps{' '}<br/>
+              <span className="text-gray-900 dark:text-white">
+                Transform Your Sales Team with
+              </span>
+              <br />
               <span 
                 ref={headlineSpanRef}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent will-change-transform"
+                className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent animate-gradient-x will-change-transform"
               >
                 {rotatingPhrases[phraseIndex]}
               </span>
             </h1>
 
             {/* Subheadline */}
-            <div ref={subheadlineRef} className="max-w-3xl mx-auto mb-16">
-              <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 leading-relaxed font-normal">
-                The AI-powered sales enablement platform that gives your team <span className="font-semibold text-green-600 dark:text-green-400">instant access</span> to product knowledge, 
-                competitive intelligence, and LSM-powered objection-handling scripts—all in one place.
+            <div 
+              ref={subheadlineRef}
+              className="hero-animate opacity-0 translate-y-4 transition-all duration-700 delay-200 mb-12"
+            >
+              <p className="text-xl sm:text-2xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                Give your sales reps <span className="font-semibold text-blue-600 dark:text-blue-400">instant access</span> to product knowledge, 
+                competitive intelligence, and AI-powered responses that close deals faster.
               </p>
             </div>
-            
+
             {/* Key Benefits */}
-            <div ref={benefitsRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 max-w-4xl mx-auto">
-              <div className="benefit-card flex flex-col items-center text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 will-change-transform transform-gpu shadow-sm">
-                <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mb-4">
-                  <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <div className="hero-animate opacity-0 translate-y-4 transition-all duration-700 delay-300 mb-12">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto lg:mx-0">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900 dark:text-white">Instant Answers</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Real-time AI responses</div>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">3+ Hours Saved Daily</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Eliminate time spent searching for product information with AI-powered instant answers</p>
-              </div>
-              
-              <div className="benefit-card flex flex-col items-center text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 will-change-transform transform-gpu shadow-sm">
-                <div className="w-12 h-12 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center mb-4">
-                  <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900 dark:text-white">40% Faster</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Deal closure rate</div>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">40% Faster Deal Closure</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Access to instant competitive intelligence and LSM-powered battlecards</p>
-              </div>
-              
-              <div className="benefit-card flex flex-col items-center text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 will-change-transform transform-gpu shadow-sm">
-                <div className="w-12 h-12 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center mb-4">
-                  <Zap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900 dark:text-white">95% Accuracy</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Source-backed responses</div>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">95% Accuracy Rate</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">AI-powered responses with source citations and real-time updates</p>
               </div>
             </div>
 
             {/* CTA Buttons */}
-            <div ref={ctaRef} className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Link href="/contact">
-                <Button 
+            <div 
+              ref={ctaRef}
+              className="hero-animate opacity-0 translate-y-4 transition-all duration-700 delay-400 mb-12"
+            >
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Link href="/contact">
+                  <Button 
+                    size="lg" 
+                    className="group px-8 py-6 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 rounded-xl"
+                  >
+                    Start Free Trial
+                    <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+                {/* <Button 
                   size="lg" 
-                  className="bg-blue-600 hover:bg-blue-700 px-8 py-4 text-lg font-semibold shadow-lg transition-all duration-300 rounded-xl"
+                  variant="outline" 
+                  className="group px-8 py-6 text-lg font-semibold border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300 rounded-xl"
+                  onClick={() => window.open('https://calendly.com/saleshqai/30min', '_blank')}
                 >
-                  Join Early Access
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </Link>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="px-8 py-4 text-lg font-semibold transition-all duration-300 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl hover:text-gray-700 dark:hover:text-gray-300"
-                onClick={() => window.open('https://calendly.com/saleshqai/30min', '_blank')}
-              >
-                <Calendar className="mr-2 w-5 h-5" />
-                Book a Demo
-              </Button>
+                  <Play className="mr-2 w-5 h-5 group-hover:scale-110 transition-transform" />
+                  Book Demo
+                </Button> */}
+              </div>
             </div>
+          </div>
 
-            {/* Trust Indicators */}
-            <p ref={trustTextRef} className="text-sm text-gray-500 dark:text-gray-400">
-              No credit card required • Setup in 5 minutes • Cancel anytime
-            </p>
+          {/* Right Column - Interactive Dashboard */}
+          <div className="hero-animate opacity-0 translate-y-4 transition-all duration-700 delay-300 lg:delay-500">
+            <Card className="relative p-6 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-0 shadow-2xl overflow-hidden">
+              {/* Dashboard Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-16 h-16 rounded-xl flex items-center justify-center">
+                    {/* <Brain className="w-5 h-5 text-white" /> */}
+                    <Image src="/initials.png" alt="SalesHQ" width={50} height={50} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 dark:text-white">Dashboard</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Live Analytics</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-xs text-green-600 dark:text-green-400 font-medium">Online</span>
+                </div>
+              </div>
+
+              {/* Real-time Stats */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50 border border-blue-200 dark:border-blue-800/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BarChart3 className="w-4 h-4 text-blue-600" />
+                    <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Queries Today</span>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">2,847</div>
+                  <div className="text-xs text-green-600 dark:text-green-400">+12% from yesterday</div>
+                </div>
+                
+                <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/50 dark:to-emerald-900/50 border border-emerald-200 dark:border-emerald-800/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-4 h-4 text-emerald-600" />
+                    <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Accuracy</span>
+                  </div>
+                  <div className="text-2xl font-bold text-emerald-900 dark:text-emerald-100">{stats.accuracy}%</div>
+                  <div className="text-xs text-green-600 dark:text-green-400">+2% this week</div>
+                </div>
+              </div>
+
+              {/* Live Chat Preview */}
+              <div className="space-y-3">
+                <div className="flex justify-end">
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm p-3 rounded-2xl rounded-br-md max-w-[80%]">
+                    What's the warranty on Product X?
+                  </div>
+                </div>
+                
+                <div className="flex justify-start">
+                  <div className="bg-gray-100 dark:bg-gray-700 text-sm p-3 rounded-2xl rounded-bl-md max-w-[85%]">
+                    <p className="text-gray-800 dark:text-gray-200 mb-2">Product X comes with a 2-year comprehensive warranty covering all manufacturing defects.</p>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 rounded-lg p-2">
+                      <CheckCircle className="w-3 h-3 text-green-500" />
+                      <span>Source: Product Manual p.15</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-start">
+                  <div className="bg-gray-100 dark:bg-gray-700 text-sm p-3 rounded-2xl rounded-bl-md max-w-[70%]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Stats */}
+              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-gray-500" />
+                    <span className="text-gray-600 dark:text-gray-400">Active conversations</span>
+                  </div>
+                  <span className="font-semibold text-gray-900 dark:text-white">47</span>
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
-      </section>
+      </div>
+
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hero-animate opacity-0 translate-y-4 transition-all duration-700 delay-700">
+        <div className="flex flex-col items-center gap-2 text-gray-400 dark:text-gray-500">
+          <span className="text-xs font-medium">Scroll to explore</span>
+          <div className="w-6 h-10 border-2 border-gray-300 dark:border-gray-600 rounded-full flex justify-center">
+            <div className="w-1 h-3 bg-gray-400 dark:bg-gray-500 rounded-full mt-2 animate-bounce" />
+          </div>
+        </div>
+      </div>
+    </section>
     </>
   );
-};
-
-const Index = () => {
-  return <HeroSection />;
-};
-
-export default Index;
+}

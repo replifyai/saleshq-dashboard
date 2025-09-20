@@ -39,8 +39,6 @@ export function middleware(request: NextRequest) {
         if (payload) {
           userRole = payload.role;
           isAuthenticated = true;
-          console.log("🚀 ~ middleware ~ userRole:", userRole);
-          console.log("🚀 ~ middleware ~ userId:", payload.user_id);
         }
       } else {
         console.log("🚀 ~ middleware ~ Token expired");
@@ -86,7 +84,6 @@ export function middleware(request: NextRequest) {
 
   // Redirect non-admin users trying to access admin routes to /chat
   if (isAdminRoute && isAuthenticated && userRole !== 'admin') {
-    console.log("🚀 ~ middleware ~ Non-admin user trying to access admin route, redirecting to /chat");
     return NextResponse.redirect(new URL("/chat", request.url));
   }
 }

@@ -111,7 +111,6 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-      <UnauthenticatedNavbar />
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-100 to-purple-100 text-gray-800 dark:from-blue-600 dark:to-purple-600 dark:text-white py-16 pt-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

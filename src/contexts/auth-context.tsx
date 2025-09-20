@@ -58,6 +58,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
             email: payload.email,
             name: payload.name || payload.email?.split('@')[0] || 'User',
             role: payload.role || 'user', // Always use role from JWT token
+            userUsage: '',
+            allUsage: null,
             createdAt: {
               _seconds: Math.floor(Date.now() / 1000),
               _nanoseconds: 0
@@ -67,6 +69,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           // Try to enhance with API data, but keep JWT role
           try {
             const profileData = await profileApi.getUserProfile();
+            console.log("🚀 ~ fetchUserProfile ~ profileData:", profileData);
             setUser({
               ...profileData,
               role: userFromToken.role // Always override API role with JWT role

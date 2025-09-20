@@ -1,4 +1,5 @@
-import UnauthenticatedNavbar from "@/components/navigation/UnauthenticatedNavbar";
+'use client'
+import { LandingNavigation } from "@/components/landing";
 import FooterSection from "@/components/landing/FooterSection";
 export default function UnauthenticatedLayout({
   children,
@@ -7,8 +8,8 @@ export default function UnauthenticatedLayout({
 }>) {
   return (
     <div className="min-h-screen bg-background">
-      <div className="px-4">
-      <UnauthenticatedNavbar />
+      <div className="px-4 sticky top-0 z-50">
+      <LandingNavigation />
       </div>
       {children}
       <FooterSection />

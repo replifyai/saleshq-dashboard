@@ -14,6 +14,8 @@ export interface User {
   id?: string;
   createdAt?: string;
   updatedAt?: string;
+  status?: string;
+  usage?: string;
 }
 
 export interface GetAllUsersResponse {

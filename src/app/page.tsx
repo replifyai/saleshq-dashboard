@@ -2,30 +2,18 @@
 import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import {
-  HeroSection,
-  ProblemStatementSection,
   ChallengesSection,
   UseCasesSection,
-  TeamSection,
-  ResourcesSection,
-  EarlyAccessSection,
-  RoadmapSection,
-  CaseStudiesSection,
-  // HowItWorksSection,
-  // TestimonialsSection,
-  // FeaturesSection,
+  // CaseStudiesSection,
   ROISection,
-  // FAQSection,
-  //PricingSection,
-  // ContactSection,
-  FooterSection
+  FooterSection,
+  HeroSection,
+  ProblemStatementSection,
+  HowItWorksSection,
+  FAQSection,
+  FeaturesSection,
 } from "@/components/landing";
-// import TestimonialsSection from "@/components/landing/new/TestimonialsSection";
-import HowItWorksSection from "@/components/landing/new/HowItWorksSection";
-import FAQSection from "@/components/landing/new/FAQSection";
-import ContactSection from "@/components/landing/new/CTASection";
-import FeaturesSection from "@/components/landing/new/IntegrationsSection";
-// import FooterSection from "@/components/landing/new/FooterSection";
+import { TableOfContents } from "@/components/landing/TableOfContent";
 
 export default function LandingPage() {
   const neonContainerRef = useRef<HTMLDivElement | null>(null);
@@ -132,23 +120,16 @@ export default function LandingPage() {
       </div>
 
       <div className="relative z-10">
-        {/* <LandingNavigation /> */}
+        <TableOfContents />
         <HeroSection />
         <ProblemStatementSection />
         <ChallengesSection />
         <HowItWorksSection />
         <UseCasesSection />
-        {/* <TeamSection /> */}
-        {/* <TestimonialsSection /> */}
-        <FeaturesSection />
+        {/* <FeaturesSection /> */}
         <ROISection />
-        <CaseStudiesSection />
+        {/* <CaseStudiesSection /> */}
         <FAQSection />
-        {/* <ResourcesSection /> */}
-        {/* <RoadmapSection /> */}
-        {/* <EarlyAccessSection /> */}
-        {/* <PricingSection /> */}
-        {/* <ContactSection /> */}
         <FooterSection />
       </div>
 

@@ -1,8 +1,8 @@
 import React from 'react'
-import LibraryPanel from '@/components/library';
+import DocumentLibrary from '@/components/library';
 const page = () => {
   return (
-    <LibraryPanel />
+    <DocumentLibrary />
   )
 }
 

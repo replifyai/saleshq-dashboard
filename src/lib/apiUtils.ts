@@ -126,6 +126,8 @@ export interface UserProfile {
   email: string;
   name: string;
   role: string;
+  userUsage: string;
+  allUsage: any;
   createdAt: {
     _seconds: number;
     _nanoseconds: number;
@@ -785,6 +787,8 @@ export const profileApi = {
       email: data.email,
       name: data.name,
       role: data.role,
+      userUsage: data.userUsage,
+      allUsage: data.allUsage,
       createdAt: data.createdAt
     };
   }

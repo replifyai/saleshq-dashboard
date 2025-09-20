@@ -1,12 +1,13 @@
 'use client'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
-import { User, Mail, Shield, Calendar } from "lucide-react";
+import { User, Mail, Shield, Calendar, BarChart3, Activity } from "lucide-react";
 import { formatFirebaseTimestamp, getUserInitials } from "@/lib/utils";
-
+import { Badge } from "@/components/ui/badge";
 export default function SettingsPanel() {
 
   const { user } = useAuth();
+  console.log("🚀 ~ SettingsPanel ~ user:", user);
 
   return (
     <div className="space-y-6 p-6">
@@ -66,6 +67,73 @@ export default function SettingsPanel() {
               </p>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Usage Statistics Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <BarChart3 className="w-5 h-5" />
+            <span>Queries Statistics</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <Activity className="w-4 h-4" />
+                <span>Your Usage</span>
+              </div>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                <Badge variant={"outline"} className="bg-gray-100 text-gray-800 capitalize">
+                  {user?.userUsage || 0}
+                </Badge>
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <BarChart3 className="w-4 h-4" />
+                <span>Total Consumed</span>
+              </div>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                <Badge variant={"outline"} className="bg-gray-100 text-gray-800 capitalize">
+                  {user?.allUsage?.totalConsumed || 0}
+                </Badge>
+              </p>
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <Shield className="w-4 h-4" />
+                <span>Queries Limit</span>
+              </div>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                <Badge variant={"outline"} className="bg-gray-100 text-gray-800 capitalize">
+                  {user?.allUsage?.limit || 0}
+                </Badge>
+              </p>
+            </div>
+          </div>
+
+          {/* Usage Progress Bar */}
+          {user?.allUsage && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                <span>Usage Progress</span>
+                <span>{user.allUsage.totalConsumed} / {user.allUsage.limit}</span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ 
+                    width: `${Math.min((user.allUsage.totalConsumed / user.allUsage.limit) * 100, 100)}%` 
+                  }}
+                ></div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

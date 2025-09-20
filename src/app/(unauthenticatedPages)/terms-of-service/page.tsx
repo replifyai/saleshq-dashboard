@@ -3,7 +3,6 @@ import UnauthenticatedNavbar from "@/components/navigation/UnauthenticatedNavbar
 export default function TermsOfServicePage() {
   return (
     <div>
-      <UnauthenticatedNavbar />
       <div className="container mx-auto px-4 py-8 max-w-4xl pt-30">
         <div className="prose prose-gray dark:prose-invert max-w-none">
           <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
