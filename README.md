@@ -1,1 +1,1 @@
-# SalesHQ
+# SalesHQ.ai
