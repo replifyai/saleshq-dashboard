@@ -166,7 +166,7 @@ function ResetPasswordForm() {
             <Image src="/logo.png" alt="SalesHQ" width={0} height={0} sizes="100vw" className="w-[30%] h-full" />
           </div>
           <h2 className="mt-6 text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">
-            Reset Your Password
+            Reset Your Password.
           </h2>
           <p className="mt-3 text-base text-gray-600 dark:text-gray-400">
             Create a new secure password for your account.
