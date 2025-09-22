@@ -1,5 +1,5 @@
 'use client'
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -30,6 +30,7 @@ export default function ProductImageViewer({ product, trigger }: ProductImageVie
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
   const [isPreloading, setIsPreloading] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(false);
   const contentRef = React.useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
 
@@ -223,8 +224,19 @@ export default function ProductImageViewer({ product, trigger }: ProductImageVie
   };
 
   const handleImageSelect = (image: ProductImage) => {
-    console.log('🖼️ Selecting image:', image.name, 'Preloaded:', preloadedImages.has(image.url));
+    console.log('🖼️ Selecting image:', {
+      imageName: image.name,
+      imageUrl: image.url,
+      imageId: image.id,
+      preloaded: preloadedImages.has(image.url),
+      totalImages: images.length,
+      allImages: images.map(img => ({ id: img.id, name: img.name, url: img.url }))
+    });
+    
+    // Set loading state for smooth transition
+    setIsImageLoading(true);
     setSelectedImage(image);
+    
     // Ensure we start at the top of the preview view
     if (contentRef.current) {
       contentRef.current.scrollTo({ top: 0, behavior: 'auto' });
@@ -233,28 +245,64 @@ export default function ProductImageViewer({ product, trigger }: ProductImageVie
 
   const handleBackToSelection = () => {
     setSelectedImage(null);
+    setIsImageLoading(false);
     if (contentRef.current) {
       contentRef.current.scrollTo({ top: 0, behavior: 'auto' });
     }
   };
 
   // Navigation helpers for image preview (left/right)
-  const getCurrentImageIndex = (): number => {
+  const getCurrentImageIndex = useCallback((): number => {
     if (!selectedImage) return -1;
-    return images.findIndex((img) => img.url === selectedImage.url);
-  };
+    const idx = images.findIndex((img) => img.url === selectedImage.url);
+    console.log('🔍 getCurrentImageIndex:', {
+      selectedImageUrl: selectedImage.url,
+      imagesCount: images.length,
+      foundIndex: idx,
+      images: images.map(img => ({ id: img.id, name: img.name, url: img.url }))
+    });
+    return idx;
+  }, [selectedImage, images]);
 
-  const goImage = (delta: number) => {
-    if (!selectedImage || images.length <= 1) return;
+  const goImage = useCallback((delta: number) => {
+    console.log('🔄 goImage called:', { delta, selectedImage: selectedImage?.name, imagesLength: images.length });
+    
+    if (!selectedImage || images.length <= 1) {
+      console.log('❌ goImage: Cannot navigate - no selected image or only one image');
+      return;
+    }
+    
     const idx = getCurrentImageIndex();
-    if (idx === -1) return;
+    if (idx === -1) {
+      console.log('❌ goImage: Current image not found in images array');
+      return;
+    }
+    
     const nextIdx = (idx + delta + images.length) % images.length;
     const next = images[nextIdx];
-    setSelectedImage(next);
-  };
+    console.log('✅ goImage: Navigating to:', {
+      currentIdx: idx,
+      delta,
+      nextIdx,
+      nextImage: next ? { id: next.id, name: next.name, url: next.url } : null
+    });
+    
+    // Set loading state for smooth transition
+    setIsImageLoading(true);
+    
+    // Force a new object reference to ensure React detects the change
+    setSelectedImage({ ...next });
+  }, [selectedImage, images, getCurrentImageIndex]);
 
-  const handlePrevImage = () => goImage(-1);
-  const handleNextImage = () => goImage(1);
+  const handlePrevImage = useCallback(() => {
+    console.log('⬅️ handlePrevImage called');
+    goImage(-1);
+  }, [goImage]);
+  
+  const handleNextImage = useCallback(() => {
+    console.log('➡️ handleNextImage called');
+    goImage(1);
+  }, [goImage]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpen}>
@@ -358,7 +406,7 @@ export default function ProductImageViewer({ product, trigger }: ProductImageVie
             </div>
           ) : (
             /* Image Preview View */
-            <div key="preview" className="space-y-4">
+            <div className="space-y-4">
               {/* Back to selection */}
               <div className="flex items-center justify-between sticky top-0 bg-white dark:bg-gray-900 z-10 shadow-sm">
                 <Button
@@ -375,12 +423,30 @@ export default function ProductImageViewer({ product, trigger }: ProductImageVie
               </div>
                 {/* Image preview */}
                 <div className="relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900">
+                  {/* Loading overlay */}
+                  {isImageLoading && (
+                    <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center z-20">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  )}
+                  
                   <img
+                    key={selectedImage.id}
                     src={selectedImage.url}
                     alt={selectedImage.name}
-                    className="w-full max-h-96 object-contain"
+                    className={`w-full max-h-96 object-contain transition-opacity duration-200 ease-in-out ${
+                      isImageLoading ? 'opacity-0' : 'opacity-100'
+                    }`}
                     style={{
-                      opacity: preloadedImages.has(selectedImage.url) ? 1 : 0.9
+                      opacity: isImageLoading ? 0 : (preloadedImages.has(selectedImage.url) ? 1 : 0.9)
+                    }}
+                    onLoad={() => {
+                      console.log('🖼️ Image loaded:', selectedImage.name);
+                      setIsImageLoading(false);
+                    }}
+                    onError={() => {
+                      console.warn('❌ Image failed to load:', selectedImage.name);
+                      setIsImageLoading(false);
                     }}
                   />
                   {images.length > 1 && (
@@ -388,16 +454,26 @@ export default function ProductImageViewer({ product, trigger }: ProductImageVie
                       <button
                         type="button"
                         aria-label="Previous image"
-                        onClick={handlePrevImage}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-900/70 hover:bg-white dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200 rounded-full p-2 shadow"
+                        onClick={(e) => {
+                          console.log('🖱️ Previous button clicked');
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handlePrevImage();
+                        }}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-900/70 hover:bg-white dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200 rounded-full p-2 shadow z-10"
                       >
                         <IconArrowLeft className="w-5 h-5" />
                       </button>
                       <button
                         type="button"
                         aria-label="Next image"
-                        onClick={handleNextImage}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-900/70 hover:bg-white dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200 rounded-full p-2 shadow"
+                        onClick={(e) => {
+                          console.log('🖱️ Next button clicked');
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleNextImage();
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-900/70 hover:bg-white dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200 rounded-full p-2 shadow z-10"
                       >
                         <IconArrowRight className="w-5 h-5" />
                       </button>

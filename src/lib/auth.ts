@@ -123,9 +123,9 @@ class AuthService {
       ...tokens,
     };
     
-    // Set cookie to expire in 7 days
+    // Set cookie to expire in 30 days
     const expires = new Date();
-    expires.setDate(expires.getDate() + 7);
+    expires.setDate(expires.getDate() + 30);
     
     this.setCookie(this.TOKEN_KEY, JSON.stringify(authTokens), {
       expires,

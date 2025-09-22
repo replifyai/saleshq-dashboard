@@ -51,6 +51,7 @@ export default function Login() {
 
     try {
       // Keep original behavior: submit exactly the form credentials
+      console.log("🚀 ~ onSubmit ~ data:", data);
       await login(data);
       router.push('/chat');
     } catch (err) {

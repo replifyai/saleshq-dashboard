@@ -51,6 +51,16 @@ export interface SetUserStatusResponse {
   success?: boolean;
 }
 
+export interface ChangeUserRoleRequest {
+  userId: string;
+  role: string;
+}
+
+export interface ChangeUserRoleResponse {
+  message?: string;
+  success?: boolean;
+}
+
 // Custom error class for User Management API operations
 export class UserManagementApiError extends Error {
   constructor(
@@ -126,17 +136,21 @@ async function userApiRequest<T>(
  */
 export const userManagementApi = {
   /**
-   * Get all users with pagination and optional search
-   * POST /getallusers?pageSize=X&pageNumber=Y&search=term
+   * Get all users with pagination and optional search and status filter
+   * POST /getallusers?pageSize=X&pageNumber=Y&search=term&status=active|inactive
    */
   getAllUsers: async (
     pageSize: number = 10, 
     pageNumber: number = 1, 
-    searchTerm?: string
+    searchTerm?: string,
+    status?: string
   ): Promise<GetAllUsersResponse> => {
     let endpoint = `/getallusers?pageSize=${pageSize}&pageNumber=${pageNumber}`;
     if (searchTerm && searchTerm.trim()) {
       endpoint += `&search=${encodeURIComponent(searchTerm.trim())}`;
+    }
+    if (status && status !== 'all') {
+      endpoint += `&status=${encodeURIComponent(status)}`;
     }
     return userApiRequest<GetAllUsersResponse>(endpoint, {
       method: 'POST',
@@ -161,6 +175,17 @@ export const userManagementApi = {
    */
   setUserStatus: async (userData: SetUserStatusRequest): Promise<SetUserStatusResponse> => {
     return userApiRequest<SetUserStatusResponse>('/setUserStatus', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  },
+
+  /**
+   * Change user role
+   * POST /changeUserRole
+   */
+  changeUserRole: async (userData: ChangeUserRoleRequest): Promise<ChangeUserRoleResponse> => {
+    return userApiRequest<ChangeUserRoleResponse>('/changeUserRole', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
