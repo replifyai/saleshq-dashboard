@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Users as UsersIcon, Search, MoreHorizontal, Trash2, Edit } from 'lucide-react';
+import { Plus, Users as UsersIcon, Search, MoreHorizontal, Trash2, Edit, UserCheck, UserX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import AdminRouteGuard from '@/components/admin-route-guard';
-import { userManagementApi, User, UserManagementApiError } from '@/lib/userManagementApi';
+import { userManagementApi, User, UserManagementApiError, SetUserStatusRequest } from '@/lib/userManagementApi';
 import { CreateUserModal, PaginationControls } from './components';
 
 export function UsersPageComponent() {
@@ -26,6 +26,8 @@ export function UsersPageComponent() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [statusChangeLoading, setStatusChangeLoading] = useState<string | null>(null);
+  const [userToChangeStatus, setUserToChangeStatus] = useState<User | null>(null);
   
   const { toast } = useToast();
 
@@ -117,6 +119,57 @@ export function UsersPageComponent() {
     }
   };
 
+  // Handle user status change confirmation
+  const handleStatusChangeClick = (user: User) => {
+    setUserToChangeStatus(user);
+  };
+
+  // Handle user status change
+  const handleStatusChange = async () => {
+    if (!userToChangeStatus?.id) {
+      toast({
+        title: 'Error',
+        description: 'User ID is required to change status.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const newStatus = userToChangeStatus.status === 'active' ? 'inactive' : 'active';
+    
+    try {
+      setStatusChangeLoading(userToChangeStatus.id);
+      await userManagementApi.setUserStatus({
+        userid: userToChangeStatus.id,
+        status: newStatus as 'active' | 'inactive'
+      });
+      
+      // Update the user in the local state
+      setUsers(prevUsers => 
+        prevUsers.map(u => 
+          u.id === userToChangeStatus.id ? { ...u, status: newStatus } : u
+        )
+      );
+      
+      toast({
+        title: 'Success',
+        description: `User ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`,
+      });
+    } catch (error) {
+      console.error('Error changing user status:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof UserManagementApiError 
+          ? error.message 
+          : 'Failed to change user status. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setStatusChangeLoading(null);
+      setUserToChangeStatus(null);
+    }
+  };
+
   const getRoleBadgeVariant = (role: string) => {
     switch (role.toLowerCase()) {
       case 'admin':
@@ -125,6 +178,17 @@ export function UsersPageComponent() {
         return 'secondary';
       case 'user':
         return 'outline';
+      default:
+        return 'outline';
+    }
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return 'default';
+      case 'inactive':
+        return 'destructive';
       default:
         return 'outline';
     }
@@ -235,8 +299,8 @@ export function UsersPageComponent() {
                         <TableCell className="font-medium">{user.name}</TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell className="text-center">
-                          <Badge variant={"outline"} className="bg-gray-100 text-gray-800 capitalize text-center">
-                            {user.status}
+                          <Badge variant={getStatusBadgeVariant(user.status || '')} className="capitalize">
+                            {user.status || 'Unknown'}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-center">
@@ -259,17 +323,31 @@ export function UsersPageComponent() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
+                              {/* <DropdownMenuItem>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit User
-                              </DropdownMenuItem>
+                              </DropdownMenuItem> */}
                               <DropdownMenuItem 
+                                onClick={() => handleStatusChangeClick(user)}
+                                disabled={statusChangeLoading === user.id}
+                                className={user.status === 'active' ? 'text-orange-600' : 'text-green-600'}
+                              >
+                                {statusChangeLoading === user.id ? (
+                                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                                ) : user.status === 'active' ? (
+                                  <UserX className="mr-2 h-4 w-4" />
+                                ) : (
+                                  <UserCheck className="mr-2 h-4 w-4" />
+                                )}
+                                {user.status === 'active' ? 'Deactivate User' : 'Activate User'}
+                              </DropdownMenuItem>
+                              {/* <DropdownMenuItem 
                                 className="text-destructive"
                                 onClick={() => setUserToDelete(user)}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Delete User
-                              </DropdownMenuItem>
+                              </DropdownMenuItem> */}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -333,6 +411,39 @@ export function UsersPageComponent() {
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {deleteLoading ? 'Deleting...' : 'Delete User'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Status Change Confirmation Dialog */}
+        <AlertDialog open={!!userToChangeStatus} onOpenChange={() => setUserToChangeStatus(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Change User Status</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to {userToChangeStatus?.status === 'active' ? 'deactivate' : 'activate'} the user{' '}
+                <strong>{userToChangeStatus?.name}</strong>? 
+                {userToChangeStatus?.status === 'active' 
+                  ? ' They will no longer be able to access the system.' 
+                  : ' They will regain access to the system.'
+                }
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleStatusChange}
+                disabled={statusChangeLoading === userToChangeStatus?.id}
+                className={userToChangeStatus?.status === 'active' 
+                  ? 'bg-orange-600 text-white hover:bg-orange-700' 
+                  : 'bg-green-600 text-white hover:bg-green-700'
+                }
+              >
+                {statusChangeLoading === userToChangeStatus?.id 
+                  ? 'Changing...' 
+                  : `${userToChangeStatus?.status === 'active' ? 'Deactivate' : 'Activate'} User`
+                }
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

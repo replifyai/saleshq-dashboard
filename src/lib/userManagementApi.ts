@@ -41,6 +41,16 @@ export interface CreateUserResponse {
   success?: boolean;
 }
 
+export interface SetUserStatusRequest {
+  userid: string;
+  status: 'active' | 'inactive';
+}
+
+export interface SetUserStatusResponse {
+  message?: string;
+  success?: boolean;
+}
+
 // Custom error class for User Management API operations
 export class UserManagementApiError extends Error {
   constructor(
@@ -140,6 +150,17 @@ export const userManagementApi = {
    */
   createUser: async (userData: CreateUserRequest): Promise<CreateUserResponse> => {
     return userApiRequest<CreateUserResponse>('/createUser', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  },
+
+  /**
+   * Set user status (active/inactive)
+   * POST /setUserStatus
+   */
+  setUserStatus: async (userData: SetUserStatusRequest): Promise<SetUserStatusResponse> => {
+    return userApiRequest<SetUserStatusResponse>('/setUserStatus', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
