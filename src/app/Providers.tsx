@@ -6,7 +6,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/contexts/auth-context";
-import ThreejsToysLoader from "@/components/threejs-toys-loader";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -16,7 +15,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           <AuthProvider>
             <TooltipProvider>
               <Toaster />
-              <ThreejsToysLoader />
               {children}
             </TooltipProvider>
           </AuthProvider>
