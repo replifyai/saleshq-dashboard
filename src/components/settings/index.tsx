@@ -85,11 +85,11 @@ export default function SettingsPanel() {
                 <Activity className="w-4 h-4" />
                 <span>Your Usage</span>
               </div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <div className="text-sm font-medium text-gray-900 dark:text-white">
                 <Badge variant={"outline"} className="bg-gray-100 text-gray-800 capitalize">
                   {user?.userUsage || 0}
                 </Badge>
-              </p>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -97,11 +97,11 @@ export default function SettingsPanel() {
                 <BarChart3 className="w-4 h-4" />
                 <span>Total Consumed</span>
               </div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <div className="text-sm font-medium text-gray-900 dark:text-white">
                 <Badge variant={"outline"} className="bg-gray-100 text-gray-800 capitalize">
                   {user?.allUsage?.totalConsumed || 0}
                 </Badge>
-              </p>
+              </div>
             </div>
 
             <div className="space-y-2 md:col-span-2">
@@ -109,11 +109,11 @@ export default function SettingsPanel() {
                 <Shield className="w-4 h-4" />
                 <span>Queries Limit</span>
               </div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <div className="text-sm font-medium text-gray-900 dark:text-white">
                 <Badge variant={"outline"} className="bg-gray-100 text-gray-800 capitalize">
                   {user?.allUsage?.limit || 0}
                 </Badge>
-              </p>
+              </div>
             </div>
           </div>
 

@@ -122,6 +122,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     checkAuth();
+
+    // Subscribe to token refresh events to keep auth state in sync
+    const unsubscribe = authService.onTokenRefresh(async () => {
+      console.log('🔄 Token refreshed, updating auth state');
+      try {
+        const authenticated = authService.isAuthenticated();
+        setIsAuthenticated(authenticated);
+        
+        if (authenticated) {
+          await fetchUserProfile();
+        }
+      } catch (error) {
+        console.error('Error updating auth state after token refresh:', error);
+        setIsAuthenticated(false);
+        setUser(null);
+      }
+    });
+
+    return unsubscribe;
   }, []);
 
   const login = async (credentials: LoginRequest) => {

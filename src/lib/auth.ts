@@ -12,12 +12,12 @@ export interface LoginResponse {
 export interface AuthTokens {
   idToken: string;
   refreshToken: string;
-  expiresAt: number; // timestamp
 }
 
 class AuthService {
   private readonly TOKEN_KEY = 'auth_tokens';
   private refreshTokenPromise: Promise<string> | null = null;
+  private tokenRefreshCallbacks: Set<() => void> = new Set();
 
   // Cookie helper functions
   private setCookie(name: string, value: string, options: {
@@ -69,6 +69,41 @@ class AuthService {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; secure; samesite=lax`;
   }
 
+  // Helper function to decode JWT payload without verification
+  private decodeJWTPayload(token: string): any {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+      
+      const payload = parts[1];
+      // Convert base64url to base64 by replacing characters and adding padding
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+      const decoded = Buffer.from(padded, 'base64').toString('utf-8');
+      return JSON.parse(decoded);
+    } catch (error) {
+      console.error('Error decoding JWT:', error);
+      return null;
+    }
+  }
+
+  // Subscribe to token refresh events
+  onTokenRefresh(callback: () => void): () => void {
+    this.tokenRefreshCallbacks.add(callback);
+    return () => this.tokenRefreshCallbacks.delete(callback);
+  }
+
+  // Notify all subscribers about token refresh
+  private notifyTokenRefresh(): void {
+    this.tokenRefreshCallbacks.forEach(callback => {
+      try {
+        callback();
+      } catch (error) {
+        console.error('Error in token refresh callback:', error);
+      }
+    });
+  }
+
   // Get tokens from cookies
   getTokens(): AuthTokens | null {
     try {
@@ -86,7 +121,6 @@ class AuthService {
   setTokens(tokens: LoginResponse): void {
     const authTokens: AuthTokens = {
       ...tokens,
-      expiresAt: Date.now() + (60 * 60 * 1000), // 1 hour from now
     };
     
     // Set cookie to expire in 7 days
@@ -112,8 +146,18 @@ class AuthService {
     const tokens = this.getTokens();
     if (!tokens) return false;
     
-    // Check if token is expired (with 5 minute buffer)
-    return tokens.expiresAt > Date.now() + (5 * 60 * 1000);
+    // Check if the JWT itself has expired
+    try {
+      const payload = this.decodeJWTPayload(tokens.idToken);
+      if (!payload || !payload.exp) return false;
+      
+      // Check if JWT is expired (with 5 minute buffer)
+      const currentTime = Math.floor(Date.now() / 1000);
+      return payload.exp > currentTime + (5 * 60);
+    } catch (error) {
+      console.error('Error decoding JWT in isAuthenticated:', error);
+      return false;
+    }
   }
 
   // Get current access token (do not proactively refresh; refresh on 401 only)
@@ -166,6 +210,7 @@ class AuthService {
 
     const data: LoginResponse = await response.json();
     this.setTokens(data);
+    this.notifyTokenRefresh(); // Notify subscribers about token refresh
     console.log('✅ Token refresh successful');
     return data.idToken;
   }
@@ -186,10 +231,13 @@ class AuthService {
       throw new Error('No valid authentication token');
     }
 
+    // Check if this is a refresh API call
+    const isRefreshCall = url.includes('/refresh');
+    
     let attempt = 0;
     let currentToken = tokens.idToken;
 
-    while (attempt <= 2) {
+    while (attempt <= 1) { // Only allow 1 retry for non-refresh calls
       console.log(`🌐 Making API request to: ${url} (attempt ${attempt + 1})`);
       const response = await fetch(url, {
         ...options,
@@ -203,14 +251,23 @@ class AuthService {
         return response;
       }
 
-      // 401 -> attempt refresh and retry
+      // 401 -> attempt refresh and retry (only once for non-refresh calls)
       attempt += 1;
-      if (attempt > 2) break;
+      
+      // If this is a refresh call or we've already tried once, don't retry
+      if (isRefreshCall || attempt > 1) {
+        console.log('❌ Refresh token failed or max retries reached, redirecting to login');
+        this.clearTokens();
+        window.location.href = '/login';
+        throw new Error('Authentication failed - redirecting to login');
+      }
 
       try {
         if (this.refreshTokenPromise) {
+          console.log('🔄 Waiting for existing refresh token request...');
           currentToken = await this.refreshTokenPromise;
         } else {
+          console.log('🔄 Starting new refresh token request...');
           this.refreshTokenPromise = this.refreshToken(tokens.refreshToken, currentToken);
           currentToken = await this.refreshTokenPromise;
           this.refreshTokenPromise = null;
@@ -225,7 +282,7 @@ class AuthService {
       }
     }
 
-    // Retries exhausted
+    // This should never be reached due to the logic above, but just in case
     this.clearTokens();
     window.location.href = '/login';
     throw new Error('Authentication failed after retries');

@@ -70,11 +70,6 @@ export function UsersPageComponent() {
     fetchUsers(1, debouncedSearchTerm);
   }, [debouncedSearchTerm]);
 
-  // Initial fetch
-  useEffect(() => {
-    fetchUsers(1, '');
-  }, []);
-
   // Since we're doing server-side search, we can show pagination for both cases
   // The API will handle filtering and return the correct page of results
   const displayUsers = users;

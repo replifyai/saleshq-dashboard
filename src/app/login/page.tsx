@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Eye, EyeOff, Loader2,CheckCircle2 } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -83,7 +84,7 @@ export default function Login() {
 
         <div className="relative max-w-md w-full text-center">
           <div className="mx-auto flex items-center justify-center">
-            <Image src="/logo.png" alt="SalesHQ" width={0} height={0} sizes="100vw" className="w-[50%] h-full" />
+            <Image src="/logo.png" alt="SalesHQ" width={0} height={0} sizes="100vw" className="w-[30%] h-full" />
           </div>
           <h2 className="mt-6 text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">
             Welcome back!
@@ -185,7 +186,7 @@ export default function Login() {
                     <Checkbox id="remember" checked={remember} onCheckedChange={(v) => setRemember(Boolean(v))} />
                     <Label htmlFor="remember" className="text-sm text-muted-foreground">Remember me</Label>
                   </div>
-                  <a href="#" className="text-sm text-primary hover:underline">Forgot password?</a>
+                  <Link href="/forgot-password" className="text-sm text-primary hover:underline">Forgot password?</Link>
                 </div>
 
                 <Button
