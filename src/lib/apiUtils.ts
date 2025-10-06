@@ -229,7 +229,7 @@ export const chatApi = {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message, retrievalCount, productId: productName }),
+      body: JSON.stringify({ message, productId: productName }),
     });
 
     if (!response.ok) {

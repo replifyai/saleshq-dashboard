@@ -84,7 +84,7 @@ export const QueriesTable: React.FC<QueriesTableProps> = ({
                   <StatusBadge status={query.status} showIcon={true} />
                 </TableCell>
                 <TableCell className="max-w-xs">
-                  <div className="truncate" title={query.message}>
+                  <div title={query.message}>
                     {query.message}
                   </div>
                 </TableCell>

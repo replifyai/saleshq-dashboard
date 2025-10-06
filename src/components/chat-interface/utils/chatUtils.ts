@@ -24,9 +24,20 @@ export const extractSourceInfo = (messages: any[] | undefined): any[] | undefine
 
 /**
  * Clean message by removing source information for display
+ * and properly formatting markdown
  */
 export const cleanMessage = (message: string): string => {
-  return message.replace(/\s*\(Source: .+?\)$/, '');
+  // Remove source information
+  let cleaned = message.replace(/\s*\(Source: .+?\)$/, '');
+  
+  // Convert escaped newlines (\n) to actual newlines
+  cleaned = cleaned.replace(/\\n/g, '\n');
+  
+  // Optionally convert bullet points (•) to markdown-compatible bullets (-)
+  // This helps ensure consistent markdown rendering
+  cleaned = cleaned.replace(/^•\s/gm, '- ');
+  
+  return cleaned;
 };
 
 /**
