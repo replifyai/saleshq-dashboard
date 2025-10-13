@@ -28,6 +28,41 @@ export const mockModules = [
   }
 ];
 
+// Mock nested module structure for testing
+export const mockNestedModules = {
+  'module-1': [
+    {
+      id: 'submodule-1-1',
+      name: 'AI History and Evolution',
+      description: 'The development of AI from its inception to modern times'
+    },
+    {
+      id: 'submodule-1-2',
+      name: 'AI Applications',
+      description: 'Real-world applications of artificial intelligence'
+    }
+  ],
+  'module-2': [
+    {
+      id: 'submodule-2-1',
+      name: 'Supervised Learning',
+      description: 'Learning with labeled data'
+    },
+    {
+      id: 'submodule-2-2',
+      name: 'Unsupervised Learning',
+      description: 'Finding patterns in unlabeled data'
+    }
+  ],
+  'module-1/submodule-1-1': [
+    {
+      id: 'submodule-1-1-1',
+      name: 'Early AI Pioneers',
+      description: 'The founding fathers of artificial intelligence'
+    }
+  ]
+};
+
 export const mockFiles = {
   'module-1': [
     {

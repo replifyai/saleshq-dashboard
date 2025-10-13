@@ -2,75 +2,79 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Upload, FileText, GraduationCap, Trash2, Edit, FolderPlus } from 'lucide-react';
-import { moduleApi, type Module, type SubModule, type ModuleFile, type RootModuleEntry } from '@/lib/moduleApi';
+import { ArrowLeft, Plus, Upload, FileText, GraduationCap, Trash2, Edit, FolderPlus, Folder, ChevronRight, Home } from 'lucide-react';
+import { moduleApi, type Module, type SubModule, type ModuleFile, type ModuleResponse } from '@/lib/moduleApi';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ModuleAdmin() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [modules, setModules] = useState<SubModule[]>([]);
-  const [rootEntries, setRootEntries] = useState<RootModuleEntry[]>([]);
-  const [selectedModule, setSelectedModule] = useState<Module | null>(null);
-  const [selectedModulePath, setSelectedModulePath] = useState<string>('');
-  const [moduleFiles, setModuleFiles] = useState<ModuleFile[]>([]);
+  
+  // Current folder state
+  const [currentPath, setCurrentPath] = useState<string>('');
+  const [currentModule, setCurrentModule] = useState<Module | null>(null);
+  const [currentFiles, setCurrentFiles] = useState<ModuleFile[]>([]);
+  const [currentSubModules, setCurrentSubModules] = useState<SubModule[]>([]);
+  const [breadcrumbs, setBreadcrumbs] = useState<Array<{name: string, path: string}>>([]);
 
   // Create Module Dialog State
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newModuleName, setNewModuleName] = useState('');
   const [newModuleDescription, setNewModuleDescription] = useState('');
-  const [parentModule, setParentModule] = useState<string>('');
 
   // Upload File Dialog State
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [uploadModuleId, setUploadModuleId] = useState<string>('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadFileType, setUploadFileType] = useState<'pdf' | 'quiz'>('pdf');
   const [uploadFileName, setUploadFileName] = useState('');
 
   useEffect(() => {
-    fetchModules();
+    loadCurrentFolder();
   }, []);
 
-  const fetchModules = async () => {
+  const loadCurrentFolder = async (path?: string) => {
     try {
       setLoading(true);
-      const entries = await moduleApi.getRootModulesEntries();
-      setRootEntries(entries || []);
-      // Preserve existing select options as top-level modules
-      setModules((entries || []).map((e) => ({ id: e.module.id, name: e.module.name, description: e.module.description })));
+      const response = await moduleApi.getModule(path);
+      
+      setCurrentPath(path || '');
+      setCurrentModule(response.data.module);
+      setCurrentFiles(response.data.files || []);
+      setCurrentSubModules(response.data.subModules || []);
+      
+      // Build breadcrumbs
+      if (!path || path === '') {
+        setBreadcrumbs([{ name: 'Root', path: '' }]);
+      } else {
+        const pathParts = path.split('/');
+        const breadcrumbParts = [];
+        let currentPathPart = '';
+        
+        for (let i = 0; i < pathParts.length; i++) {
+          currentPathPart = i === 0 ? pathParts[i] : `${currentPathPart}/${pathParts[i]}`;
+          breadcrumbParts.push({
+            name: pathParts[i],
+            path: currentPathPart
+          });
+        }
+        
+        setBreadcrumbs([{ name: 'Root', path: '' }, ...breadcrumbParts]);
+      }
     } catch (error) {
       toast({
-        title: "Error fetching modules",
-        description: error instanceof Error ? error.message : "Failed to load modules",
+        title: "Error loading folder",
+        description: error instanceof Error ? error.message : "Failed to load folder contents",
         variant: "destructive"
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchModuleDetails = async (moduleId: string) => {
-    try {
-      const response = await moduleApi.getModule(moduleId);
-      setSelectedModule(response.data.module);
-      setModuleFiles(response.data.files || []);
-      setSelectedModulePath(moduleId);
-    } catch (error) {
-      toast({
-        title: "Error fetching module details",
-        description: error instanceof Error ? error.message : "Failed to load module details",
-        variant: "destructive"
-      });
     }
   };
 
@@ -89,7 +93,7 @@ export default function ModuleAdmin() {
       const response = await moduleApi.createModule({
         name: newModuleName,
         description: newModuleDescription,
-        parent: parentModule || undefined
+        parent: currentPath || undefined
       });
 
       toast({
@@ -100,8 +104,9 @@ export default function ModuleAdmin() {
       setCreateDialogOpen(false);
       setNewModuleName('');
       setNewModuleDescription('');
-      setParentModule('');
-      fetchModules();
+      
+      // Reload current folder to show the new module
+      loadCurrentFolder(currentPath);
     } catch (error) {
       toast({
         title: "Error creating module",
@@ -114,7 +119,7 @@ export default function ModuleAdmin() {
   };
 
   const handleFileUpload = async () => {
-    if (!uploadFile || !uploadModuleId || !uploadFileName.trim()) {
+    if (!uploadFile || !uploadFileName.trim()) {
       toast({
         title: "Validation Error",
         description: "Please fill all required fields",
@@ -126,7 +131,7 @@ export default function ModuleAdmin() {
     try {
       setLoading(true);
       const response = await moduleApi.createModuleFile(
-        uploadModuleId,
+        currentPath,
         uploadFile,
         uploadFileType,
         uploadFileName
@@ -142,10 +147,8 @@ export default function ModuleAdmin() {
       setUploadFileName('');
       setUploadFileType('pdf');
 
-      // Refresh module details if viewing
-      if (selectedModule?.id === uploadModuleId) {
-        fetchModuleDetails(uploadModuleId);
-      }
+      // Reload current folder to show the new file
+      loadCurrentFolder(currentPath);
     } catch (error) {
       toast({
         title: "Error uploading file",
@@ -161,7 +164,64 @@ export default function ModuleAdmin() {
     router.push('/practice');
   };
 
-  const [activeTab, setActiveTab] = useState<'modules' | 'files'>('modules');
+  const navigateToFolder = (path: string) => {
+    loadCurrentFolder(path);
+  };
+
+  const navigateToSubModule = (subModule: SubModule) => {
+    const newPath = currentPath ? `${currentPath}/${subModule.id}` : subModule.id;
+    loadCurrentFolder(newPath);
+  };
+
+  const handleDeleteFile = async (fileId: string, fileName: string) => {
+    try {
+      setLoading(true);
+      await moduleApi.deleteFile(currentPath, fileId);
+
+      toast({
+        title: "Success",
+        description: `File "${fileName}" deleted successfully`,
+      });
+
+      // Reload current folder to reflect the deletion
+      loadCurrentFolder(currentPath);
+    } catch (error) {
+      toast({
+        title: "Error deleting file",
+        description: error instanceof Error ? error.message : "Failed to delete file",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteModule = async (moduleId: string, moduleName: string) => {
+    try {
+      setLoading(true);
+      await moduleApi.deleteModule(moduleId);
+
+      toast({
+        title: "Success",
+        description: `Module "${moduleName}" deleted successfully`,
+      });
+
+      // Navigate back to parent folder or root
+      const pathParts = currentPath.split('/');
+      pathParts.pop(); // Remove the deleted module from path
+      const parentPath = pathParts.join('/');
+      
+      loadCurrentFolder(parentPath);
+    } catch (error) {
+      toast({
+        title: "Error deleting module",
+        description: error instanceof Error ? error.message : "Failed to delete module",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 p-8">
@@ -184,235 +244,260 @@ export default function ModuleAdmin() {
           </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'modules' | 'files')} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="modules">Modules</TabsTrigger>
-            <TabsTrigger value="files">Files & Quizzes</TabsTrigger>
-          </TabsList>
+        {/* Breadcrumb Navigation */}
+        <div className="mb-6">
+          <nav className="flex items-center space-x-2 text-sm">
+            {breadcrumbs.map((crumb, index) => (
+              <div key={crumb.path} className="flex items-center">
+                {index > 0 && <ChevronRight className="h-4 w-4 text-gray-400 mx-2" />}
+                <button
+                  onClick={() => navigateToFolder(crumb.path)}
+                  className={`flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+                    index === breadcrumbs.length - 1 
+                      ? 'text-gray-900 dark:text-white font-medium' 
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  {index === 0 && <Home className="h-4 w-4" />}
+                  {crumb.name}
+                </button>
+              </div>
+            ))}
+          </nav>
+        </div>
 
-          {/* Modules Tab */}
-          <TabsContent value="modules">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Manage Modules</CardTitle>
-                    <CardDescription>Create and organize learning modules</CardDescription>
-                  </div>
-                  <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Module
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Create New Module</DialogTitle>
-                        <DialogDescription>
-                          Add a new learning module to the system
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="module-name">Module Name *</Label>
-                          <Input
-                            id="module-name"
-                            value={newModuleName}
-                            onChange={(e) => setNewModuleName(e.target.value)}
-                            placeholder="e.g., Introduction to AI"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="module-description">Description</Label>
-                          <Textarea
-                            id="module-description"
-                            value={newModuleDescription}
-                            onChange={(e) => setNewModuleDescription(e.target.value)}
-                            placeholder="Brief description of the module..."
-                            rows={3}
-                          />
-                        </div>
-                        <div className="space-y-2 col-span-2">
-                          <Label>Parent Module *</Label>
-                          <Select value={parentModule} onValueChange={setParentModule} disabled={loading}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select parent module (optional)" />
-                            </SelectTrigger>
-                            <SelectContent searchable searchPlaceholder="Search products..." noResultsText="No products found">
-                              {(modules || []).map((m) => (
-                                <SelectItem key={m.id} value={m.id}>
-                                  {m.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+        {/* Current Folder Content */}
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Folder className="h-5 w-5" />
+                  {currentModule?.name || 'Root Folder'}
+                </CardTitle>
+                <CardDescription>
+                  {currentModule?.description || 'Manage modules and files in this folder'}
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <FolderPlus className="h-4 w-4 mr-2" />
+                      Create Submodule
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create New Submodule</DialogTitle>
+                      <DialogDescription>
+                        Add a new submodule to {currentModule?.name || 'this folder'}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="module-name">Module Name *</Label>
+                        <Input
+                          id="module-name"
+                          value={newModuleName}
+                          onChange={(e) => setNewModuleName(e.target.value)}
+                          placeholder="e.g., Chapter 1 - Introduction"
+                        />
                       </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button onClick={handleCreateModule} disabled={loading}>
-                          {loading ? "Creating..." : "Create Module"}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {rootEntries.length === 0 ? (
-                  <div className="text-center py-8">
-                    <FolderPlus className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    <p className="text-gray-600 dark:text-gray-400">
-                      No modules created yet. Start by creating your first module.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {rootEntries.map((entry, idx) => (
-                      <div key={`${entry.module.id}-${idx}`} className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold truncate">{entry.module.name}</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                              {entry.module.description || 'No description provided'}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">{entry.subModules.length} submodule{entry.subModules.length === 1 ? '' : 's'} · {entry.files.filter(f=>f.type==='pdf').length} PDFs · {entry.files.filter(f=>f.type==='quiz').length} {entry.files.filter(f=>f.type==='quiz').length===1?'quiz':'quizzes'}</p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setUploadModuleId(entry.module.id);
-                                setUploadDialogOpen(true);
-                              }}
+                      <div>
+                        <Label htmlFor="module-description">Description</Label>
+                        <Textarea
+                          id="module-description"
+                          value={newModuleDescription}
+                          onChange={(e) => setNewModuleDescription(e.target.value)}
+                          placeholder="Brief description of the module..."
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleCreateModule} disabled={loading}>
+                        {loading ? "Creating..." : "Create Module"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+                <Button
+                  onClick={() => setUploadDialogOpen(true)}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload File
+                </Button>
+                {currentPath && (
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      if (confirm(`Are you sure you want to delete "${currentModule?.name}"? This action cannot be undone.`)) {
+                        handleDeleteModule(currentPath, currentModule?.name || 'this module');
+                      }
+                    }}
+                    disabled={loading}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Module
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
+                <p className="text-gray-600 dark:text-gray-400 mt-2">Loading...</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Submodules */}
+                {currentSubModules.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <Folder className="h-5 w-5" />
+                      Submodules ({currentSubModules.length})
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {currentSubModules.map((subModule) => (
+                        <div
+                          key={subModule.id}
+                          className="p-4 border rounded-lg hover:shadow-md transition-shadow bg-white dark:bg-gray-800"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div 
+                              className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                              onClick={() => navigateToSubModule(subModule)}
                             >
-                              <Upload className="h-4 w-4 mr-1" />
-                              Upload
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={async () => { await fetchModuleDetails(entry.module.id); setActiveTab('files'); }}
-                            >
-                              <Edit className="h-4 w-4 mr-1" />
-                              View
-                            </Button>
-                          </div>
-                        </div>
-                        {entry.subModules.length > 0 && (
-                          <div className="mt-3 pl-3 border-l">
-                            {entry.subModules.map((sm) => (
-                              <div key={sm.id} className="flex items-center justify-between py-2">
-                                <div className="min-w-0">
-                                  <p className="text-sm font-medium truncate">{sm.name}</p>
-                                  <p className="text-xs text-gray-500 truncate">{sm.description}</p>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => { setUploadModuleId(`${entry.module.id}/${sm.id}`); setUploadDialogOpen(true); }}
-                                  >
-                                    <Upload className="h-4 w-4 mr-1" />
-                                    Upload
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={async () => { await fetchModuleDetails(`${entry.module.id}/${sm.id}`); setActiveTab('files'); }}
-                                  >
-                                    <Edit className="h-4 w-4 mr-1" />
-                                    View
-                                  </Button>
+                              <Folder className="h-8 w-8 text-blue-500 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
+                                <h4 className="font-medium truncate">{subModule.name}</h4>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                                  {subModule.description || 'No description'}
+                                </p>
+                                <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                                  <span className="flex items-center gap-1">
+                                    <FileText className="h-3 w-3" />
+                                    {(subModule as any).files?.filter((f: any) => f.type === 'pdf').length || 0} PDFs
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <GraduationCap className="h-3 w-3" />
+                                    {(subModule as any).files?.filter((f: any) => f.type === 'quiz').length || 0} Quizzes
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Folder className="h-3 w-3" />
+                                    {(subModule as any).subModules?.length || 0} Submodules
+                                  </span>
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Files Tab */}
-          <TabsContent value="files">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Module Files & Quizzes</CardTitle>
-                    <CardDescription>
-                      {selectedModule
-                        ? `Files for: ${selectedModule.name}${selectedModulePath && selectedModulePath.includes('/') ? ` (${selectedModulePath})` : ''}`
-                        : 'Select a module or submodule to view its files'}
-                    </CardDescription>
-                  </div>
-                  {selectedModule && (
-                    <Button
-                      onClick={() => {
-                        setUploadModuleId(selectedModulePath || selectedModule.id);
-                        setUploadDialogOpen(true);
-                      }}
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload File
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                {!selectedModule ? (
-                  <div className="text-center py-8">
-                    <p className="text-gray-600 dark:text-gray-400">
-                      Select a module from the Modules tab to view its files
-                    </p>
-                  </div>
-                ) : moduleFiles.length === 0 ? (
-                  <div className="text-center py-8">
-                    <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    <p className="text-gray-600 dark:text-gray-400">
-                      No files uploaded for this module yet.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {moduleFiles.map((file, idx) => (
-                      <div
-                        key={`${file.id}-${idx}`}
-                        className="flex items-center justify-between p-4 border rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          {file.type === 'pdf' ? (
-                            <FileText className="h-8 w-8 text-blue-500" />
-                          ) : (
-                            <GraduationCap className="h-8 w-8 text-green-500" />
-                          )}
-                          <div>
-                            <h4 className="font-medium">{file.name}</h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Type: {file.type === 'pdf' ? 'PDF Document' : 'Quiz'}
-                              {file.questionsCount && ` • ${file.questionsCount} questions`}
-                            </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-red-600 hover:text-red-700 flex-shrink-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (confirm(`Are you sure you want to delete "${subModule.name}"? This action cannot be undone.`)) {
+                                    const modulePath = currentPath ? `${currentPath}/${subModule.id}` : subModule.id;
+                                    handleDeleteModule(modulePath, subModule.name);
+                                  }
+                                }}
+                                disabled={loading}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                              <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            </div>
                           </div>
                         </div>
-                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+
+                {/* Files */}
+                {currentFiles.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Files ({currentFiles.length})
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {currentFiles.map((file) => (
+                        <div
+                          key={file.id}
+                          className="p-4 border rounded-lg bg-white dark:bg-gray-800"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              {file.type === 'pdf' ? (
+                                <FileText className="h-8 w-8 text-blue-500 flex-shrink-0" />
+                              ) : (
+                                <GraduationCap className="h-8 w-8 text-green-500 flex-shrink-0" />
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <h4 className="font-medium truncate">{file.name}</h4>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  {file.type === 'pdf' ? 'PDF Document' : 'Quiz'}
+                                  {file.questionsCount && ` • ${file.questionsCount} questions`}
+                                </p>
+                              </div>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-700 flex-shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteFile(file.id, file.name);
+                              }}
+                              disabled={loading}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Empty State */}
+                {currentSubModules.length === 0 && currentFiles.length === 0 && (
+                  <div className="text-center py-12">
+                    <FolderPlus className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                      Empty Folder
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">
+                      This folder is empty. Create a submodule or upload a file to get started.
+                    </p>
+                    <div className="flex gap-3 justify-center">
+                      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button>
+                            <FolderPlus className="h-4 w-4 mr-2" />
+                            Create Submodule
+                          </Button>
+                        </DialogTrigger>
+                      </Dialog>
+                      <Button variant="outline" onClick={() => setUploadDialogOpen(true)}>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload File
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Upload File Dialog */}
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
@@ -420,7 +505,7 @@ export default function ModuleAdmin() {
             <DialogHeader>
               <DialogTitle>Upload File</DialogTitle>
               <DialogDescription>
-                Upload a PDF document or quiz file (CSV/XLSX) to the module
+                Upload a PDF document or quiz file (CSV/XLSX) to {currentModule?.name || 'this folder'}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -435,15 +520,15 @@ export default function ModuleAdmin() {
               </div>
               <div>
                 <Label htmlFor="file-type">File Type *</Label>
-                <Select value={uploadFileType} onValueChange={(value) => setUploadFileType(value as 'pdf' | 'quiz')}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pdf">PDF Document</SelectItem>
-                    <SelectItem value="quiz">Quiz (CSV/XLSX)</SelectItem>
-                  </SelectContent>
-                </Select>
+                <select
+                  id="file-type"
+                  value={uploadFileType}
+                  onChange={(e) => setUploadFileType(e.target.value as 'pdf' | 'quiz')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600"
+                >
+                  <option value="pdf">PDF Document</option>
+                  <option value="quiz">Quiz (CSV/XLSX)</option>
+                </select>
               </div>
               <div>
                 <Label htmlFor="file-upload">Select File *</Label>

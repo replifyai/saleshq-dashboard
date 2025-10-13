@@ -824,6 +824,7 @@ export const qaPairsApi = {
   createQAPairs: async (payload: {
     id: string;
     answer: string;
+    productId?: string;
   }): Promise<{ totalChunks: number; processedPairs: number; errors: any[] }> => {
     // Prefer a dedicated RAG API base if set; else default to localhost:5000 to match existing quiz API pattern
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';

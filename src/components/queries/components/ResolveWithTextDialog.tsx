@@ -42,14 +42,12 @@ export function ResolveWithTextDialog({ trigger, query, onSuccess }: ResolveWith
   }, [isOpen, query?.productName]);
 
   console.log("🚀 ~ ResolveWithTextDialog ~ selectedProductId:", selectedProductId);
-  console.log("🚀 ~ ResolveWithTextDialog ~ products:", products);
 
   const productName = useMemo(() => {
     if (customProductName.trim()) return customProductName.trim();
     const found = products?.find((p) => p.id === selectedProductId);
     return found?.name || "";
   }, [customProductName, selectedProductId, products]);
-
   useEffect(() => {
     if (!isOpen) {
       // reset form when closed
@@ -65,7 +63,8 @@ export function ResolveWithTextDialog({ trigger, query, onSuccess }: ResolveWith
       // First create QA pair
       await qaPairsApi.createQAPairs({
         id: query.id,
-        answer: answer.trim()
+        answer: answer.trim(),
+        productId: selectedProductId
       });
 
       // Then mark as resolved in the system

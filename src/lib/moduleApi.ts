@@ -1,5 +1,5 @@
 // Module API Service
-import { mockModules, mockFiles, mockQuizQuestions } from './mockModuleData';
+import { mockModules, mockFiles, mockQuizQuestions, mockNestedModules } from './mockModuleData';
 import { authService } from './auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}` : 'http://127.0.0.1:5003/SalesHQ-9f49f/asia-south1/dashboardApi';
@@ -27,6 +27,8 @@ export interface SubModule {
   id: string;
   name: string;
   description: string;
+  files?: ModuleFile[];
+  subModules?: SubModule[];
 }
 
 export interface ModuleResponse {
@@ -175,42 +177,10 @@ class ModuleApi {
     return response.json();
   }
 
-  async getModule(path: string): Promise<ModuleResponse> {
-    // Use mock data if enabled
-    if (USE_MOCK_DATA) {
-      // Get modules from localStorage or use default
-      let allModules = [...mockModules];
-      if (typeof window !== 'undefined') {
-        const storedModules = localStorage.getItem('mockModules');
-        if (storedModules) {
-          allModules = JSON.parse(storedModules);
-        }
-      }
-      
-      const module = allModules.find(m => m.id === path) || allModules[0];
-      
-      // Get files from localStorage or use default
-      let files = mockFiles[path as keyof typeof mockFiles] || [];
-      if (typeof window !== 'undefined') {
-        const storedFiles = localStorage.getItem('mockModuleFiles');
-        if (storedFiles) {
-          const allFiles = JSON.parse(storedFiles);
-          if (allFiles[path]) {
-            files = allFiles[path];
-          }
-        }
-      }
-      
-      return {
-        data: {
-          module: module,
-          files: files,
-          subModules: []
-        }
-      };
-    }
+  async getModule(path?: string): Promise<ModuleResponse> {
 
-    const response = await authService.authenticatedFetch(`${API_BASE_URL}/getModule?path=${path}`);
+    const url = path ? `${API_BASE_URL}/getModule?path=${path}` : `${API_BASE_URL}/getModule`;
+    const response = await authService.authenticatedFetch(url);
 
     if (!response.ok) {
       throw new Error('Failed to fetch module');
@@ -218,14 +188,90 @@ class ModuleApi {
 
     const json = await response.json();
 
-    // Normalize array, {data:{...}}, or flat {...}
-    let payload = json?.data ? json.data : json;
-    if (Array.isArray(json)) {
-      payload = json[0] ?? {};
+    // Handle root modules (array response) vs specific module (single object)
+    if (Array.isArray(json?.data)) {
+      // Root modules response wrapped in data property
+      const rootModules = json.data.map((entry: any) => {
+        const files = (entry?.files ?? []).map((f: any) => ({
+          id: f?.id,
+          name: f?.name ?? f?.title ?? 'Untitled',
+          type: f?.type,
+          location: f?.location,
+          createdAt: f?.createdAt,
+          createdBy: f?.createdBy,
+          questionsCount: f?.questionsCount,
+          url: f?.url,
+        })) as ModuleFile[];
+
+        const subModules = (entry?.subModules ?? []).map((m: any) => ({
+          id: m?.id ?? m?.name,
+          name: m?.name ?? '',
+          description: m?.description ?? '',
+          subModules: m?.subModules ?? [],
+          files: m?.files ?? [],
+        })) as SubModule[];
+
+        return {
+          id: entry?.module?.id ?? entry?.module?.name ?? String(Math.random()),
+          name: entry?.module?.name ?? '',
+          description: entry?.module?.description ?? '',
+          files: files,
+          subModules: subModules,
+        };
+      });
+
+      return {
+        data: {
+          module: { id: 'root', name: 'Root', description: 'Root module' },
+          files: [],
+          subModules: rootModules,
+        },
+      };
     }
 
+    if (Array.isArray(json)) {
+      // Root modules response - return first module as current, others as submodules
+      const rootModules = json.map((entry: any) => {
+        const files = (entry?.files ?? []).map((f: any) => ({
+          id: f?.id,
+          name: f?.name ?? f?.title ?? 'Untitled',
+          type: f?.type,
+          location: f?.location,
+          createdAt: f?.createdAt,
+          createdBy: f?.createdBy,
+          questionsCount: f?.questionsCount,
+          url: f?.url,
+        })) as ModuleFile[];
+
+        const subModules = (entry?.subModules ?? []).map((m: any) => ({
+          id: m?.id ?? m?.name,
+          name: m?.name ?? '',
+          description: m?.description ?? '',
+        })) as SubModule[];
+
+        return {
+          id: entry?.module?.id ?? entry?.module?.name ?? String(Math.random()),
+          name: entry?.module?.name ?? '',
+          description: entry?.module?.description ?? '',
+          files: files,
+          subModules: subModules,
+        };
+      });
+
+      return {
+        data: {
+          module: { id: 'root', name: 'Root', description: 'Root module' },
+          files: [],
+          subModules: rootModules,
+        },
+      };
+    }
+
+    // Single module response
+    const payload = json?.data ? json.data : json;
+
     const normModule: Module = {
-      id: payload?.module?.id ?? payload?.module?.name ?? path,
+      id: payload?.module?.id ?? payload?.module?.name ?? (path || 'root'),
       name: payload?.module?.name ?? '',
       description: payload?.module?.description ?? '',
       parent: payload?.module?.parent,
@@ -245,11 +291,32 @@ class ModuleApi {
       : [];
 
     const normSubs: SubModule[] = Array.isArray(payload?.subModules)
-      ? payload.subModules.map((m: any) => ({
-          id: m?.id ?? m?.name,
-          name: m?.name ?? '',
-          description: m?.description ?? '',
-        }))
+      ? payload.subModules.map((m: any) => {
+          const files = (m?.files ?? []).map((f: any) => ({
+            id: f?.id,
+            name: f?.name ?? f?.title ?? 'Untitled',
+            type: f?.type,
+            location: f?.location,
+            createdAt: f?.createdAt,
+            createdBy: f?.createdBy,
+            questionsCount: f?.questionsCount,
+            url: f?.url,
+          })) as ModuleFile[];
+
+          const subModules = (m?.subModules ?? []).map((sm: any) => ({
+            id: sm?.id ?? sm?.name,
+            name: sm?.name ?? '',
+            description: sm?.description ?? '',
+          })) as SubModule[];
+
+          return {
+            id: m?.id ?? m?.name,
+            name: m?.name ?? '',
+            description: m?.description ?? '',
+            files: files,
+            subModules: subModules,
+          };
+        })
       : [];
 
     return {
@@ -348,7 +415,7 @@ class ModuleApi {
       const entries: RootModuleEntry[] = mockModules.map((m) => ({
         module: { id: m.id, name: m.name, description: m.description },
         files: mockFiles[m.id as keyof typeof mockFiles] || [],
-        subModules: [],
+        subModules: mockNestedModules[m.id as keyof typeof mockNestedModules] || [],
       }));
       return entries;
     }
@@ -632,6 +699,74 @@ class ModuleApi {
     if (!response.ok) {
       throw new Error('Failed to load leaderboard');
     }
+    return response.json();
+  }
+
+  async deleteFile(moduleId: string, fileId: string): Promise<{ message: string }> {
+    // Use mock implementation if enabled
+    if (USE_MOCK_DATA) {
+      // Remove file from localStorage
+      if (typeof window !== 'undefined') {
+        const storedFiles = localStorage.getItem('mockModuleFiles');
+        if (storedFiles) {
+          const files = JSON.parse(storedFiles);
+          if (files[moduleId]) {
+            files[moduleId] = files[moduleId].filter((file: ModuleFile) => file.id !== fileId);
+            localStorage.setItem('mockModuleFiles', JSON.stringify(files));
+          }
+        }
+      }
+      
+      return {
+        message: 'File deleted successfully'
+      };
+    }
+
+    const response = await authService.authenticatedFetch(`${API_BASE_URL}/deleteFile`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ moduleId, fileId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete file');
+    }
+
+    return response.json();
+  }
+
+  async deleteModule(id: string): Promise<{ message: string }> {
+    // Use mock implementation if enabled
+    if (USE_MOCK_DATA) {
+      // Remove module from localStorage
+      if (typeof window !== 'undefined') {
+        const storedModules = localStorage.getItem('mockModules');
+        if (storedModules) {
+          const modules = JSON.parse(storedModules);
+          const filteredModules = modules.filter((module: Module) => module.id !== id);
+          localStorage.setItem('mockModules', JSON.stringify(filteredModules));
+        }
+      }
+      
+      return {
+        message: 'Module deleted successfully'
+      };
+    }
+
+    const response = await authService.authenticatedFetch(`${API_BASE_URL}/deleteModule`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete module');
+    }
+
     return response.json();
   }
 
