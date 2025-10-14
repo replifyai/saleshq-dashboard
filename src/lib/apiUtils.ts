@@ -475,13 +475,12 @@ export const documentApi = {
   // Batch upload URLs
   batchUploadUrls: async (urls: string[], concurrency: number, retryAttempts: number): Promise<any> => {
     const apiUrl = getApiUrl('/api/documents/batch-upload-urls');
-    const response = await fetch(apiUrl, {
+    const response = await authService.authenticatedFetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ urls, concurrency, retryAttempts }),
-      credentials: 'include',
     });
 
     if (!response.ok) {
@@ -501,10 +500,9 @@ export const documentApi = {
     formData.append('retryAttempts', retryAttempts.toString());
     
     const apiUrl = getApiUrl('/api/documents/batch-upload-files');
-    const response = await fetch(apiUrl, {
+    const response = await authService.authenticatedFetch(apiUrl, {
       method: 'POST',
       body: formData,
-      credentials: 'include',
     });
 
     if (!response.ok) {
@@ -541,9 +539,8 @@ export const documentApi = {
   // Cancel batch job
   cancelBatchJob: async (jobId: string): Promise<void> => {
     const apiUrl = getApiUrl(`/api/batch-jobs/${jobId}/cancel`);
-    const response = await fetch(apiUrl, {
+    const response = await authService.authenticatedFetch(apiUrl, {
       method: 'POST',
-      credentials: 'include',
     });
 
     if (!response.ok) {
@@ -746,7 +743,8 @@ export const tagApi = {
 export const quizApi = {
   // Get quiz questions
   getQuizQuestions: async (topics: string[]): Promise<QuizResponse> => {
-    const response = await fetch('http://localhost:5000/api/quiz', {
+    const apiUrl = getApiUrl('/api/quiz');
+    const response = await authService.authenticatedFetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

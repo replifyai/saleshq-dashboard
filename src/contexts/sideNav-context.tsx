@@ -10,6 +10,11 @@ type SideNavContextValue = {
 };
 export const SideNavContext = createContext<SideNavContextValue | null>(null);
 const getActiveTab = (pathname: string): string => {
+    // Handle /modules/* pattern first
+    if (pathname.startsWith("/modules")) {
+        return "practice";
+    }
+    
     switch (pathname) {
         case "/chat":
             return "chat";
@@ -65,7 +70,7 @@ export const SideNavProvider = ({ children }: { children: React.ReactNode }) => 
             if (stored !== null) {
                 setIsCollapsed(stored === 'true');
             }
-        } catch {}
+        } catch { }
     }, []);
 
     useEffect(() => {
@@ -73,7 +78,7 @@ export const SideNavProvider = ({ children }: { children: React.ReactNode }) => 
             if (typeof window !== 'undefined') {
                 window.localStorage.setItem('sideNav.collapsed', String(isCollapsed));
             }
-        } catch {}
+        } catch { }
     }, [isCollapsed]);
 
     const toggleCollapsed = () => setIsCollapsed(prev => !prev);
