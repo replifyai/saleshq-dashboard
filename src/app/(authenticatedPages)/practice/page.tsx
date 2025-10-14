@@ -56,7 +56,7 @@ export default function PracticePage() {
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
             <PracticeWelcome />
-            <Card className="h-[520px] flex flex-col">
+            <Card className="h-auto flex flex-col">
               <CardHeader className="pb-4 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center">
@@ -73,7 +73,7 @@ export default function PracticePage() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0 flex-1 overflow-hidden">
+              <CardContent className="pt-2 flex-1 overflow-hidden">
                 <CompactModuleList />
               </CardContent>
             </Card>
@@ -88,7 +88,7 @@ export default function PracticePage() {
                   <span>Top Performers</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0 flex-1 overflow-hidden">
+              <CardContent className="pt-2 flex-1 overflow-hidden">
                 <CompactLeaderboard />
               </CardContent>
             </Card>
@@ -99,7 +99,7 @@ export default function PracticePage() {
                   <span>Recent Results</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0 flex-1 overflow-hidden">
+              <CardContent className="pt-2 flex-1 overflow-hidden">
                 <CompactQuizHistory />
               </CardContent>
             </Card>

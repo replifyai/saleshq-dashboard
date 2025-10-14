@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { moduleApi, type ModuleTreeNode } from '@/lib/moduleApi';
+import { moduleApi, SubModule, type ModuleTreeNode } from '@/lib/moduleApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -40,7 +40,7 @@ export default function ModuleTree() {
   const [query, setQuery] = useState('');
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
-  const [details, setDetails] = useState<{ name: string; description: string; pdfs: number; quizzes: number } | null>(null);
+  const [details, setDetails] = useState<{ name: string; description: string; pdfs: number; quizzes: number, subModules: SubModule[] } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -67,7 +67,20 @@ export default function ModuleTree() {
   }, []);
 
   const toggleNode = (targetPath: string) => {
-    setRoots((prev) => prev.map((n) => (n.path === targetPath ? { ...n, isExpanded: !n.isExpanded } : n)));
+    const updateNode = (node: TreeNode): TreeNode => {
+      if (node.path === targetPath) {
+        return { ...node, isExpanded: !node.isExpanded };
+      }
+      if (node.children) {
+        return {
+          ...node,
+          children: node.children.map(updateNode)
+        };
+      }
+      return node;
+    };
+    
+    setRoots((prev) => prev.map(updateNode));
   };
 
   const onNavigate = (path: string) => {
@@ -87,7 +100,8 @@ export default function ModuleTree() {
       const files = res.data.files || [];
       const pdfs = files.filter((f) => f.type === 'pdf').length;
       const quizzes = files.filter((f) => f.type === 'quiz').length;
-      setDetails({ name: res.data.module.name, description: res.data.module.description, pdfs, quizzes });
+      setDetails({ name: res.data.module.name, description: res.data.module.description, pdfs, quizzes,subModules: res.data.subModules });
+      toggleNode(path);
     } catch {
       setDetails(null);
     } finally {
@@ -263,13 +277,13 @@ export default function ModuleTree() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="lg:col-span-1 bg-white dark:bg-gray-800 border rounded-lg p-4 max-h-[70vh] overflow-auto" role="tree" aria-label="Modules">
               <div className="space-y-1">
                 {(filterTree(roots, query)).map((n) => renderNode(n))}
               </div>
             </div>
-            <div className="lg:col-span-2 border rounded-lg p-6 min-h-[60vh] bg-gray-50/50 dark:bg-gray-800/20" role="region" aria-label="Module details">
+            <div className="border rounded-lg p-6 min-h-[60vh] bg-gray-50/50 dark:bg-gray-800/20" role="region" aria-label="Module details">
               {!selectedPath ? (
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
                   <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
@@ -364,6 +378,61 @@ export default function ModuleTree() {
                     </div>
                   )}
 
+                  {/* SubModules */}
+                  {details.subModules && details.subModules.length > 0 && (
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                        Sub-Modules ({details.subModules.length})
+                      </h4>
+                      <div className="space-y-3">
+                        {details.subModules.map((subModule) => {
+                          const subModulePdfs = subModule.files?.filter(f => f.type === 'pdf').length || 0;
+                          const subModuleQuizzes = subModule.files?.filter(f => f.type === 'quiz').length || 0;
+                          const subModuleSubModules = subModule.subModules?.length || 0;
+                          return (
+                            <div key={subModule.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <h5 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
+                                    {subModule.name}
+                                  </h5>
+                                  {subModule.description && (
+                                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                      {subModule.description}
+                                    </p>
+                                  )}
+                                  <div className="flex items-center gap-4 text-xs text-gray-500">
+                                    <div className="flex items-center gap-1">
+                                      <FileText className="h-3 w-3" />
+                                      <span>{subModulePdfs} PDF{subModulePdfs !== 1 ? 's' : ''}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <HelpCircle className="h-3 w-3" />
+                                      <span>{subModuleQuizzes} Quiz{subModuleQuizzes !== 1 ? 'zes' : ''}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Folder className="h-3 w-3" />
+                                      <span>{subModuleSubModules} Sub-Module{subModuleSubModules !== 1 ? 's' : ''}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => onNavigate(`${selectedPath}/${subModule.id}`)}
+                                  title="Open Sub-Module"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
                     <Button 
@@ -381,14 +450,6 @@ export default function ModuleTree() {
                       <Eye className="h-4 w-4" />
                       View Contents
                     </Button>
-                  </div>
-
-                  {/* Quick Stats */}
-                  <div className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t">
-                    <div className="flex justify-between">
-                      <span>Total Resources: {details.pdfs + details.quizzes}</span>
-                      <span>Module Path: {selectedPath}</span>
-                    </div>
                   </div>
                 </div>
               ) : (

@@ -91,7 +91,7 @@ export default function ModulesPage() {
           </div>
 
           {/* Stats Cards */}
-          {!loading && (
+          {/* {!loading && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <Card>
                 <CardContent className="p-4">
@@ -147,7 +147,7 @@ export default function ModulesPage() {
                 </CardContent>
               </Card>
             </div>
-          )}
+          )} */}
         </div>
 
         {/* Module Tree */}
