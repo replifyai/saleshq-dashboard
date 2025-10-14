@@ -28,37 +28,159 @@ export const mockModules = [
   }
 ];
 
-// Mock nested module structure for testing
+// Mock nested module structure for testing - supports unlimited nesting
 export const mockNestedModules = {
   'module-1': [
     {
       id: 'submodule-1-1',
       name: 'AI History and Evolution',
-      description: 'The development of AI from its inception to modern times'
+      description: 'The development of AI from its inception to modern times',
+      subModules: [
+        {
+          id: 'submodule-1-1-1',
+          name: 'Early AI Pioneers',
+          description: 'The founding fathers of artificial intelligence',
+          subModules: [
+            {
+              id: 'submodule-1-1-1-1',
+              name: 'Alan Turing Contributions',
+              description: 'Turing machines and computational theory'
+            },
+            {
+              id: 'submodule-1-1-1-2',
+              name: 'John McCarthy Legacy',
+              description: 'LISP and symbolic AI development'
+            }
+          ]
+        },
+        {
+          id: 'submodule-1-1-2',
+          name: 'Modern AI Era',
+          description: 'AI developments from 2000s onwards',
+          subModules: [
+            {
+              id: 'submodule-1-1-2-1',
+              name: 'Deep Learning Revolution',
+              description: 'The rise of neural networks and deep learning'
+            }
+          ]
+        }
+      ]
     },
     {
       id: 'submodule-1-2',
       name: 'AI Applications',
-      description: 'Real-world applications of artificial intelligence'
+      description: 'Real-world applications of artificial intelligence',
+      subModules: [
+        {
+          id: 'submodule-1-2-1',
+          name: 'Healthcare AI',
+          description: 'AI applications in medical diagnosis and treatment',
+          subModules: [
+            {
+              id: 'submodule-1-2-1-1',
+              name: 'Medical Imaging',
+              description: 'AI-powered radiology and diagnostics'
+            },
+            {
+              id: 'submodule-1-2-1-2',
+              name: 'Drug Discovery',
+              description: 'AI in pharmaceutical research and development'
+            }
+          ]
+        },
+        {
+          id: 'submodule-1-2-2',
+          name: 'Autonomous Systems',
+          description: 'Self-driving cars and robotics',
+          subModules: [
+            {
+              id: 'submodule-1-2-2-1',
+              name: 'Self-Driving Cars',
+              description: 'Autonomous vehicle technology and challenges'
+            }
+          ]
+        }
+      ]
     }
   ],
   'module-2': [
     {
       id: 'submodule-2-1',
       name: 'Supervised Learning',
-      description: 'Learning with labeled data'
+      description: 'Learning with labeled data',
+      subModules: [
+        {
+          id: 'submodule-2-1-1',
+          name: 'Classification Algorithms',
+          description: 'Algorithms for categorical predictions',
+          subModules: [
+            {
+              id: 'submodule-2-1-1-1',
+              name: 'Decision Trees',
+              description: 'Tree-based classification methods'
+            },
+            {
+              id: 'submodule-2-1-1-2',
+              name: 'Random Forests',
+              description: 'Ensemble methods for improved accuracy'
+            }
+          ]
+        },
+        {
+          id: 'submodule-2-1-2',
+          name: 'Regression Algorithms',
+          description: 'Algorithms for continuous value predictions'
+        }
+      ]
     },
     {
       id: 'submodule-2-2',
       name: 'Unsupervised Learning',
-      description: 'Finding patterns in unlabeled data'
+      description: 'Finding patterns in unlabeled data',
+      subModules: [
+        {
+          id: 'submodule-2-2-1',
+          name: 'Clustering Methods',
+          description: 'Grouping similar data points together'
+        },
+        {
+          id: 'submodule-2-2-2',
+          name: 'Dimensionality Reduction',
+          description: 'Reducing data complexity while preserving information'
+        }
+      ]
     }
   ],
-  'module-1/submodule-1-1': [
+  'module-3': [
     {
-      id: 'submodule-1-1-1',
-      name: 'Early AI Pioneers',
-      description: 'The founding fathers of artificial intelligence'
+      id: 'submodule-3-1',
+      name: 'Neural Networks',
+      description: 'Foundation of deep learning',
+      subModules: [
+        {
+          id: 'submodule-3-1-1',
+          name: 'Perceptrons',
+          description: 'Basic building blocks of neural networks',
+          subModules: [
+            {
+              id: 'submodule-3-1-1-1',
+              name: 'Single Layer Perceptrons',
+              description: 'Simplest form of neural networks'
+            },
+            {
+              id: 'submodule-3-1-1-2',
+              name: 'Multi-Layer Perceptrons',
+              description: 'Networks with hidden layers'
+            }
+          ]
+        },
+        {
+          id: 'submodule-3-1-2',
+          name: 'Backpropagation',
+          description: 'Training neural networks through gradient descent'
+        }
+      ]
     }
   ]
 };
@@ -87,6 +209,72 @@ export const mockFiles = {
       createdAt: Date.now()
     }
   ],
+  'module-1/submodule-1-1': [
+    {
+      id: 'file-1-1-1',
+      name: 'AI Timeline Overview',
+      type: 'pdf' as const,
+      location: 'mock/ai-timeline.pdf',
+      createdAt: Date.now()
+    },
+    {
+      id: 'quiz-1-1',
+      name: 'AI History Quiz',
+      type: 'quiz' as const,
+      questionsCount: 15,
+      createdAt: Date.now()
+    }
+  ],
+  'module-1/submodule-1-1/submodule-1-1-1': [
+    {
+      id: 'file-1-1-1-1',
+      name: 'Pioneers Biography',
+      type: 'pdf' as const,
+      location: 'mock/ai-pioneers.pdf',
+      createdAt: Date.now()
+    },
+    {
+      id: 'quiz-1-1-1',
+      name: 'AI Pioneers Quiz',
+      type: 'quiz' as const,
+      questionsCount: 12,
+      createdAt: Date.now()
+    }
+  ],
+  'module-1/submodule-1-1/submodule-1-1-1/submodule-1-1-1-1': [
+    {
+      id: 'file-1-1-1-1-1',
+      name: 'Turing Machine Theory',
+      type: 'pdf' as const,
+      location: 'mock/turing-machines.pdf',
+      createdAt: Date.now()
+    }
+  ],
+  'module-1/submodule-1-2': [
+    {
+      id: 'file-1-2-1',
+      name: 'AI Applications Guide',
+      type: 'pdf' as const,
+      location: 'mock/ai-applications.pdf',
+      createdAt: Date.now()
+    }
+  ],
+  'module-1/submodule-1-2/submodule-1-2-1': [
+    {
+      id: 'file-1-2-1-1',
+      name: 'Healthcare AI Overview',
+      type: 'pdf' as const,
+      location: 'mock/healthcare-ai.pdf',
+      createdAt: Date.now()
+    },
+    {
+      id: 'quiz-1-2-1',
+      name: 'Healthcare AI Quiz',
+      type: 'quiz' as const,
+      questionsCount: 18,
+      createdAt: Date.now()
+    }
+  ],
   'module-2': [
     {
       id: 'file-3',
@@ -100,6 +288,42 @@ export const mockFiles = {
       name: 'Machine Learning Basics Quiz',
       type: 'quiz' as const,
       questionsCount: 25,
+      createdAt: Date.now()
+    }
+  ],
+  'module-2/submodule-2-1': [
+    {
+      id: 'file-2-1-1',
+      name: 'Supervised Learning Guide',
+      type: 'pdf' as const,
+      location: 'mock/supervised-learning.pdf',
+      createdAt: Date.now()
+    }
+  ],
+  'module-2/submodule-2-1/submodule-2-1-1': [
+    {
+      id: 'file-2-1-1-1',
+      name: 'Classification Methods',
+      type: 'pdf' as const,
+      location: 'mock/classification.pdf',
+      createdAt: Date.now()
+    }
+  ],
+  'module-3': [
+    {
+      id: 'file-4',
+      name: 'Deep Learning Fundamentals',
+      type: 'pdf' as const,
+      location: 'mock/deep-learning.pdf',
+      createdAt: Date.now()
+    }
+  ],
+  'module-3/submodule-3-1': [
+    {
+      id: 'file-3-1-1',
+      name: 'Neural Networks Basics',
+      type: 'pdf' as const,
+      location: 'mock/neural-networks.pdf',
       createdAt: Date.now()
     }
   ]

@@ -21,7 +21,6 @@ export default function ModuleDetailCatchAllPage() {
   }, []);
 
   if (!moduleId) return null;
-  console.log("🚀 ~ ModuleDetailCatchAllPage ~ moduleId:", moduleId);
   return <ModuleDetail moduleId={moduleId} />;
 }
 

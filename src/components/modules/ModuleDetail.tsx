@@ -1,13 +1,23 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, BookOpen, GraduationCap, FileText, Maximize2, PlayCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { 
+  ArrowLeft, 
+  BookOpen, 
+  GraduationCap, 
+  FileText, 
+  Maximize2, 
+  PlayCircle, 
+  ChevronRight,
+  Users,
+  Eye
+} from 'lucide-react';
 import { moduleApi, type Module, type ModuleFile, type QuizQuestion, type SubModule } from '@/lib/moduleApi';
 import { useToast } from '@/hooks/use-toast';
 import ModuleQuiz from './ModuleQuiz';
@@ -27,8 +37,6 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
   const [quizFiles, setQuizFiles] = useState<ModuleFile[]>([]);
   const [selectedPdf, setSelectedPdf] = useState<ModuleFile | null>(null);
   const [selectedQuiz, setSelectedQuiz] = useState<ModuleFile | null>(null);
-  const [activeTab, setActiveTab] = useState<'knowledge' | 'test'>('knowledge');
-  const [hideTabs, setHideTabs] = useState(false);
   const [subModules, setSubModules] = useState<SubModule[]>([]);
 
   useEffect(() => {
@@ -70,23 +78,22 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
       const parentPath = moduleId.split('/').slice(0, -1).join('/');
       router.push(`/modules/${parentPath}`);
     } else {
-      router.push('/practice');
+      router.push('/modules');
     }
   };
 
   const handleStartQuiz = (quiz: ModuleFile) => {
     setSelectedQuiz(quiz);
-    setActiveTab('test');
   };
 
   const handleQuizBack = () => {
     setSelectedQuiz(null);
-    setHideTabs(false);
   };
 
   const handlePdfSelect = (pdf: ModuleFile) => {
     setSelectedPdf(pdf);
   };
+
   const handleFullscreen = () => {
     const element = document.getElementById('pdf-viewer-container');
     if (element) {
@@ -98,226 +105,380 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
     }
   };
 
+  // Calculate progress metrics
+  const totalContent = pdfFiles.length + quizFiles.length;
+  const completedContent = 0; // This would come from user progress tracking
+  const progressPercentage = totalContent > 0 ? (completedContent / totalContent) * 100 : 0;
+
+  // Generate breadcrumb path
+  const generateBreadcrumb = () => {
+    const pathSegments = moduleId.split('/');
+    return pathSegments.map((segment, index) => ({
+      name: segment,
+      path: pathSegments.slice(0, index + 1).join('/'),
+      isLast: index === pathSegments.length - 1
+    }));
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 p-8">
-        <div className="max-w-7xl mx-auto">
-          <Skeleton className="h-10 w-64 mb-4" />
-          <Skeleton className="h-6 w-96 mb-8" />
-          <Skeleton className="h-96 w-full" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-900/20 dark:to-indigo-900/20">
+        <div className="max-w-7xl mx-auto p-6">
+          {/* Header Skeleton */}
+          <div className="mb-8">
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-96 mb-4" />
+            <Skeleton className="h-6 w-64" />
+          </div>
+          
+          {/* Content Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-1">
+              <Skeleton className="h-96 w-full" />
+            </div>
+            <div className="lg:col-span-3">
+              <Skeleton className="h-96 w-full" />
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
+  const breadcrumbs = generateBreadcrumb();
+
   return (
-    <div className="h-full p-2">
-      {/* Sticky Header with minimal info */}
-      <div className="flex items-center justify-between mb-2">
-        <Button variant="ghost" size="sm" onClick={handleBackClick}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-        {/* <div className="min-w-0 flex-1 px-2 truncate">
-          <h1 className="text-base font-semibold truncate">
-            {module?.name}
-          </h1>
-          <p className="text-xs text-gray-500 truncate">{module?.description}</p>
-        </div> */}
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-900/20 dark:to-indigo-900/20">
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Enhanced Header with Breadcrumbs */}
+        <header className="mb-8" role="banner">
+          <nav className="mb-4" aria-label="Breadcrumb">
+            <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <li>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleBackClick}
+                  className="h-8 px-2"
+                  aria-label="Go back to modules"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  Back
+                </Button>
+              </li>
+              {breadcrumbs.map((crumb, index) => (
+                <li key={crumb.path} className="flex items-center">
+                  <ChevronRight className="h-4 w-4 mx-1 text-muted-foreground" />
+                  {crumb.isLast ? (
+                    <span className="font-medium text-foreground" aria-current="page">
+                      {crumb.name}
+                    </span>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => router.push(`/modules/${crumb.path}`)}
+                      className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                    >
+                      {crumb.name}
+                    </Button>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </nav>
 
-      {/* Tabs with compact list */}
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'knowledge' | 'test')}>
-        {/* {!hideTabs && (
-          <div className="flex items-center justify-between mb-2">
-            <TabsList className="mb-2">
-              <TabsTrigger value="knowledge" className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                Knowledge
-              </TabsTrigger>
-              <TabsTrigger value="test" className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4" />
-                Test
-              </TabsTrigger>
-            </TabsList>
-          </div>
-        )} */}
-        {/* Knowledge Tab */}
-        <TabsContent value="knowledge" className="h-full">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 h-full">
-            {/* Side Panel: Hierarchical Files and Submodules */}
-            <div className="lg:col-span-1">
-              <Card className="h-full">
-                <CardHeader className="py-2">
-                  <CardTitle className="text-sm">
-                    <div className="min-w-0 flex-1 truncate">
-                      <h1 className="text-base font-semibold truncate">{module?.name}</h1>
-                      <p className="text-xs text-gray-500 truncate">{module?.description}</p>
-                    </div>
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    {pdfFiles.length} PDF{pdfFiles.length === 1 ? '' : 's'} · {quizFiles.length} {quizFiles.length === 1 ? 'quiz' : 'quizzes'} · {subModules.length} submodule{subModules.length === 1 ? '' : 's'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <ScrollArea className="h-full">
-                    <div className="p-2 space-y-3">
-                      {/* Files Section */}
-                      <div>
-                        <div className="px-2 py-1 text-[11px] uppercase tracking-wide text-gray-500">Files</div>
-                        {/* PDFs */}
-                        {pdfFiles.length > 0 && (
-                          <div className="mt-1">
-                            <div className="px-2 text-xs text-gray-500">PDFs · {pdfFiles.length}</div>
-                            <div className="mt-1 space-y-1">
-                              {pdfFiles.map((pdf) => (
-                                <Button
-                                  key={pdf.id}
-                                  variant={selectedPdf?.id === pdf.id ? "secondary" : "ghost"}
-                                  className="w-full justify-start h-9"
-                                  onClick={() => handlePdfSelect(pdf)}
-                                >
-                                  <FileText className="h-4 w-4 mr-2" />
-                                  <span className="truncate text-sm">{pdf.name}</span>
-                                </Button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Quizzes */}
-                        {quizFiles.length > 0 && (
-                          <div className="mt-3">
-                            <div className="px-2 text-xs text-gray-500">Quizzes · {quizFiles.length}</div>
-                            <div className="mt-1 space-y-1">
-                              {quizFiles.map((quiz) => (
-                                <Button
-                                  key={quiz.id}
-                                  variant="ghost"
-                                  className="w-full justify-start h-9"
-                                  onClick={() => handleStartQuiz(quiz)}
-                                >
-                                  <GraduationCap className="h-4 w-4 mr-2" />
-                                  <span className="truncate text-sm">{quiz.name}</span>
-                                </Button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Submodules Section */}
-                      {subModules.length > 0 && (
-                        <div className="mt-2">
-                          <div className="px-2 py-1 text-[11px] uppercase tracking-wide text-gray-500">Submodules · {subModules.length}</div>
-                          <div className="mt-1 space-y-1">
-                            {subModules.map((sm) => (
-                              <Button
-                                key={sm.id}
-                                variant="ghost"
-                                className="w-full justify-start h-9"
-                                onClick={() => router.push(`/modules/${module?.id}/${sm.id}`)}
-                              >
-                                <BookOpen className="h-4 w-4 mr-2" />
-                                <span className="truncate text-sm">{sm.name}</span>
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* PDF Viewer - fills available height */}
-            <div className="lg:col-span-4">
-              {selectedPdf ? (
-                <Card className="h-[calc(100vh-5.5rem)]">
-                  <CardContent className="h-[calc(100%-2.5rem)] p-0">
-                    <PdfViewer file={selectedPdf} />
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="h-[calc(100vh-5.5rem)] flex items-center justify-center">
-                  <div className="text-center">
-                    <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
-                      {pdfFiles.length === 0 ? 'No learning materials' : 'Select a PDF to view'}
-                    </p>
+          {/* Module Header */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-3xl font-bold text-foreground mb-2 truncate" id="module-title">
+                {module?.name}
+              </h1>
+              <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                {module?.description}
+              </p>
+              
+              {/* Progress and Stats */}
+              <div className="flex flex-wrap items-center gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <BookOpen className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium">{pdfFiles.length}</span>
+                    <span className="text-muted-foreground">Materials</span>
                   </div>
-                </Card>
-              )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <GraduationCap className="h-4 w-4 text-green-600" />
+                    <span className="font-medium">{quizFiles.length}</span>
+                    <span className="text-muted-foreground">Assessments</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4 text-purple-600" />
+                    <span className="font-medium">{subModules.length}</span>
+                    <span className="text-muted-foreground">Submodules</span>
+                  </div>
+                </div>
+                {/* {totalContent > 0 && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <Target className="h-4 w-4 text-orange-600" />
+                      <span className="font-medium">{Math.round(progressPercentage)}%</span>
+                      <span className="text-muted-foreground">Complete</span>
+                    </div>
+                  </div>
+                )} */}
+              </div>
             </div>
-          </div>
-        </TabsContent>
 
-        {/* Test Tab */}
-        <TabsContent value="test" className="min-h-[calc(100vh-7rem)]">
+            {/* Action Buttons */}
+            {/* <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="gap-2">
+                <Bookmark className="h-4 w-4" />
+                Save
+              </Button>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Share2 className="h-4 w-4" />
+                Share
+              </Button>
+              {selectedPdf && (
+                <Button variant="outline" size="sm" onClick={handleFullscreen} className="gap-2">
+                  <Maximize2 className="h-4 w-4" />
+                  Fullscreen
+                </Button>
+              )}
+            </div> */}
+          </div>
+
+          {/* Progress Bar */}
+          {/* {totalContent > 0 && (
+            <div className="mt-4">
+              <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                <span>Learning Progress</span>
+                <span>{completedContent} of {totalContent} completed</span>
+              </div>
+              <Progress value={progressPercentage} className="h-2" />
+            </div>
+          )} */}
+        </header>
+
+        {/* Main Content */}
+        <main role="main">
           {selectedQuiz ? (
             <ModuleQuiz
               moduleId={moduleId}
               quizFile={selectedQuiz}
               onBack={handleQuizBack}
-              onResultsVisibilityChange={(visible) => setHideTabs(visible)}
             />
           ) : (
-            <>
-              {quizFiles.length === 0 ? (
-                <Card className="p-12 text-center">
-                  <GraduationCap className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-xl font-semibold mb-2">No Tests Available</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    No quizzes have been created for this module yet.
-                  </p>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  <div className="lg:col-span-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {quizFiles.map((quiz) => (
-                        <Card key={quiz.id} className="hover:shadow-lg transition-shadow">
-                          <CardHeader>
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                                <GraduationCap className="h-6 w-6 text-green-600 dark:text-green-400" />
-                              </div>
-                              <span className="text-sm text-gray-600 dark:text-gray-400">
-                                {quiz.questionsCount} questions
-                              </span>
-                            </div>
-                            <CardTitle className="text-lg truncate">{quiz.name}</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="flex items-center gap-4 mb-4 text-sm text-gray-600 dark:text-gray-400">
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-4 w-4" />
-                                ~{Math.ceil((quiz.questionsCount || 10) * 1.5)} mins
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <CheckCircle2 className="h-4 w-4" />
-                                Multiple Choice
-                              </span>
-                            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* Enhanced Sidebar */}
+              <aside className="lg:col-span-1" role="complementary" aria-label="Module navigation">
+                <Card className="sticky top-6">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <BookOpen className="h-5 w-5 text-blue-600" />
+                      Module Content
+                    </CardTitle>
+                    <CardDescription>
+                      Navigate through learning materials, assessments, and submodules
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Learning Materials Section */}
+                    {pdfFiles.length > 0 && (
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-blue-600" />
+                            Learning Materials
+                          </h3>
+                          <Badge variant="secondary" className="text-xs">
+                            {pdfFiles.length}
+                          </Badge>
+                        </div>
+                        <div className="space-y-2">
+                          {pdfFiles.map((pdf, index) => (
                             <Button
-                              className="w-full"
-                              onClick={() => handleStartQuiz(quiz)}
+                              key={pdf.id}
+                              variant={selectedPdf?.id === pdf.id ? "secondary" : "ghost"}
+                              className="w-full justify-start h-10 text-left group"
+                              onClick={() => handlePdfSelect(pdf)}
+                              aria-pressed={selectedPdf?.id === pdf.id}
+                              aria-describedby={`pdf-${pdf.id}-description`}
                             >
-                              <PlayCircle className="h-4 w-4 mr-2" />
-                              Start Test
+                              <div className="flex items-center gap-3 w-full">
+                                <div className={`p-1.5 rounded-md ${
+                                  selectedPdf?.id === pdf.id 
+                                    ? 'bg-blue-100 dark:bg-blue-900/30' 
+                                    : 'bg-gray-100 dark:bg-gray-800'
+                                }`}>
+                                  <FileText className={`h-4 w-4 ${
+                                    selectedPdf?.id === pdf.id 
+                                      ? 'text-blue-600' 
+                                      : 'text-gray-600 dark:text-gray-400'
+                                  }`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-sm truncate">
+                                    {pdf.name}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    PDF Document
+                                  </div>
+                                </div>
+                                {selectedPdf?.id === pdf.id && (
+                                  <Eye className="h-4 w-4 text-blue-600" />
+                                )}
+                              </div>
                             </Button>
-                          </CardContent>
-                        </Card>
-                      ))}
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Assessments Section */}
+                    {quizFiles.length > 0 && (
+                      <>
+                        <Separator />
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                              <GraduationCap className="h-4 w-4 text-green-600" />
+                              Assessments
+                            </h3>
+                            <Badge variant="secondary" className="text-xs">
+                              {quizFiles.length}
+                            </Badge>
+                          </div>
+                          <div className="space-y-2">
+                            {quizFiles.map((quiz) => (
+                              <Button
+                                key={quiz.id}
+                                variant="ghost"
+                                className="w-full justify-start h-10 text-left group"
+                                onClick={() => handleStartQuiz(quiz)}
+                                aria-describedby={`quiz-${quiz.id}-description`}
+                              >
+                                <div className="flex items-center gap-3 w-full">
+                                  <div className="p-1.5 rounded-md bg-green-100 dark:bg-green-900/30">
+                                    <GraduationCap className="h-4 w-4 text-green-600" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-sm truncate">
+                                      {quiz.name}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {quiz.questionsCount} questions
+                                    </div>
+                                  </div>
+                                  <PlayCircle className="h-4 w-4 text-muted-foreground group-hover:text-green-600 transition-colors" />
+                                </div>
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Submodules Section */}
+                    {subModules.length > 0 && (
+                      <>
+                        <Separator />
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                              <Users className="h-4 w-4 text-purple-600" />
+                              Submodules
+                            </h3>
+                            <Badge variant="secondary" className="text-xs">
+                              {subModules.length}
+                            </Badge>
+                          </div>
+                          <div className="space-y-2">
+                            {subModules.map((sm) => (
+                              <Button
+                                key={sm.id}
+                                variant="ghost"
+                                className="w-full justify-start h-10 text-left group"
+                                onClick={() => router.push(`/modules/${moduleId}/${sm.id}`)}
+                                aria-describedby={`submodule-${sm.id}-description`}
+                              >
+                                <div className="flex items-center gap-3 w-full">
+                                  <div className="p-1.5 rounded-md bg-purple-100 dark:bg-purple-900/30">
+                                    <BookOpen className="h-4 w-4 text-purple-600" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-sm truncate">
+                                      {sm.name}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground truncate">
+                                      {sm.description}
+                                    </div>
+                                  </div>
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                                </div>
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </aside>
+
+              {/* Enhanced PDF Viewer */}
+              <div className="lg:col-span-3">
+                {selectedPdf ? (
+                  <Card className="h-[calc(100vh-12rem)]">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-md">{selectedPdf.name}</CardTitle>
+                            {/* <CardDescription>PDF Document</CardDescription> */}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size='sm' onClick={handleFullscreen}>
+                            <Maximize2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0 h-[calc(100%-5rem)]">
+                      <PdfViewer file={selectedPdf} />
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="h-[calc(100vh-12rem)] flex items-center justify-center">
+                    <div className="text-center max-w-md mx-auto p-8">
+                      <div className="p-4 rounded-full bg-gray-100 dark:bg-gray-800 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <FileText className="h-8 w-8 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2">
+                        {pdfFiles.length === 0 ? 'No Learning Materials' : 'Select a Document'}
+                      </h3>
+                      <p className="text-muted-foreground text-sm">
+                        {pdfFiles.length === 0 
+                          ? 'You can explore the submodules to find more information.' 
+                          : 'Choose a PDF document from the sidebar to start learning.'
+                        }
+                      </p>
                     </div>
-                  </div>
-                </div>
-              )}
-            </>
+                  </Card>
+                )}
+              </div>
+            </div>
           )}
-        </TabsContent>
-      </Tabs>
+        </main>
+      </div>
     </div>
   );
 }

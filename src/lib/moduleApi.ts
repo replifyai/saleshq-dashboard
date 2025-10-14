@@ -178,6 +178,79 @@ class ModuleApi {
   }
 
   async getModule(path?: string): Promise<ModuleResponse> {
+    // Use mock data if enabled
+    if (USE_MOCK_DATA) {
+      if (!path) {
+        // Return root modules
+        const entries: RootModuleEntry[] = mockModules.map((m) => ({
+          module: { id: m.id, name: m.name, description: m.description },
+          files: mockFiles[m.id as keyof typeof mockFiles] || [],
+          subModules: mockNestedModules[m.id as keyof typeof mockNestedModules] || [],
+        }));
+        
+        return {
+          data: {
+            module: { id: 'root', name: 'Root', description: 'Root module' },
+            files: [],
+            subModules: entries.map(e => ({
+              id: e.module.id,
+              name: e.module.name,
+              description: e.module.description,
+              files: e.files,
+              subModules: e.subModules
+            })),
+          },
+        };
+      }
+
+      // Handle nested paths
+      const pathSegments = path.split('/');
+      const moduleId = pathSegments[0];
+      
+      // Find the module in mockModules
+      const module = mockModules.find(m => m.id === moduleId);
+      if (!module) {
+        throw new Error('Module not found');
+      }
+
+      // Build the nested structure based on path
+      const buildNestedResponse = (segments: string[], currentPath: string = ''): ModuleResponse => {
+        if (segments.length === 1) {
+          // This is the target module
+          const fullPath = currentPath ? `${currentPath}/${segments[0]}` : segments[0];
+          const files = mockFiles[fullPath as keyof typeof mockFiles] || [];
+          const subModules = mockNestedModules[fullPath as keyof typeof mockNestedModules] || [];
+          
+          return {
+            data: {
+              module: { id: segments[0], name: module.name, description: module.description },
+              files: files,
+              subModules: subModules.map(sm => ({
+                id: sm.id,
+                name: sm.name,
+                description: sm.description,
+                files: mockFiles[`${fullPath}/${sm.id}` as keyof typeof mockFiles] || [],
+                subModules: sm.subModules || []
+              }))
+            }
+          };
+        }
+
+        // Navigate deeper
+        const nextSegment = segments[1];
+        const nextPath = currentPath ? `${currentPath}/${segments[0]}` : segments[0];
+        const nestedModules = mockNestedModules[nextPath as keyof typeof mockNestedModules] || [];
+        const targetModule = nestedModules.find(m => m.id === nextSegment);
+        
+        if (!targetModule) {
+          throw new Error('Submodule not found');
+        }
+
+        return buildNestedResponse(segments.slice(1), nextPath);
+      };
+
+      return buildNestedResponse(pathSegments);
+    }
 
     const url = path ? `${API_BASE_URL}/getModule?path=${path}` : `${API_BASE_URL}/getModule`;
     const response = await authService.authenticatedFetch(url);
@@ -479,10 +552,35 @@ class ModuleApi {
   async getModuleTree(): Promise<ModuleTreeNode[]> {
     // Use mock data if enabled
     if (USE_MOCK_DATA) {
-      // Build a simple nested mock tree from mockModules and mockFiles structure
-      const toTree = (mods: typeof mockModules): ModuleTreeNode[] =>
-        mods.map((m) => ({ id: m.id, name: m.name, description: m.description, subModules: [] }));
-      return toTree(mockModules);
+      // Build a recursive nested mock tree from mockModules and mockNestedModules structure
+      const buildNestedTree = (modules: typeof mockModules): ModuleTreeNode[] => {
+        return modules.map((module) => {
+          const nestedSubModules = mockNestedModules[module.id as keyof typeof mockNestedModules] || [];
+          
+          const buildSubModules = (subModules: any[]): ModuleTreeNode[] => {
+            return subModules.map((subModule) => {
+              const subModulePath = `${module.id}/${subModule.id}`;
+              const deeperNestedModules = mockNestedModules[subModulePath as keyof typeof mockNestedModules] || [];
+              
+              return {
+                id: subModule.id,
+                name: subModule.name,
+                description: subModule.description,
+                subModules: subModule.subModules ? buildSubModules(subModule.subModules) : []
+              };
+            });
+          };
+          
+          return {
+            id: module.id,
+            name: module.name,
+            description: module.description,
+            subModules: buildSubModules(nestedSubModules)
+          };
+        });
+      };
+      
+      return buildNestedTree(mockModules);
     }
 
     const response = await authService.authenticatedFetch(`${API_BASE_URL}/getModule`);

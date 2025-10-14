@@ -92,6 +92,18 @@ export default function ModuleTree() {
     router.push(`/modules/${encoded}`);
   };
 
+  const getBreadcrumbPath = (path: string) => {
+    const segments = path.split('/');
+    return segments.map((segment, index) => {
+      const segmentPath = segments.slice(0, index + 1).join('/');
+      return {
+        name: segment,
+        path: segmentPath,
+        isLast: index === segments.length - 1
+      };
+    });
+  };
+
   const onSelect = async (path: string) => {
     setSelectedPath(path);
     setDetailsLoading(true);
@@ -429,6 +441,33 @@ export default function ModuleTree() {
                             </div>
                           );
                         })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Breadcrumb Navigation */}
+                  {selectedPath && selectedPath.includes('/') && (
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border">
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Navigation Path
+                      </h4>
+                      <div className="flex items-center gap-1 text-xs">
+                        <span className="text-gray-500">Root</span>
+                        {getBreadcrumbPath(selectedPath).map((breadcrumb, index) => (
+                          <div key={index} className="flex items-center gap-1">
+                            <span className="text-gray-400">/</span>
+                            <button
+                              onClick={() => onNavigate(breadcrumb.path)}
+                              className={`hover:text-primary transition-colors ${
+                                breadcrumb.isLast 
+                                  ? 'text-primary font-medium' 
+                                  : 'text-gray-600 dark:text-gray-400'
+                              }`}
+                            >
+                              {breadcrumb.name}
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
