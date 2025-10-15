@@ -446,7 +446,7 @@ export default function ModuleTree() {
                   )}
 
                   {/* Breadcrumb Navigation */}
-                  {selectedPath && selectedPath.includes('/') && (
+                  {/* {selectedPath && selectedPath.includes('/') && (
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border">
                       <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Navigation Path
@@ -470,7 +470,7 @@ export default function ModuleTree() {
                         ))}
                       </div>
                     </div>
-                  )}
+                  )} */}
 
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
