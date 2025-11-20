@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { chatApi, type ChatMessage, type BasicProduct } from "@/lib/apiUtils";
+import { chatApi, type ChatMessage, type BasicProduct, type APIResponse } from "@/lib/apiUtils";
 import { 
   ChatHeader,
   ChatInput,
@@ -15,12 +15,6 @@ import {
   scrollToBottom,
   shouldShowProductSelector 
 } from "./utils/chatUtils";
-
-interface APIResponse {
-  message: string;
-  timestamp: number;
-  sources?: any[];
-}
 
 export default function ChatInterface() {
   const [message, setMessage] = useState("");
