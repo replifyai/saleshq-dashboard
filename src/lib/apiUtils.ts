@@ -639,6 +639,25 @@ export const queriesApi = {
     }
 
     return response.json();
+  },
+
+  // Update knowledge base with text
+  updateKnowledgeBase: async (productId: string, updatePoint: string): Promise<any> => {
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/updateKnowlegeBase`;
+
+    const response = await authService.authenticatedFetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ productId, updatePoint }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update knowledge base: ${response.statusText}`);
+    }
+
+    return response.json();
   }
 };
 

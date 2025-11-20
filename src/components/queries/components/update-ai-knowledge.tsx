@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { queriesApi, chatApi, documentApi } from "@/lib/apiUtils";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, X, Brain, Sparkles, AlertTriangle, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Upload, X, Brain, Sparkles, AlertTriangle, CheckCircle, XCircle, Clock, FileText } from "lucide-react";
 
 interface UpdateAIKnowledgeProps {
   trigger?: React.ReactNode;
@@ -26,9 +28,11 @@ interface UploadingFile {
 
 export default function UpdateAIKnowledge({ trigger, onSuccess }: UpdateAIKnowledgeProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("files");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [productName, setProductName] = useState("");
   const [selectedProductId, setSelectedProductId] = useState("");
+  const [textUpdateContent, setTextUpdateContent] = useState("");
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -146,6 +150,35 @@ export default function UpdateAIKnowledge({ trigger, onSuccess }: UpdateAIKnowle
     },
   });
 
+  // Mutation for updating knowledge base with text
+  const updateKnowledgeBaseMutation = useMutation({
+    mutationFn: ({ productId, updatePoint }: { productId: string; updatePoint: string }) =>
+      queriesApi.updateKnowledgeBase(productId, updatePoint),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ['productsBasic'] });
+
+      toast({
+        title: "Knowledge Base Updated",
+        description: "Text update has been processed successfully.",
+      });
+      
+      setTextUpdateContent("");
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+      setIsOpen(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return;
 
@@ -207,6 +240,32 @@ export default function UpdateAIKnowledge({ trigger, onSuccess }: UpdateAIKnowle
   };
 
   const startUpdate = () => {
+    if (activeTab === "text") {
+      if (!selectedProductId) {
+         toast({
+            title: "Product selection required",
+            description: "Please select an existing product to update with text.",
+            variant: "destructive",
+          });
+          return;
+      }
+      if (!textUpdateContent.trim()) {
+         toast({
+            title: "Text content required",
+            description: "Please enter text to update the knowledge base.",
+            variant: "destructive",
+          });
+          return;
+      }
+      
+      updateKnowledgeBaseMutation.mutate({
+        productId: selectedProductId,
+        updatePoint: textUpdateContent
+      });
+      return;
+    }
+
+    // File upload logic
     if (selectedFiles.length === 0) {
       toast({
         title: "No files selected",
@@ -338,10 +397,19 @@ export default function UpdateAIKnowledge({ trigger, onSuccess }: UpdateAIKnowle
     setUploadingFiles([]);
     setProductName("");
     setSelectedProductId("");
+    setTextUpdateContent("");
+    setActiveTab("files");
   };
 
   // Determine if we're in "new product" mode
   const isNewProductMode = !selectedProductId && productName.trim();
+
+  // Update active tab if switching to new product mode
+  useEffect(() => {
+    if (isNewProductMode && activeTab === 'text') {
+      setActiveTab('files');
+    }
+  }, [isNewProductMode, activeTab]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => open ? setIsOpen(true) : handleClose()}>
@@ -362,7 +430,7 @@ export default function UpdateAIKnowledge({ trigger, onSuccess }: UpdateAIKnowle
           <DialogDescription>
             {isNewProductMode 
               ? 'Upload documentation to create a new product and enhance the AI\'s knowledge base.'
-              : 'Upload new documentation to enhance the AI\'s knowledge about existing products.'
+              : 'Upload documentation or text to enhance the AI\'s knowledge about existing products.'
             }
           </DialogDescription>
         </DialogHeader>
@@ -498,96 +566,130 @@ export default function UpdateAIKnowledge({ trigger, onSuccess }: UpdateAIKnowle
             </div>
           )}
 
-          {/* File Upload Area */}
-          <div 
-            className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-colors ${
-              (hasActiveUploads || (!selectedProductId && !productName.trim())) 
-                ? 'cursor-not-allowed opacity-50 bg-gray-50' 
-                : 'cursor-pointer hover:border-primary hover:bg-blue-50'
-            } ${uploadingFiles.length > 0 ? 'hidden' : ''}`}
-            onDrop={!hasActiveUploads && (selectedProductId || productName.trim()) ? handleDrop : undefined}
-            onDragOver={!hasActiveUploads && (selectedProductId || productName.trim()) ? handleDragOver : undefined}
-            onDragLeave={!hasActiveUploads && (selectedProductId || productName.trim()) ? handleDragLeave : undefined}
-            onClick={!hasActiveUploads && (selectedProductId || productName.trim()) ? () => fileInputRef.current?.click() : undefined}
-          >
-            <div className="space-y-3">
-              <div className="flex justify-center">
-                {isNewProductMode ? (
-                  <Sparkles className="w-8 h-8 text-green-500" />
-                ) : (
-                  <Brain className="w-8 h-8 text-blue-500" />
-                )}
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">
-                  {hasActiveUploads 
-                    ? 'Processing Files...' 
-                    : (!selectedProductId && !productName.trim())
-                      ? 'Select Product First'
-                    : isNewProductMode 
-                      ? 'Upload Product Documentation'
-                      : 'Upload Additional Documentation'
-                  }
-                </h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  {(!selectedProductId && !productName.trim())
-                    ? 'Please select an existing product or enter a new product name to enable file uploads'
-                    : 'Drop files here or click to select PDF, DOCX, TXT files (max 10MB each)'
-                  }
-                </p>
-              </div>
-              <Button 
-                variant="outline" 
-                disabled={hasActiveUploads || (!selectedProductId && !productName.trim())}
-                type="button"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                {hasActiveUploads 
-                  ? 'Processing...' 
-                  : (!selectedProductId && !productName.trim())
-                    ? 'Select Product First'
-                    : 'Select Files'
-                }
-              </Button>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept=".pdf,.docx,.txt"
-              className="hidden"
-              onChange={(e) => handleFileSelect(e.target.files)}
-              disabled={hasActiveUploads || (!selectedProductId && !productName.trim())}
-            />
-          </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="files" disabled={hasActiveUploads}>
+                <Upload className="w-4 h-4 mr-2"/> Upload Files
+              </TabsTrigger>
+              <TabsTrigger value="text" disabled={hasActiveUploads || !!isNewProductMode}>
+                <FileText className="w-4 h-4 mr-2"/> Enter Text
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Selected Files */}
-          {selectedFiles.length > 0 && (
-            <div>
-              <h3 className="text-md font-medium text-gray-900 mb-3">Selected Files</h3>
-              <div className="space-y-2">
-                {selectedFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-lg border bg-gray-50">
-                    <div className="flex items-center space-x-3 flex-1">
-                      <i className={getFileIcon(file)}></i>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
-                        <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeSelectedFile(index)}
-                      className="text-gray-500 hover:text-red-500"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
+            <TabsContent value="files" className="mt-0">
+              {/* File Upload Area */}
+              <div 
+                className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-colors ${
+                  (hasActiveUploads || (!selectedProductId && !productName.trim())) 
+                    ? 'cursor-not-allowed opacity-50 bg-gray-50' 
+                    : 'cursor-pointer hover:border-primary hover:bg-blue-50'
+                } ${uploadingFiles.length > 0 ? 'hidden' : ''}`}
+                onDrop={!hasActiveUploads && (selectedProductId || productName.trim()) ? handleDrop : undefined}
+                onDragOver={!hasActiveUploads && (selectedProductId || productName.trim()) ? handleDragOver : undefined}
+                onDragLeave={!hasActiveUploads && (selectedProductId || productName.trim()) ? handleDragLeave : undefined}
+                onClick={!hasActiveUploads && (selectedProductId || productName.trim()) ? () => fileInputRef.current?.click() : undefined}
+              >
+                <div className="space-y-3">
+                  <div className="flex justify-center">
+                    {isNewProductMode ? (
+                      <Sparkles className="w-8 h-8 text-green-500" />
+                    ) : (
+                      <Brain className="w-8 h-8 text-blue-500" />
+                    )}
                   </div>
-                ))}
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      {hasActiveUploads 
+                        ? 'Processing Files...' 
+                        : (!selectedProductId && !productName.trim())
+                          ? 'Select Product First'
+                        : isNewProductMode 
+                          ? 'Upload Product Documentation'
+                          : 'Upload Additional Documentation'
+                      }
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {(!selectedProductId && !productName.trim())
+                        ? 'Please select an existing product or enter a new product name to enable file uploads'
+                        : 'Drop files here or click to select PDF, DOCX, TXT files (max 10MB each)'
+                      }
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    disabled={hasActiveUploads || (!selectedProductId && !productName.trim())}
+                    type="button"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    {hasActiveUploads 
+                      ? 'Processing...' 
+                      : (!selectedProductId && !productName.trim())
+                        ? 'Select Product First'
+                        : 'Select Files'
+                    }
+                  </Button>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.docx,.txt"
+                  className="hidden"
+                  onChange={(e) => handleFileSelect(e.target.files)}
+                  disabled={hasActiveUploads || (!selectedProductId && !productName.trim())}
+                />
               </div>
-            </div>
-          )}
+
+              {/* Selected Files */}
+              {selectedFiles.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Selected Files</h3>
+                  <div className="space-y-2">
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg border bg-gray-50">
+                        <div className="flex items-center space-x-3 flex-1">
+                          <i className={getFileIcon(file)}></i>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
+                            <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeSelectedFile(index)}
+                          className="text-gray-500 hover:text-red-500"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="text" className="mt-0">
+              <div className="space-y-4">
+                  <div className="space-y-2">
+                      <Label htmlFor="update-text">Knowledge Base Text Update</Label>
+                      <Textarea 
+                          id="update-text"
+                          placeholder="Enter the information you want to add to the product knowledge base..."
+                          className="min-h-[200px] font-mono text-sm"
+                          value={textUpdateContent}
+                          onChange={(e) => setTextUpdateContent(e.target.value)}
+                          disabled={hasActiveUploads || !selectedProductId}
+                      />
+                      <p className="text-xs text-gray-500">
+                          {!selectedProductId 
+                              ? "Please select a product above to enable text updates." 
+                              : "This text will be processed and added to the AI's knowledge about the selected product."}
+                      </p>
+                  </div>
+              </div>
+            </TabsContent>
+          </Tabs>
 
           {/* Upload Queue */}
           {uploadingFiles.length > 0 && (
@@ -714,11 +816,18 @@ export default function UpdateAIKnowledge({ trigger, onSuccess }: UpdateAIKnowle
             <Button
               onClick={startUpdate}
               disabled={
-                selectedFiles.length === 0 || 
-                (!selectedProductId && !productName.trim()) || 
+                (activeTab === 'files' && (
+                  selectedFiles.length === 0 || 
+                  (!selectedProductId && !productName.trim())
+                )) ||
+                (activeTab === 'text' && (
+                  !selectedProductId || 
+                  !textUpdateContent.trim()
+                )) ||
                 hasActiveUploads ||
                 updateProductMutation.isPending ||
-                createProductMutation.isPending
+                createProductMutation.isPending ||
+                updateKnowledgeBaseMutation.isPending
               }
               className={`flex items-center gap-2 ${
                 isNewProductMode 
@@ -726,7 +835,7 @@ export default function UpdateAIKnowledge({ trigger, onSuccess }: UpdateAIKnowle
                   : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
               }`}
             >
-              {updateProductMutation.isPending || createProductMutation.isPending ? (
+              {updateProductMutation.isPending || createProductMutation.isPending || updateKnowledgeBaseMutation.isPending ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   {isNewProductMode ? 'Creating...' : 'Updating...'}
@@ -743,4 +852,4 @@ export default function UpdateAIKnowledge({ trigger, onSuccess }: UpdateAIKnowle
       </DialogContent>
     </Dialog>
   );
-} 
+}
