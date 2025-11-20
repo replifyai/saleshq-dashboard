@@ -168,6 +168,7 @@ export default function ChatInterface() {
         message: data.message,
         timestamp: data.timestamp,
         sender: 'bot',
+        responseFormat: data.responseFormat,
         sources: extractSourceInfo(data?.sources)
       };
 

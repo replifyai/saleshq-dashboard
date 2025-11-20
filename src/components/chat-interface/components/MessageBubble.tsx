@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { UserAvatar } from '../atoms/UserAvatar';
 import { MessageSources } from '../atoms/MessageSources';
 import { cleanMessage } from '../utils/chatUtils';
@@ -63,6 +64,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           {message.sender === 'bot' ? (
             <div className="text-sm leading-relaxed break-words text-gray-700 dark:text-gray-300 prose prose-sm prose-gray dark:prose-invert max-w-none">
               <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
                 // components={{
                 //   // Custom styling for markdown elements
                 //   h1: ({ node, ...props }) => <h1 className="text-lg font-bold mb-2 text-gray-900 dark:text-white" {...props} />,

@@ -7,6 +7,7 @@ export interface ChatMessage {
   message: string;
   timestamp: number;
   sender: 'user' | 'bot';
+  responseFormat?: 'text' | 'markdown' | 'table';
   sources?: Array<{
     documentId: number;
     filename: string;
@@ -27,6 +28,7 @@ export interface APIResponse {
   message: string;
   timestamp: number;
   sources?: any[];
+  responseFormat?: 'text' | 'markdown' | 'table';
 }
 
 export interface Product {
