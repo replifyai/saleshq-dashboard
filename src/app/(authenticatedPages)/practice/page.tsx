@@ -18,7 +18,7 @@ export default function PracticePage() {
   const { isAdmin } = useAdminAccess();
 
   const handleAdminClick = () => {
-    router.push('/modules/admin');
+    router.push('/practice/modules/admin');
   };
 
   return (
@@ -66,7 +66,7 @@ export default function PracticePage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => router.push('/modules')}
+                    onClick={() => router.push('/practice/modules')}
                     className="flex items-center gap-2"
                   >
                     View All <ArrowRight className="w-4 h-4" />

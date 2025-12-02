@@ -68,7 +68,7 @@ export default function ModulesPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => router.back()}
+              onClick={() => router.push('/practice')}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />

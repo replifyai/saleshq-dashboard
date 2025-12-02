@@ -40,11 +40,11 @@ export default function ModuleList({ embedded = false }: { embedded?: boolean })
   };
 
   const handleModuleClick = (moduleId: string) => {
-    router.push(`/modules/${moduleId}`);
+    router.push(`/practice/modules/${moduleId}`);
   };
 
   const handleAdminClick = () => {
-    router.push('/modules/admin');
+    router.push('/practice/modules/admin');
   };
 
   if (loading) {

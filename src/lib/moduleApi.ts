@@ -137,6 +137,10 @@ export interface GetLeaderboardResponse {
   };
 }
 
+export interface GetAllLearningPathsResponse {
+  data: string[];
+}
+
 class ModuleApi {
 
   async createModule(data: CreateModuleRequest): Promise<CreateModuleResponse> {
@@ -777,7 +781,7 @@ class ModuleApi {
     return response.json();
   }
 
-  async getLeaderboard(quizId?: string): Promise<GetLeaderboardResponse> {
+  async getLeaderboard(learningPath?: string): Promise<GetLeaderboardResponse> {
     if (USE_MOCK_DATA) {
       return {
         data: {
@@ -792,10 +796,34 @@ class ModuleApi {
       };
     }
 
-    const url = quizId ? `${API_BASE_URL}/getLeaderboard?id=${quizId}` : `${API_BASE_URL}/getLeaderboard`;
+    const url = learningPath 
+      ? `${API_BASE_URL}/getLeaderboard?id=${learningPath}` 
+      : `${API_BASE_URL}/getLeaderboard`;
     const response = await authService.authenticatedFetch(url, { method: 'GET' });
     if (!response.ok) {
       throw new Error('Failed to load leaderboard');
+    }
+    return response.json();
+  }
+
+  async getAllLearningPaths(): Promise<GetAllLearningPathsResponse> {
+    if (USE_MOCK_DATA) {
+      return {
+        data: [
+          "learning/Frido Experience Store",
+          "learning/Frido Experience Store/Consultant's (Roles and Responsibilities)",
+          "learning/Frido Experience Store/Module 1 : Company Overview",
+          "learning/Frido Experience Store/Module 2 - Product Knowledge",
+          "learning/Frido Experience Store/Module 2 - Product Knowledge/Ergonomic Furniture",
+          "learning/Frido Experience Store/Module 2 - Product Knowledge/Footwear",
+          "learning/Frido Experience Store/Module 3 - Sales Module"
+        ],
+      };
+    }
+
+    const response = await authService.authenticatedFetch(`${API_BASE_URL}/getAllLearningPaths`, { method: 'GET' });
+    if (!response.ok) {
+      throw new Error('Failed to load learning paths');
     }
     return response.json();
   }

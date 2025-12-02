@@ -10,8 +10,8 @@ type SideNavContextValue = {
 };
 export const SideNavContext = createContext<SideNavContextValue | null>(null);
 const getActiveTab = (pathname: string): string => {
-    // Handle /modules/* pattern first
-    if (pathname.startsWith("/modules")) {
+    // Handle /practice/modules/* pattern first
+    if (pathname.startsWith("/practice/modules")) {
         return "practice";
     }
     

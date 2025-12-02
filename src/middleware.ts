@@ -65,7 +65,6 @@ export function middleware(request: NextRequest) {
     "/practice",
     "/settings",
     "/live",
-    "/modules",
     "/organization",
     "/upload",
     "/leaderboard",

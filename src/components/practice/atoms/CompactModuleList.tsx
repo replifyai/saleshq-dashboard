@@ -72,7 +72,7 @@ export default function CompactModuleList() {
       .split('/')
       .map((seg) => encodeURIComponent(seg))
       .join('/');
-    router.push(`/modules/${encoded}`);
+    router.push(`/practice/modules/${encoded}`);
   };
 
   if (loading) {
@@ -111,7 +111,7 @@ export default function CompactModuleList() {
         </p>
         {isAdmin && (
           <Button 
-            onClick={() => router.push('/modules/admin')} 
+            onClick={() => router.push('/practice/modules/admin')} 
             className="flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
@@ -184,7 +184,7 @@ export default function CompactModuleList() {
         <Button 
           variant="ghost" 
           className="w-full" 
-          onClick={() => router.push('/modules')}
+          onClick={() => router.push('/practice/modules')}
         >
           View All Modules <ArrowRight className="w-4 h-4 ml-2" />
         </Button>

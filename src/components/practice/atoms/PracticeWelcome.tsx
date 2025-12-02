@@ -117,7 +117,7 @@ export default function PracticeWelcome() {
         <Button 
           variant="secondary" 
           className="w-full"
-          onClick={() => router.push('/modules')}
+          onClick={() => router.push('/practice/modules')}
         >
           {totalQuizzes > 0 ? 'Continue Learning' : 'Start Learning'} 
           <ArrowRight className="ml-2 w-4 h-4" />

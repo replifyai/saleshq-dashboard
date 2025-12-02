@@ -76,9 +76,10 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
   const handleBackClick = () => {
     if (moduleId.includes('/')) {
       const parentPath = moduleId.split('/').slice(0, -1).join('/');
-      router.push(`/modules/${parentPath}`);
+      router.push(`/practice/modules/${parentPath}`);
     } else {
-      router.push('/modules');
+      // At root level module, go back to practice center
+      router.push('/practice');
     }
   };
 
@@ -177,7 +178,7 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => router.push(`/modules/${crumb.path}`)}
+                      onClick={() => router.push(`/practice/modules/${crumb.path}`)}
                       className="h-8 px-2 text-muted-foreground hover:text-foreground"
                     >
                       {crumb.name}
@@ -403,7 +404,7 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
                                 key={sm.id}
                                 variant="ghost"
                                 className="w-full justify-start h-10 text-left group"
-                                onClick={() => router.push(`/modules/${moduleId}/${sm.id}`)}
+                                onClick={() => router.push(`/practice/modules/${moduleId}/${sm.id}`)}
                                 aria-describedby={`submodule-${sm.id}-description`}
                               >
                                 <div className="flex items-center gap-3 w-full">

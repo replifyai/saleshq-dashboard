@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react';
-import { moduleApi, type LeaderboardEntry, type ModuleFile } from '@/lib/moduleApi';
+import { moduleApi, type LeaderboardEntry } from '@/lib/moduleApi';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Crown, Medal, Search, Users } from 'lucide-react';
+import { Crown, Search } from 'lucide-react';
 
 function initials(name: string): string {
   const parts = name.split(' ');
@@ -16,22 +16,67 @@ function initials(name: string): string {
   return (first + last).toUpperCase();
 }
 
+// Format learning path for display
+// e.g. "learning/Frido Experience Store/Module 1 : Company Overview" -> "Module 1 : Company Overview"
+// e.g. "learning/Frido Experience Store" -> "Frido Experience Store"
+function formatLearningPath(path: string): string {
+  // Remove "learning/" prefix if present
+  const withoutPrefix = path.replace(/^learning\//, '');
+  // Get the last segment (after last /)
+  const segments = withoutPrefix.split('/');
+  return segments[segments.length - 1] || withoutPrefix;
+}
+
+// Get indentation level for nested display
+function getPathDepth(path: string): number {
+  const withoutPrefix = path.replace(/^learning\//, '');
+  return withoutPrefix.split('/').length - 1;
+}
+
+interface LearningPathOption {
+  value: string; // Full path to send to API
+  label: string; // Formatted label for display
+  depth: number; // Indentation level
+}
+
 interface LeaderboardProps {
-  // Optional list of quizzes for per-quiz filter
-  quizzes?: Array<{ id: string; name: string }>; // pass ModuleFile list mapped to id/name
   // Optional pre-fetched entries to avoid duplicate API calls
   entries?: LeaderboardEntry[];
 }
 
-export default function Leaderboard({ quizzes = [], entries: propEntries }: LeaderboardProps) {
+export default function Leaderboard({ entries: propEntries }: LeaderboardProps) {
   const [loading, setLoading] = useState(!propEntries);
   const [entries, setEntries] = useState<LeaderboardEntry[]>(propEntries || []);
-  const [quizId, setQuizId] = useState<string | undefined>(undefined);
+  const [selectedPath, setSelectedPath] = useState<string | undefined>(undefined);
   const [q, setQ] = useState('');
+  const [learningPaths, setLearningPaths] = useState<LearningPathOption[]>([]);
+  const [pathsLoading, setPathsLoading] = useState(true);
 
+  // Fetch learning paths on mount
   useEffect(() => {
-    // Only fetch data if entries weren't passed as props or if a specific quiz is selected
-    if (propEntries && !quizId) {
+    (async () => {
+      try {
+        setPathsLoading(true);
+        const res = await moduleApi.getAllLearningPaths();
+        const paths = res.data || [];
+        const options: LearningPathOption[] = paths.map(path => ({
+          value: path,
+          label: formatLearningPath(path),
+          depth: getPathDepth(path),
+        }));
+        setLearningPaths(options);
+      } catch (error) {
+        console.error('Failed to fetch learning paths:', error);
+      } finally {
+        setPathsLoading(false);
+      }
+    })();
+  }, []);
+
+  // Fetch leaderboard data
+  useEffect(() => {
+    // Only fetch data if entries weren't passed as props or if a specific path is selected
+    if (propEntries && !selectedPath) {
       setEntries(propEntries);
       setLoading(false);
       return;
@@ -40,13 +85,13 @@ export default function Leaderboard({ quizzes = [], entries: propEntries }: Lead
     (async () => {
       try {
         setLoading(true);
-        const res = await moduleApi.getLeaderboard(quizId);
+        const res = await moduleApi.getLeaderboard(selectedPath);
         setEntries(res.data?.data || []);
       } finally {
         setLoading(false);
       }
     })();
-  }, [quizId, propEntries]);
+  }, [selectedPath, propEntries]);
 
   const filtered = useMemo(() => {
     const list = q.trim()
@@ -60,21 +105,34 @@ export default function Leaderboard({ quizzes = [], entries: propEntries }: Lead
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
         <div className="space-y-1">
           <h2 className="text-xl font-bold">Leaderboard</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400">See top performers overall or for a specific quiz.</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">See top performers overall or for a specific module.</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative w-64">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
             <Input className="pl-8" placeholder="Search by name" value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
-          <Select value={quizId ?? 'overall'} onValueChange={(v) => setQuizId(v === 'overall' ? undefined : v)}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Overall" />
+          <Select 
+            value={selectedPath ?? 'overall'} 
+            onValueChange={(v) => setSelectedPath(v === 'overall' ? undefined : v)}
+            disabled={pathsLoading}
+          >
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder={pathsLoading ? "Loading..." : "Overall"} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-[300px]">
               <SelectItem value="overall">Overall</SelectItem>
-              {quizzes.map(qz => (
-                <SelectItem key={qz.id} value={qz.id}>{qz.name}</SelectItem>
+              {learningPaths.map(path => (
+                <SelectItem 
+                  key={path.value} 
+                  value={path.value}
+                  className="cursor-pointer"
+                >
+                  <span style={{ paddingLeft: `${path.depth * 12}px` }} className="flex items-center">
+                    {path.depth > 0 && <span className="text-muted-foreground mr-1">└</span>}
+                    {path.label}
+                  </span>
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

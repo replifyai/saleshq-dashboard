@@ -89,7 +89,7 @@ export default function ModuleTree() {
       .split('/')
       .map((seg) => encodeURIComponent(seg))
       .join('/');
-    router.push(`/modules/${encoded}`);
+    router.push(`/practice/modules/${encoded}`);
   };
 
   const getBreadcrumbPath = (path: string) => {
