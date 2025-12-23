@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Loader2,CheckCircle2 } from 'lucide-react';
 import Image from 'next/image';
@@ -24,11 +24,15 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, isAuthenticated, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [remember, setRemember] = useState(false);
+
+  // Get the redirect URL from query params, default to /chat
+  const redirectUrl = searchParams.get('redirect') || '/chat';
 
   const {
     register,
@@ -41,9 +45,10 @@ export default function Login() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.push('/chat');
+      // Redirect to the original URL if available, otherwise to /chat
+      router.push(redirectUrl);
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, redirectUrl]);
 
   const onSubmit = async (data: LoginFormData) => {
     setIsSubmitting(true);
@@ -53,7 +58,8 @@ export default function Login() {
       // Keep original behavior: submit exactly the form credentials
       console.log("🚀 ~ onSubmit ~ data:", data);
       await login(data);
-      router.push('/chat');
+      // Redirect to the original URL if available, otherwise to /chat
+      router.push(redirectUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     } finally {

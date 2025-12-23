@@ -21,8 +21,12 @@ import {
   Download,
   Eye,
   Folder,
-  FolderOpen
+  FolderOpen,
+  Share2,
+  Check,
+  Copy
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface TreeNode {
   id: string;
@@ -35,12 +39,38 @@ interface TreeNode {
 
 export default function ModuleTree() {
   const router = useRouter();
+  const { toast } = useToast();
   const [roots, setRoots] = useState<TreeNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [details, setDetails] = useState<{ name: string; description: string; pdfs: number; quizzes: number, subModules: SubModule[] } | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleShareModule = async (path: string) => {
+    try {
+      const encodedPath = path
+        .split('/')
+        .map((seg) => encodeURIComponent(seg))
+        .join('/');
+      const shareUrl = `${window.location.origin}/practice/modules/${encodedPath}`;
+      await navigator.clipboard.writeText(shareUrl);
+      setIsCopied(true);
+      toast({
+        title: "Link copied!",
+        description: "Module link has been copied to clipboard. Share it with your agents.",
+      });
+      // Reset the copied state after 2 seconds
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      toast({
+        title: "Failed to copy",
+        description: "Could not copy the link. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -200,6 +230,18 @@ export default function ModuleTree() {
           <div className={`flex items-center gap-1 transition-opacity ${
             isSelected || 'group-hover:opacity-100 opacity-0'
           }`}>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 w-6 p-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShareModule(node.path);
+              }}
+              title="Copy share link"
+            >
+              <Copy className="h-3 w-3" />
+            </Button>
             <Button
               size="sm"
               variant="ghost"
@@ -488,6 +530,23 @@ export default function ModuleTree() {
                     >
                       <Eye className="h-4 w-4" />
                       View Contents
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => handleShareModule(selectedPath!)}
+                      className="flex items-center gap-2"
+                    >
+                      {isCopied ? (
+                        <>
+                          <Check className="h-4 w-4 text-green-600" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Share2 className="h-4 w-4" />
+                          Share
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>

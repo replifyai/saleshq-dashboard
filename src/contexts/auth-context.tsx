@@ -110,6 +110,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setIsAuthenticated(authenticated);
         
         if (authenticated) {
+          // Try to proactively refresh token if it's about to expire
+          await authService.refreshTokenIfNeeded();
           await fetchUserProfile();
         }
       } catch (error) {
@@ -122,6 +124,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     checkAuth();
+
+    // Set up periodic token refresh check (every 60 seconds)
+    const refreshInterval = setInterval(async () => {
+      if (authService.isAuthenticated()) {
+        const refreshed = await authService.refreshTokenIfNeeded();
+        if (refreshed) {
+          console.log('✅ Token proactively refreshed');
+        }
+      }
+    }, 60000); // Check every minute
 
     // Subscribe to token refresh events to keep auth state in sync
     const unsubscribe = authService.onTokenRefresh(async () => {
@@ -140,7 +152,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      clearInterval(refreshInterval);
+    };
   }, []);
 
   const login = async (credentials: LoginRequest) => {

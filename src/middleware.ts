@@ -95,8 +95,12 @@ export function middleware(request: NextRequest) {
   }
 
   // Redirect unauthenticated users trying to access protected routes
+  // Include the original URL as a redirect parameter so we can return after login
   if (isProtectedRoute && !isAuthenticated) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    // Store the original path (including any query params) as a redirect parameter
+    loginUrl.searchParams.set("redirect", pathname + request.nextUrl.search);
+    return NextResponse.redirect(loginUrl);
   }
 
   // Redirect non-admin users trying to access admin routes to /chat

@@ -15,6 +15,11 @@ const getActiveTab = (pathname: string): string => {
         return "practice";
     }
     
+    // Handle /leaderboard and /quiz-history as part of Learn & Practice
+    if (pathname.startsWith("/leaderboard") || pathname.startsWith("/quiz-history")) {
+        return "practice";
+    }
+    
     switch (pathname) {
         case "/chat":
             return "chat";

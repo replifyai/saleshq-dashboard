@@ -187,17 +187,17 @@ class AuthService {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; secure; samesite=lax`;
   }
 
-  // Helper function to decode JWT payload without verification
+  // Helper function to decode JWT payload without verification (browser-compatible)
   private decodeJWTPayload(token: string): any {
     try {
       const parts = token.split('.');
       if (parts.length !== 3) return null;
       
       const payload = parts[1];
-      // Convert base64url to base64 by replacing characters and adding padding
+      // Convert base64url to base64 by replacing characters
       const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-      const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
-      const decoded = Buffer.from(padded, 'base64').toString('utf-8');
+      // Use atob() which is browser-compatible (instead of Buffer.from which is Node.js only)
+      const decoded = atob(base64);
       return JSON.parse(decoded);
     } catch (error) {
       console.error('Error decoding JWT:', error);
@@ -309,7 +309,7 @@ class AuthService {
     console.log('🔐 Auth tokens cleared');
   }
 
-  // Check if user is authenticated
+  // Check if user is authenticated (token not expired)
   isAuthenticated(): boolean {
     const tokens = this.getTokens();
     if (!tokens) return false;
@@ -319,11 +319,55 @@ class AuthService {
       const payload = this.decodeJWTPayload(tokens.idToken);
       if (!payload || !payload.exp) return false;
       
-      // Check if JWT is expired (with 5 minute buffer)
+      // Check if JWT is expired (no buffer - actual expiration only)
+      // Token refresh is handled on 401 responses, not here
       const currentTime = Math.floor(Date.now() / 1000);
-      return payload.exp > currentTime + (5 * 60);
+      return payload.exp > currentTime;
     } catch (error) {
       console.error('Error decoding JWT in isAuthenticated:', error);
+      return false;
+    }
+  }
+
+  // Check if token needs refresh (approaching expiration within 5 minutes)
+  private shouldRefreshToken(): boolean {
+    const tokens = this.getTokens();
+    if (!tokens) return false;
+    
+    try {
+      const payload = this.decodeJWTPayload(tokens.idToken);
+      if (!payload || !payload.exp) return false;
+      
+      const currentTime = Math.floor(Date.now() / 1000);
+      const timeUntilExpiry = payload.exp - currentTime;
+      
+      // Refresh if token expires within 5 minutes but is not yet expired
+      return timeUntilExpiry > 0 && timeUntilExpiry <= (5 * 60);
+    } catch (error) {
+      console.error('Error checking token refresh need:', error);
+      return false;
+    }
+  }
+
+  // Proactively refresh token if it's about to expire
+  async refreshTokenIfNeeded(): Promise<boolean> {
+    if (!this.shouldRefreshToken()) {
+      return false;
+    }
+
+    // Don't refresh if already in progress
+    if (this.isRefreshing) {
+      console.log('🔄 Token refresh already in progress');
+      return false;
+    }
+
+    console.log('🔄 Token approaching expiration, refreshing proactively...');
+    
+    try {
+      await this.getFreshToken();
+      return true;
+    } catch (error) {
+      console.error('❌ Proactive token refresh failed:', error);
       return false;
     }
   }
@@ -357,30 +401,62 @@ class AuthService {
   // Refresh access token (Authorization: Bearer <refreshToken>, body: { idToken })
   private async refreshToken(refreshToken: string, currentIdToken: string): Promise<string> {
     console.log('🔄 Calling refresh token API...');
-    const response = await fetch(`${API_BASE_URL}/refresh`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${refreshToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ idToken: currentIdToken }),
-    });
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/refresh`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${refreshToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ idToken: currentIdToken }),
+      });
 
-    if (!response.ok) {
-      // If refresh token API returns 401, clear tokens and redirect to login
-      if (response.status === 401) {
-        console.log('❌ Refresh token expired, redirecting to login');
-        this.clearTokens();
-        window.location.href = '/login';
+      if (!response.ok) {
+        // If refresh token API returns 401 or 403, the refresh token is invalid/expired
+        if (response.status === 401 || response.status === 403) {
+          console.log('❌ Refresh token expired or invalid, logging out user');
+          this.handleSessionExpired();
+          // Return a rejected promise that won't be caught as a normal error
+          return Promise.reject(new Error('SESSION_EXPIRED'));
+        }
+        throw new Error(`Token refresh failed: ${response.status} ${response.statusText}`);
       }
-      throw new Error(`Token refresh failed: ${response.status} ${response.statusText}`);
-    }
 
-    const data: LoginResponse = await response.json();
-    this.setTokens(data);
-    this.notifyTokenRefresh(); // Notify subscribers about token refresh
-    console.log('✅ Token refresh successful');
-    return data.idToken;
+      const data: LoginResponse = await response.json();
+      this.setTokens(data);
+      this.notifyTokenRefresh(); // Notify subscribers about token refresh
+      console.log('✅ Token refresh successful');
+      return data.idToken;
+    } catch (error) {
+      // Handle network errors or other fetch failures
+      if (error instanceof Error && error.message === 'SESSION_EXPIRED') {
+        throw error;
+      }
+      console.error('❌ Network error during token refresh:', error);
+      throw new Error(`Token refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // Handle session expiration - clear all state and redirect to login
+  private handleSessionExpired(): void {
+    console.log('🔒 Session expired, clearing auth state and redirecting to login');
+    
+    // Clear all queued requests
+    this.clearRefreshTimeout();
+    this.clearAllQueuedRequests(new Error('Session expired'));
+    this.isRefreshing = false;
+    
+    // Clear tokens
+    this.clearTokens();
+    
+    // Clear all callbacks to prevent memory leaks
+    this.tokenRefreshCallbacks.clear();
+    
+    // Redirect to login page
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
   }
 
   // Get fresh token with proper queue management
@@ -532,12 +608,11 @@ class AuthService {
       return response;
     }
 
-    // If this is a refresh call, don't retry
+    // If this is a refresh call, don't retry - session has expired
     if (isRefreshCall) {
-      console.log('❌ Refresh token call failed, redirecting to login');
-      this.clearTokens();
-      window.location.href = '/login';
-      throw new Error('Authentication failed - redirecting to login');
+      console.log('❌ Refresh token call failed');
+      this.handleSessionExpired();
+      throw new Error('Authentication failed - session expired');
     }
 
     // 401 response - need to refresh token and retry
@@ -559,10 +634,14 @@ class AuthService {
 
       return response;
     } catch (error) {
-      console.log('❌ Token refresh failed, redirecting to login');
-      this.clearTokens();
-      window.location.href = '/login';
-      throw new Error('Authentication failed - redirecting to login');
+      // Check if this is a session expired error (already handled)
+      if (error instanceof Error && error.message === 'SESSION_EXPIRED') {
+        throw new Error('Authentication failed - session expired');
+      }
+      
+      console.log('❌ Token refresh failed');
+      this.handleSessionExpired();
+      throw new Error('Authentication failed - session expired');
     }
   }
 }

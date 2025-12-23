@@ -12,11 +12,12 @@ import {
   BookOpen, 
   GraduationCap, 
   FileText, 
-  Maximize2, 
   PlayCircle, 
   ChevronRight,
   Users,
-  Eye
+  Eye,
+  Share2,
+  Check
 } from 'lucide-react';
 import { moduleApi, type Module, type ModuleFile, type QuizQuestion, type SubModule } from '@/lib/moduleApi';
 import { useToast } from '@/hooks/use-toast';
@@ -38,6 +39,27 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
   const [selectedPdf, setSelectedPdf] = useState<ModuleFile | null>(null);
   const [selectedQuiz, setSelectedQuiz] = useState<ModuleFile | null>(null);
   const [subModules, setSubModules] = useState<SubModule[]>([]);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleShareModule = async () => {
+    try {
+      const shareUrl = `${window.location.origin}/practice/modules/${moduleId}`;
+      await navigator.clipboard.writeText(shareUrl);
+      setIsCopied(true);
+      toast({
+        title: "Link copied!",
+        description: "Module link has been copied to clipboard. Share it with your agents.",
+      });
+      // Reset the copied state after 2 seconds
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      toast({
+        title: "Failed to copy",
+        description: "Could not copy the link. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   useEffect(() => {
     fetchModuleDetails();
@@ -93,17 +115,6 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
 
   const handlePdfSelect = (pdf: ModuleFile) => {
     setSelectedPdf(pdf);
-  };
-
-  const handleFullscreen = () => {
-    const element = document.getElementById('pdf-viewer-container');
-    if (element) {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      } else {
-        element.requestFullscreen();
-      }
-    }
   };
 
   // Calculate progress metrics
@@ -235,22 +246,26 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
             </div>
 
             {/* Action Buttons */}
-            {/* <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Bookmark className="h-4 w-4" />
-                Save
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={handleShareModule}
+              >
+                {isCopied ? (
+                  <>
+                    <Check className="h-4 w-4 text-green-600" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="h-4 w-4" />
+                    Share
+                  </>
+                )}
               </Button>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Share2 className="h-4 w-4" />
-                Share
-              </Button>
-              {selectedPdf && (
-                <Button variant="outline" size="sm" onClick={handleFullscreen} className="gap-2">
-                  <Maximize2 className="h-4 w-4" />
-                  Fullscreen
-                </Button>
-              )}
-            </div> */}
+            </div>
           </div>
 
           {/* Progress Bar */}
@@ -431,29 +446,11 @@ export default function ModuleDetail({ moduleId }: ModuleDetailProps) {
                 </Card>
               </aside>
 
-              {/* Enhanced PDF Viewer */}
+              {/* PDF Viewer */}
               <div className="lg:col-span-3">
                 {selectedPdf ? (
-                  <Card className="h-[calc(100vh-12rem)]">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                            <FileText className="h-5 w-5 text-blue-600" />
-                          </div>
-                          <div>
-                            <CardTitle className="text-md">{selectedPdf.name}</CardTitle>
-                            {/* <CardDescription>PDF Document</CardDescription> */}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button variant="outline" size='sm' onClick={handleFullscreen}>
-                            <Maximize2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-0 h-[calc(100%-5rem)]">
+                  <Card className="h-[calc(100vh-12rem)] overflow-hidden">
+                    <CardContent className="p-0 h-full">
                       <PdfViewer file={selectedPdf} />
                     </CardContent>
                   </Card>
