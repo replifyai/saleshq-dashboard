@@ -92,26 +92,38 @@ export default function CompactQuizHistory() {
     <div className="h-full flex flex-col space-y-3">
       {/* Scrollable quiz history container - shows exactly 5 rows */}
       <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-        {items.map((item, index) => (
-          <div key={index} className="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-            <div className="flex justify-between items-start mb-2">
-              <h4 className="font-medium text-sm truncate pr-2">{item.title}</h4>
-              <Badge variant={scoreToVariant(item.score)} className="text-xs">
-                {item.score.toFixed(0)}%
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-              <div className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                {timeAgo(item.takenAt)}
+        {items.map((item, index) => {
+          const handleClick = () => {
+            if (item.quizId) {
+              router.push(`/quiz-history/${item.quizId}`);
+            }
+          };
+          
+          return (
+            <div 
+              key={index} 
+              onClick={handleClick}
+              className={`p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${item.quizId ? 'cursor-pointer' : 'cursor-default'}`}
+            >
+              <div className="flex justify-between items-start mb-2">
+                <h4 className="font-medium text-sm truncate pr-2">{item.title}</h4>
+                <Badge variant={scoreToVariant(item.score)} className="text-xs">
+                  {item.score.toFixed(0)}%
+                </Badge>
               </div>
-              <div className="flex gap-2">
-                <span className="text-green-600">✓{item.correct}</span>
-                <span className="text-red-600">✗{item.wrong}</span>
+              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  {timeAgo(item.takenAt)}
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-green-600">✓{item.correct}</span>
+                  <span className="text-red-600">✗{item.wrong}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       
       <div className="pt-2 border-t flex-shrink-0">

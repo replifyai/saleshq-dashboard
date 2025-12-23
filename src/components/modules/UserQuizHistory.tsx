@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { moduleApi, type UserQuizResponseItem } from '@/lib/moduleApi';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,7 @@ function timeAgo(ts?: number): string {
 }
 
 export default function UserQuizHistory() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<UserQuizResponseItem[]>([]);
   const [q, setQ] = useState('');
@@ -109,8 +111,18 @@ export default function UserQuizHistory() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {filtered.map((item, idx) => {
             const gradient = scoreToGradient(item.score);
+            const handleClick = () => {
+              if (item.quizId) {
+                router.push(`/quiz-history/${item.quizId}`);
+              }
+            };
+            
             return (
-              <Card key={idx} className="hover:shadow-md transition-shadow">
+              <Card 
+                key={idx} 
+                onClick={handleClick}
+                className={`hover:shadow-md transition-shadow ${item.quizId ? 'cursor-pointer' : 'cursor-default'}`}
+              >
                 <CardHeader>
                   <CardTitle className="truncate text-base">{item.title}</CardTitle>
                   <CardDescription className="flex items-center gap-1 text-xs">

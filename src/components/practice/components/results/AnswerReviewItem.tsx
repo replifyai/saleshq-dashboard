@@ -77,17 +77,6 @@ export const AnswerReviewItem: React.FC<AnswerReviewItemProps> = ({
               </div>
             ))}
           </div>
-          
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-2">
-              <div className="flex items-start space-x-2">
-                <AlertCircle className="h-3 w-3 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-blue-800 dark:text-blue-200">
-                  <strong>Explanation:</strong> {question.explanation}
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </CardContent>
     </Card>

@@ -108,6 +108,7 @@ export interface SaveQuizAnswersResponse {
 }
 
 export interface UserQuizResponseItem {
+  quizId?: string;
   score: number;
   correct: number;
   wrong: number;
@@ -763,9 +764,9 @@ class ModuleApi {
     if (USE_MOCK_DATA) {
       return {
         data: [
-          { score: 92, correct: 23, wrong: 2, notAttempted: 0, title: 'Sales Fundamentals', takenAt: Date.now() - 86400000 },
-          { score: 76, correct: 19, wrong: 6, notAttempted: 0, title: 'Product Training 101 - Assessment', takenAt: Date.now() - 3 * 86400000 },
-          { score: 58, correct: 14, wrong: 11, notAttempted: 0, title: 'Support Playbook Basics', takenAt: Date.now() - 7 * 86400000 },
+          { quizId: 'QJvbJwDUtavmcqoaZUgs', score: 92, correct: 23, wrong: 2, notAttempted: 0, title: 'Sales Fundamentals', takenAt: Date.now() - 86400000 },
+          { quizId: 'quiz-2', score: 76, correct: 19, wrong: 6, notAttempted: 0, title: 'Product Training 101 - Assessment', takenAt: Date.now() - 3 * 86400000 },
+          { quizId: 'quiz-3', score: 58, correct: 14, wrong: 11, notAttempted: 0, title: 'Support Playbook Basics', takenAt: Date.now() - 7 * 86400000 },
         ],
       };
     }
@@ -776,6 +777,62 @@ class ModuleApi {
 
     if (!response.ok) {
       throw new Error('Failed to load user quiz responses');
+    }
+
+    return response.json();
+  }
+
+  async getUserQuizandCorrectAnswers(quizId: string): Promise<any> {
+    if (USE_MOCK_DATA) {
+      // Return mock quiz answer data matching API structure
+      const questions = mockQuizQuestions[quizId as keyof typeof mockQuizQuestions] || mockQuizQuestions['quiz-1'];
+      const totalQuestions = questions.length;
+      let correct = 0;
+      let wrong = 0;
+      
+      const questionsWithAnswers = questions.map((q, idx) => {
+        // Mock user answers - some correct, some wrong
+        const isCorrect = idx % 2 === 0;
+        const userAnswer = isCorrect ? q.answer : (q.options.find(opt => opt !== q.answer) || q.options[0]);
+        
+        if (isCorrect) correct++;
+        else wrong++;
+        
+        return {
+          questionId: `question_${idx + 1}`,
+          question: q.question,
+          options: q.options,
+          correctAnswer: q.answer, // API returns full option text
+          userAnswer: userAnswer, // API returns full option text
+          isCorrect: isCorrect,
+          order: idx + 1,
+        };
+      });
+      
+      return {
+        data: {
+          success: true,
+          data: {
+            quizId: quizId,
+            title: 'Sample Quiz',
+            score: correct,
+            correct: correct,
+            wrong: wrong,
+            notAttempted: totalQuestions - correct - wrong,
+            totalQuestions: totalQuestions,
+            createdAt: Date.now(),
+            questions: questionsWithAnswers,
+          },
+        },
+      };
+    }
+
+    const response = await authService.authenticatedFetch(`${API_BASE_URL}/getUserQuizandCorrectAnswers?quizId=${encodeURIComponent(quizId)}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to load quiz answers');
     }
 
     return response.json();
