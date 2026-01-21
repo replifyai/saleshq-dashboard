@@ -8,6 +8,7 @@ export interface ChatMessage {
   timestamp: number;
   sender: 'user' | 'bot';
   responseFormat?: 'text' | 'markdown' | 'table';
+  imageUrls?: string[]; // Array of image URLs to display in carousel
   sources?: Array<{
     documentId: number;
     filename: string;

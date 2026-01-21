@@ -10,6 +10,7 @@ interface ChatMessage {
   message: string;
   sender: 'user' | 'bot';
   timestamp: number;
+  imageUrls?: string[]; // Array of image URLs to display in carousel
   sources?: any[];
   organizationContext?: {
     mentionedNodes: string[];

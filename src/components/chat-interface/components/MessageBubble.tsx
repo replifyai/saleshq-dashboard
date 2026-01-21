@@ -5,7 +5,9 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { UserAvatar } from '../atoms/UserAvatar';
 import { MessageSources } from '../atoms/MessageSources';
-import { cleanMessage } from '../utils/chatUtils';
+import { ImageCarousel } from './ImageCarousel';
+import { ImageViewer } from './ImageViewer';
+import { cleanMessage, extractImageUrls, removeImageUrlsFromText } from '../utils/chatUtils';
 import { useToast } from '@/hooks/use-toast';
 import type { ChatMessage } from '@/lib/apiUtils';
 
@@ -15,7 +17,21 @@ interface MessageBubbleProps {
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [imageViewerIndex, setImageViewerIndex] = useState(0);
   const { toast } = useToast();
+
+  // Extract images from message text and combine with imageUrls field
+  const imagesFromText = extractImageUrls(message.message);
+  const allImageUrls = [
+    ...(message.imageUrls || []),
+    ...imagesFromText
+  ].filter((url, index, self) => self.indexOf(url) === index); // Remove duplicates
+
+  // Get cleaned message text without image URLs for display
+  const displayMessage = allImageUrls.length > 0 
+    ? removeImageUrlsFromText(message.message, allImageUrls)
+    : message.message;
 
   const handleCopyMessage = async (messageId: string, text: string) => {
     try {
@@ -62,32 +78,57 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             }`}></div>
 
           {message.sender === 'bot' ? (
-            <div className="text-sm leading-relaxed break-words text-gray-700 dark:text-gray-300 prose prose-sm prose-gray dark:prose-invert max-w-none">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                // components={{
-                //   // Custom styling for markdown elements
-                //   h1: ({ node, ...props }) => <h1 className="text-lg font-bold mb-2 text-gray-900 dark:text-white" {...props} />,
-                //   h2: ({ node, ...props }) => <h2 className="text-base font-bold mb-2 text-gray-900 dark:text-white" {...props} />,
-                //   h3: ({ node, ...props }) => <h3 className="text-sm font-bold mb-1 text-gray-900 dark:text-white" {...props} />,
-                //   p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
-                //   ul: ({ node, ...props }) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
-                //   ol: ({ node, ...props }) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
-                //   li: ({ node, ...props }) => <li className="text-sm" {...props} />,
-                //   strong: ({ node, ...props }) => <strong className="font-semibold text-gray-900 dark:text-white" {...props}> </strong>,
-                //   em: ({ node, ...props }) => <em className="italic" {...props} />,
-                //   code: ({ node, ...props }) => <code className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-xs font-mono" {...props} />,
-                //   pre: ({ node, ...props }) => <pre className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg overflow-x-auto mb-2" {...props} />,
-                //   blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic mb-2" {...props} />,
-                // }}
-              >
-                {cleanMessage(message.message)}
-              </ReactMarkdown>
-            </div>
+            <>
+              {/* Image Carousel - Show before message text */}
+              {allImageUrls.length > 0 && (
+                <ImageCarousel
+                  images={allImageUrls}
+                  onImageClick={(index) => {
+                    setImageViewerIndex(index);
+                    setImageViewerOpen(true);
+                  }}
+                />
+              )}
+              
+              <div className="text-sm leading-relaxed break-words text-gray-700 dark:text-gray-300 prose prose-sm prose-gray dark:prose-invert max-w-none">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  // components={{
+                  //   // Custom styling for markdown elements
+                  //   h1: ({ node, ...props }) => <h1 className="text-lg font-bold mb-2 text-gray-900 dark:text-white" {...props} />,
+                  //   h2: ({ node, ...props }) => <h2 className="text-base font-bold mb-2 text-gray-900 dark:text-white" {...props} />,
+                  //   h3: ({ node, ...props }) => <h3 className="text-sm font-bold mb-1 text-gray-900 dark:text-white" {...props} />,
+                  //   p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                  //   ul: ({ node, ...props }) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
+                  //   ol: ({ node, ...props }) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
+                  //   li: ({ node, ...props }) => <li className="text-sm" {...props} />,
+                  //   strong: ({ node, ...props }) => <strong className="font-semibold text-gray-900 dark:text-white" {...props}> </strong>,
+                  //   em: ({ node, ...props }) => <em className="italic" {...props} />,
+                  //   code: ({ node, ...props }) => <code className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-xs font-mono" {...props} />,
+                  //   pre: ({ node, ...props }) => <pre className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg overflow-x-auto mb-2" {...props} />,
+                  //   blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic mb-2" {...props} />,
+                  // }}
+                >
+                  {cleanMessage(displayMessage)}
+                </ReactMarkdown>
+              </div>
+            </>
           ) : (
-            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-white">
-              {message.message}
-            </p>
+            <>
+              {/* Image Carousel for user messages too */}
+              {allImageUrls.length > 0 && (
+                <ImageCarousel
+                  images={allImageUrls}
+                  onImageClick={(index) => {
+                    setImageViewerIndex(index);
+                    setImageViewerOpen(true);
+                  }}
+                />
+              )}
+              <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-white">
+                {displayMessage}
+              </p>
+            </>
           )}
 
           {/* Copy button for bot messages */}
@@ -116,6 +157,16 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         <div className="flex-shrink-0">
           <UserAvatar type="user" />
         </div>
+      )}
+
+      {/* Image Viewer Lightbox */}
+      {allImageUrls.length > 0 && (
+        <ImageViewer
+          images={allImageUrls}
+          open={imageViewerOpen}
+          index={imageViewerIndex}
+          onClose={() => setImageViewerOpen(false)}
+        />
       )}
     </div>
   );
